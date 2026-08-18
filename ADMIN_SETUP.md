@@ -21,15 +21,14 @@ This file is the repeat of the previous Accolade launch, but for the **new brand
 2. Skip Google Analytics if you want (optional).
 3. Project settings (gear) → **Your apps** → **Web** (`</>`) → register app name `Day-1`.
 4. Copy the `firebaseConfig` object.
-5. Paste it into `firebase-config.js`, replacing the old Accolade values.
+5. Put **only** the web `apiKey` in Netlify as `FIREBASE_WEB_API_KEY` (and in local `.env`). Do not paste live keys or admin UIDs into repo files.
 
 ### Authentication (admin only)
 
 1. Build → Authentication → **Get started**.
 2. Sign-in method → enable **Email/Password**.
 3. Users → **Add user** with the **new admin email + password** (not the Accolade one).
-4. Open that user and copy the **UID**. You need it for Firestore rules and Netlify.
-Jd0Jbj5JkFOziChdol2cOzUXHPV2
+4. Open that user and copy the **UID**. You need it for Firestore rules and Netlify. Keep it in Netlify env vars only — do not paste the live UID into this file.
 
 ### Firestore (important for shop loading)
 
@@ -125,14 +124,14 @@ Site settings → Environment variables:
 - `CLOUDINARY_CLOUD_NAME`
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_API_SECRET`
-- `FIREBASE_WEB_API_KEY` (same as `apiKey` in `firebase-config.js`)
-- `ALLOWED_ADMIN_UIDS` (comma-separated admin UIDs from Firebase Auth)
+- `FIREBASE_WEB_API_KEY`
+- `ALLOWED_ADMIN_UIDS`
 
-Redeploy the site after saving variables so the Cloudinary signature function can read them.
+These values stay in Netlify only. Do not paste them into `ADMIN_SETUP.md`, `firebase-config.js`, or any other git file.
 
-Do not put API secrets inside HTML/JS frontend files.
+Redeploy after saving variables. The build copies `FIREBASE_WEB_API_KEY` into the live site automatically. Cloudinary secret is used only by the Netlify function.
 
-Local `.env` is only a reminder (see `.env.example`). Netlify does not read `.env` from the zip unless you set the same names in the Netlify UI.
+Local `.env` is gitignored. Copy `.env.example` → `.env`, then run `node scripts/write-firebase-config.js` if you need to test locally.
 
 ## 7) FormSubmit (order emails)
 
@@ -154,7 +153,7 @@ Each order email includes order number, payment method, items, and billing detai
 
 ## 9) Quick go-live checklist
 
-- [ ] New Firebase project + pasted `firebase-config.js`
+- [ ] New Firebase project + `FIREBASE_WEB_API_KEY` only in Netlify / `.env`
 - [ ] Firestore in `asia-south1` or `asia-southeast1`
 - [ ] New admin user + UID in rules and `ALLOWED_ADMIN_UIDS`
 - [ ] Cloudinary vars on Netlify

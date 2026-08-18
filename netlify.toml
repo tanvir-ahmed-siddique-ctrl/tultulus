@@ -1,3 +1,11 @@
+[build]
+  command = "node scripts/write-firebase-config.js"
+  publish = "."
+
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+
+[build.environment]
+  # Public Firebase web key is injected into JS at build. Omit so secrets scan does not fail.
+  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_WEB_API_KEY"
