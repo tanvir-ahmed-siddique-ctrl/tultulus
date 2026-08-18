@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Product | Day-1</title>
+    <link rel="preload" as="image" href="photos/main_bg.jpeg" />
+    <style>html,body{background:#1a1510}</style>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
@@ -38,21 +40,25 @@
       body {
         min-height: 100%;
         overflow-x: hidden;
+        background: #1a1510;
       }
 
       body {
         font-family: "Cinzel", "Inter", sans-serif;
-        background-color: #1a1510;
-        background-image: url("photos/main_bg.jpeg");
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: scroll;
         color: #ffffff;
         padding-top: var(--header-height);
         display: flex;
         flex-direction: column;
         min-height: 100vh;
+        isolation: isolate;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background: #1a1510 url("photos/main_bg.jpeg") center / cover no-repeat;
       }
 
       .site-header {

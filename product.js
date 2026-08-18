@@ -3,6 +3,9 @@ import { db, doc, getDoc } from "./firebase-config.js";
 const PRODUCTS_COLLECTION = "products";
 const CART_KEY = "store_cart";
 const LEGACY_CART_KEY = "accolade_cart";
+const LIST_CACHE_KEY = "day1_products_cache";
+const DETAIL_CACHE_KEY = "day1_product_details";
+const CACHE_MS = 10 * 60 * 1000;
 const DEFAULT_SIZES = ["S", "M", "L", "XL"];
 const DEFAULT_SIZE_CHART = {
   columns: ["Length", "Chest", "Sleeve"],
@@ -80,6 +83,54 @@ function normalizeSizeChart(raw) {
     }
   }
   return DEFAULT_SIZE_CHART;
+}
+
+function readCachedProduct(id) {
+  if (!id) return null;
+  try {
+    const detailRaw = sessionStorage.getItem(DETAIL_CACHE_KEY);
+    if (detailRaw) {
+      const parsed = JSON.parse(detailRaw);
+      const cached = parsed?.details?.[id];
+      if (cached && Date.now() - (parsed.ts || 0) < CACHE_MS) {
+        return cached;
+      }
+    }
+    const listRaw = sessionStorage.getItem(LIST_CACHE_KEY);
+    if (listRaw) {
+      const parsed = JSON.parse(listRaw);
+      if (Date.now() - (parsed.ts || 0) < CACHE_MS) {
+        return (parsed.products || []).find((item) => item.id === id) || null;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function writeCachedProduct(product) {
+  if (!product?.id) return;
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(DETAIL_CACHE_KEY) || "{}");
+    const details = parsed.details && typeof parsed.details === "object" ? parsed.details : {};
+    details[product.id] = product;
+    sessionStorage.setItem(
+      DETAIL_CACHE_KEY,
+      JSON.stringify({ ts: Date.now(), details }),
+    );
+  } catch {
+    // Ignore quota / private mode.
+  }
+}
+
+function prefetchImages(urls) {
+  (urls || []).slice(0, 4).forEach((src) => {
+    if (!src) return;
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+  });
 }
 
 function normalizeProduct(docSnap) {
@@ -318,21 +369,36 @@ async function loadProduct() {
     showError("Product not found. Go back to shop and try again.");
     return;
   }
+
+  const cached = readCachedProduct(productId);
+  if (cached && cached.isPublished !== false) {
+    renderProduct({
+      ...cached,
+      sizes: cached.sizes?.length ? cached.sizes : DEFAULT_SIZES,
+      sizeChart: normalizeSizeChart(cached.sizeChart),
+    });
+    prefetchImages(cached.images);
+  }
+
   try {
     const snap = await getDoc(doc(db, PRODUCTS_COLLECTION, productId));
     if (!snap.exists()) {
-      showError("This product is no longer available.");
+      if (!cached) showError("This product is no longer available.");
       return;
     }
     const data = normalizeProduct(snap);
     if (!data.isPublished) {
-      showError("This product is no longer available.");
+      if (!cached) showError("This product is no longer available.");
       return;
     }
+    writeCachedProduct(data);
     renderProduct(data);
+    prefetchImages(data.images);
   } catch (error) {
     console.error("Failed to load product", error);
-    showError("Could not load product. Please try again.");
+    if (!cached) {
+      showError("Could not load product. Please try again.");
+    }
   }
 }
 

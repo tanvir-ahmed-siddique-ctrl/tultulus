@@ -2,6 +2,7 @@ import { collection, db, getDocs } from "./firebase-config.js";
 
 const PRODUCTS_COLLECTION = "products";
 const CACHE_KEY = "day1_products_cache";
+const DETAIL_CACHE_KEY = "day1_product_details";
 const CACHE_MS = 10 * 60 * 1000;
 
 document.documentElement.classList.add("firebase-products-loading");
@@ -86,6 +87,12 @@ function normalizeProduct(docSnap) {
   const priceOriginal = toNumber(data.priceOriginal ?? data.offer, priceCurrent);
   const discount = calculateDiscount(priceCurrent, priceOriginal);
   const categories = getCategories(data);
+  const sizes = Array.isArray(data.sizes)
+    ? data.sizes.map((item) => String(item).trim()).filter(Boolean)
+    : String(data.sizes || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
 
   return {
     id: docSnap.id,
@@ -101,6 +108,8 @@ function normalizeProduct(docSnap) {
     sizeChartUrl: String(data.sizeChartUrl || data.sizechart || "photos/chart.jpeg"),
     images,
     designPoints,
+    sizes,
+    sizeChart: data.sizeChart || null,
     categories,
     isPublished: data.isPublished !== false,
     sortOrder: Number.isFinite(Number(data.sortOrder))
@@ -157,6 +166,8 @@ function createProductCard(product) {
   `;
 
   const openProductPage = () => {
+    cacheProductDetail(product);
+    prefetchImages(product.images);
     window.location.href = `product.html?id=${encodeURIComponent(product.id)}`;
   };
   card.addEventListener("click", openProductPage);
@@ -225,9 +236,38 @@ function writeCachedProducts(products) {
       CACHE_KEY,
       JSON.stringify({ ts: Date.now(), products }),
     );
+    const details = {};
+    products.forEach((product) => {
+      details[product.id] = product;
+    });
+    sessionStorage.setItem(DETAIL_CACHE_KEY, JSON.stringify({ ts: Date.now(), details }));
   } catch {
     // Ignore quota / private mode.
   }
+}
+
+function cacheProductDetail(product) {
+  if (!product?.id) return;
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(DETAIL_CACHE_KEY) || "{}");
+    const details = parsed.details && typeof parsed.details === "object" ? parsed.details : {};
+    details[product.id] = product;
+    sessionStorage.setItem(
+      DETAIL_CACHE_KEY,
+      JSON.stringify({ ts: Date.now(), details }),
+    );
+  } catch {
+    // Ignore quota / private mode.
+  }
+}
+
+function prefetchImages(urls) {
+  (urls || []).slice(0, 4).forEach((src) => {
+    if (!src) return;
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+  });
 }
 
 async function loadProducts() {
