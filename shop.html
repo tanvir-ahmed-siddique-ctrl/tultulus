@@ -46,7 +46,7 @@
         --card-bg: rgba(20, 20, 20, 0.55);
         --card-border: rgba(255, 255, 255, 0.15);
         --header-footer: #7a6a4f;
-        --header-height: 86px;
+        --header-height: 72px;
         --shadow: 0 18px 45px rgba(30, 24, 14, 0.14);
         --shadow-soft: 0 10px 28px rgba(30, 24, 14, 0.08);
       }
@@ -60,7 +60,7 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-attachment: scroll;
         color: var(--brown);
         padding-top: var(--header-height);
         width: 100%;
@@ -79,10 +79,17 @@
       .hidden-section {
         display: none;
       }
-      html.open-checkout #step-products {
+      html.open-checkout #step-products,
+      html.order-complete #step-products {
         display: none !important;
       }
       html.open-checkout #master-form {
+        display: block !important;
+      }
+      html.order-complete #master-form {
+        display: none !important;
+      }
+      html.order-complete #step-success {
         display: block !important;
       }
       .fade-in {
@@ -114,12 +121,13 @@
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.18em;
         color: var(--muted);
+        font-family: "Cinzel", "Inter", sans-serif;
       }
       .icon-button {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         border-radius: 999px;
         border: 1px solid var(--card-border);
         background: var(--button-bg);
@@ -135,8 +143,8 @@
         color: var(--button-hover-text);
       }
       .brand-mark {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -1264,11 +1272,23 @@
       /* Mobile adjustments */
       @media (max-width: 768px) {
         :root {
-          --header-height: 70px;
+          --header-height: 58px;
         }
+        .nav-inner,
         .nav-inner {
-          padding: 8px 8px;
-          column-gap: 6px;
+          padding: 0 12px;
+          column-gap: 8px;
+        }
+        .nav-link {
+          font-size: 11px;
+          letter-spacing: 0.14em;
+        }
+        .hamburger {
+          font-size: 16px;
+        }
+        .icon-button {
+          width: 32px;
+          height: 32px;
         }
         .brand-center {
           flex-direction: row;
@@ -1281,8 +1301,8 @@
           white-space: nowrap;
         }
         .brand-mark {
-          width: 24px;
-          height: 24px;
+          width: 32px;
+          height: 32px;
         }
         .icon-button {
           width: 24px;
@@ -1955,40 +1975,116 @@
       .terms-row input {
         margin-top: 3px;
       }
+      .order-complete-page {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 12px 0 48px;
+      }
+      .order-complete-card {
+        text-align: left;
+        background: rgba(12, 12, 12, 0.88);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 24px;
+        padding: 28px 22px 24px;
+        box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+      }
+      .order-complete-hero {
+        text-align: center;
+        margin-bottom: 22px;
+      }
+      .order-complete-hero .check-circle {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 16px;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #15803d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+      }
+      .order-complete-hero h2 {
+        font-size: clamp(1.3rem, 4vw, 1.85rem);
+        letter-spacing: 0.04em;
+        text-transform: none;
+        margin-bottom: 8px;
+        line-height: 1.25;
+      }
+      .order-complete-hero p {
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        color: rgba(255,255,255,0.72);
+        max-width: 36ch;
+        margin: 0 auto;
+        line-height: 1.6;
+      }
       .order-receipt {
         text-align: left;
-        max-width: 640px;
-        margin: 0 auto;
-        background: rgba(15,15,15,0.72);
-        border: 1px solid var(--card-border);
-        border-radius: 20px;
-        padding: 28px 24px;
+        margin: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        padding: 0;
       }
       .order-receipt h3 {
-        font-size: 13px;
-        letter-spacing: 0.18em;
+        font-size: 12px;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
         margin: 22px 0 10px;
+        color: var(--price);
       }
       .order-receipt table {
         width: 100%;
         border-collapse: collapse;
         font-size: 13px;
+        font-family: "Inter", sans-serif;
+      }
+      .order-receipt th {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.55);
+        padding-bottom: 8px;
       }
       .order-receipt td {
-        padding: 8px 0;
-        border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 10px 0;
+        border-top: 1px solid rgba(255,255,255,0.12);
+        vertical-align: top;
       }
       .order-meta {
         display: grid;
-        gap: 8px;
+        gap: 0;
         font-family: "Inter", sans-serif;
         font-size: 14px;
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 14px;
+        overflow: hidden;
       }
       .order-meta div {
         display: flex;
         justify-content: space-between;
         gap: 12px;
+        padding: 12px 14px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+      .order-meta div:first-child {
+        border-top: 0;
+      }
+      .order-meta span {
+        color: rgba(255,255,255,0.6);
+      }
+      .order-address {
+        font-family: "Inter", sans-serif;
+        line-height: 1.7;
+        font-size: 14px;
+        color: rgba(255,255,255,0.88);
+        margin: 0;
+      }
+      .order-complete-actions {
+        margin-top: 24px;
+        display: flex;
+        justify-content: center;
       }
       .scroll-featured {
         position: fixed;
@@ -2050,6 +2146,7 @@
         align-items: center;
         min-height: var(--header-height);
         width: 100%;
+        padding: 0 2rem;
       }
       .nav-left {
         justify-self: start;
@@ -2059,7 +2156,7 @@
         background: transparent;
         border: none;
         color: #fff;
-        font-size: 18px;
+        font-size: 16px;
         cursor: pointer;
         padding: 4px;
         display: flex;
@@ -2076,7 +2173,7 @@
         justify-self: end;
         display: inline-flex;
         align-items: center;
-        gap: 20px;
+        gap: 12px;
       }
       .site-header .nav-link,
       .site-header .brand-mark,
@@ -2320,7 +2417,7 @@
         display: none !important;
       }
       /* Capitalize all uppercase elements except hero-title */
-      .nav-link, .btn-primary, .btn-outline, .section-title, .section-tag, 
+      .btn-primary, .btn-outline, .section-title, .section-tag, 
       .product-image .label-chip, .badge, .add-btn, .info-thumb, .info-title, 
       .info-subtitle, .info-details summary, .info-key, .size-link, .availability, 
       .modal-quick-item, .size-note, .modal-accordion-header, .modal-unit, 
@@ -2337,7 +2434,7 @@
   <body id="top" class="text-white">
     <!-- Header -->
     <header class="site-header">
-      <nav class="nav-inner w-full px-6 md:px-12 py-4">
+      <nav class="nav-inner">
 
   <!-- LEFT: Hamburger -->
   <div class="nav-left">
@@ -2623,14 +2720,18 @@
       <iframe name="hidden-iframe" style="display:none;"></iframe>
 
       <!-- Step success -->
-      <div id="step-success" class="hidden-section text-center py-20 fade-in">
-        <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-xl">
-          <i class="fas fa-check"></i>
+      <div id="step-success" class="hidden-section fade-in order-complete-page">
+        <div class="order-complete-card">
+          <div class="order-complete-hero">
+            <div class="check-circle"><i class="fas fa-check"></i></div>
+            <h2>Thank you. Your order has been received.</h2>
+            <p>Please screenshot this page and keep it until your order arrives.</p>
+          </div>
+          <div id="order-receipt" class="order-receipt"></div>
+          <div class="order-complete-actions">
+            <button onclick="location.href='shop.html'" class="btn-primary justify-center">Continue shopping</button>
+          </div>
         </div>
-        <h2 class="text-3xl font-black uppercase mb-4">Thank you. Your order has been received.</h2>
-        <p class="opacity-70 max-w-md mx-auto mb-8">Please take a screenshot of this confirmation for your records.</p>
-        <div id="order-receipt" class="order-receipt mb-8"></div>
-        <button onclick="location.reload()" class="btn-primary justify-center">Shop more!</button>
       </div>
     </main>
 
@@ -4428,8 +4529,11 @@
             if (masterForm) masterForm.classList.add("hidden-section");
             const stepSuccess = document.getElementById("step-success");
             if (stepSuccess) stepSuccess.classList.remove("hidden-section");
+            document.documentElement.classList.remove("open-checkout");
+            document.documentElement.classList.add("order-complete");
+            history.replaceState({}, "", "shop.html");
             if (typeof hidePaymentScrollButton === "function") hidePaymentScrollButton();
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: "instant" });
           }, 1500);
         });
       }

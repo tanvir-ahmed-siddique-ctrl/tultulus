@@ -21,7 +21,7 @@
         --badge: #c4342f;
         --accent: #e8ddcf;
         --card-border: rgba(255, 255, 255, 0.15);
-        --header-height: 86px;
+        --header-height: 72px;
         --button-bg: #faf7f2;
         --button-text: #1f1f1f;
         --button-hover: #9c3b2e;
@@ -47,7 +47,7 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-attachment: scroll;
         color: #ffffff;
         padding-top: var(--header-height);
         display: flex;
@@ -89,8 +89,8 @@
         color: inherit;
       }
       .brand-mark {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
         border: none;
         background: transparent;
       }
@@ -110,9 +110,10 @@
         font-size: 12px;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.22em;
+        letter-spacing: 0.18em;
         color: var(--muted);
         text-decoration: none;
+        font-family: "Cinzel", "Inter", sans-serif;
       }
       .nav-link:hover {
         color: #fff;
@@ -122,8 +123,8 @@
         display: inline-flex;
       }
       .header-cart .icon-button {
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         border-radius: 999px;
         border: 1px solid rgba(250, 247, 242, 0.4);
         background: rgba(250, 247, 242, 0.12);
@@ -140,7 +141,7 @@
         background: transparent;
         border: none;
         color: #fff;
-        font-size: 18px;
+        font-size: 16px;
         cursor: pointer;
         padding: 4px;
       }
@@ -848,14 +849,25 @@
 
       @media (max-width: 768px) {
         :root {
-          --header-height: 70px;
+          --header-height: 58px;
         }
         .nav-inner {
-          padding: 0 1rem;
+          padding: 0 12px;
         }
-        .brand-text {
+        .brand-mark {
+          width: 32px;
+          height: 32px;
+        }
+        .nav-link {
           font-size: 11px;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.14em;
+        }
+        .header-cart .icon-button {
+          width: 32px;
+          height: 32px;
+        }
+        .hamburger {
+          font-size: 16px;
         }
       }
     </style>

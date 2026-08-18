@@ -883,17 +883,10 @@
                   <span class="step-badge">1</span>
                 </div>
 
-                <div class="input-grid two">
-                  <div>
-                    <label for="product-name">Product name</label>
-                    <input id="product-name" type="text" placeholder="Classic Tee" required />
-                    <p class="field-hint">Write the product title clearly. Example: “Oversized Black Tee”.</p>
-                  </div>
-                  <div>
-                    <label for="product-subtitle">Short subtitle</label>
-                    <input id="product-subtitle" type="text" placeholder="Premium collection" />
-                    <p class="field-hint">One short line under the name. Example: “Heavyweight cotton”.</p>
-                  </div>
+                <div>
+                  <label for="product-name">Product name</label>
+                  <input id="product-name" type="text" placeholder="Classic Tee" required />
+                  <p class="field-hint">Write the product title clearly. Example: “Oversized Black Tee”.</p>
                 </div>
 
                 <div class="input-grid two">
@@ -1016,12 +1009,6 @@
                   </div>
                   <p class="field-hint">Uncheck Published to keep it hidden as a draft. Tick Featured / Hot Selling to show in those sections.</p>
                 </div>
-
-                <div>
-                  <label for="category-custom">Extra tags (optional)</label>
-                  <input id="category-custom" type="text" placeholder="new-drop, terry-cotton" />
-                  <p class="field-hint">Optional labels for later filtering. Separate with commas. Most admins can leave this blank.</p>
-                </div>
               </section>
 
               <div class="actions">
@@ -1036,7 +1023,7 @@
             <section class="card panel-pad preview-card" aria-labelledby="preview-heading">
               <p class="eyebrow">What customers see</p>
               <h2 id="preview-heading" class="section-title">Product box preview</h2>
-              <p class="helper-note">This is how the shop card will look. First photo, name, subtitle, badge, and prices appear here.</p>
+              <p class="helper-note">This is how the shop card will look. First photo, name, badge, and prices appear here.</p>
               <div class="preview-image" style="margin-top: 16px;">
                 <img id="preview-image" src="photos/any.jpeg" alt="Product preview" />
                 <span id="preview-chip" class="preview-chip">Product</span>
@@ -1044,7 +1031,6 @@
               </div>
               <div class="preview-copy">
                 <h3 id="preview-name">Product name</h3>
-                <p id="preview-subtitle">Premium collection</p>
                 <div class="price-line">
                   <span>BDT</span>
                   <del id="preview-original">0</del>
@@ -1059,17 +1045,11 @@
               <div class="map-list" style="margin-top: 14px;">
                 <div class="map-item">
                   <strong>Shop card means</strong>
-                  <span id="map-card-fields">Name, subtitle, first photo, badge, and prices in the shop grid.</span>
+                  <span id="map-card-fields">Name, first photo, badge, and prices in the shop grid.</span>
                 </div>
                 <div class="map-item">
                   <strong>Product page means</strong>
                   <span id="map-modal-fields">Photo gallery, size buttons, and the editable size chart table.</span>
-                </div>
-                <div class="map-item">
-                  <strong>Design points preview</strong>
-                  <ul id="preview-design-list">
-                    <li>Add up to three product highlights.</li>
-                  </ul>
                 </div>
               </div>
             </section>

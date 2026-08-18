@@ -30,19 +30,16 @@ const productStatus = document.getElementById("product-status");
 const productList = document.getElementById("product-list");
 const formTitle = document.getElementById("product-form-title");
 const cancelEditButton = document.getElementById("cancel-edit");
-const customCategoriesInput = document.getElementById("category-custom");
 const saveProductButton = document.getElementById("save-product");
 const productCountLabel = document.getElementById("product-count");
 const publishedCountLabel = document.getElementById("published-count");
 const editorModeLabel = document.getElementById("editor-mode");
 const previewImage = document.getElementById("preview-image");
 const previewName = document.getElementById("preview-name");
-const previewSubtitle = document.getElementById("preview-subtitle");
 const previewCurrent = document.getElementById("preview-current");
 const previewOriginal = document.getElementById("preview-original");
 const previewBadge = document.getElementById("preview-badge");
 const previewChip = document.getElementById("preview-chip");
-const previewDesignList = document.getElementById("preview-design-list");
 const productImagesInput = document.getElementById("product-images");
 const imageFilesInput = document.getElementById("product-image-files");
 const uploadProductImagesButton = document.getElementById("upload-product-images");
@@ -253,7 +250,6 @@ function updateDashboardStats() {
 
 function getPreviewFields() {
   const name = document.getElementById("product-name")?.value.trim();
-  const subtitle = document.getElementById("product-subtitle")?.value.trim();
   const priceCurrent = toNumber(document.getElementById("price-current")?.value);
   const priceOriginal = toNumber(
     document.getElementById("price-original")?.value || `${priceCurrent}`,
@@ -265,7 +261,6 @@ function getPreviewFields() {
 
   return {
     name: name || "Product name",
-    subtitle: subtitle || "Premium collection",
     priceCurrent,
     priceOriginal: priceOriginal || priceCurrent,
     badge: badge || "NEW",
@@ -285,7 +280,6 @@ function updatePreview() {
     previewImage.alt = `${preview.name} preview`;
   }
   setText(previewName, preview.name);
-  setText(previewSubtitle, preview.subtitle);
   setText(previewCurrent, preview.priceCurrent || 0);
   setText(previewOriginal, preview.priceOriginal || preview.priceCurrent || 0);
   setText(previewBadge, preview.badge);
@@ -441,12 +435,6 @@ function getCategoriesFromForm() {
   if (hotSelling) {
     categories.add("hot-selling");
   }
-  parseList(customCategoriesInput.value).forEach((item) => {
-    const slug = slugify(item);
-    if (slug) {
-      categories.add(slug);
-    }
-  });
   return {
     categories: Array.from(categories),
     featured,
@@ -456,7 +444,6 @@ function getCategoriesFromForm() {
 
 function getFormData() {
   const name = document.getElementById("product-name").value.trim();
-  const subtitle = document.getElementById("product-subtitle").value.trim();
   const priceCurrent = toNumber(document.getElementById("price-current").value);
   const priceOriginal = toNumber(
     document.getElementById("price-original").value || `${priceCurrent}`,
@@ -485,7 +472,6 @@ function getFormData() {
 
   return {
     name,
-    subtitle: subtitle || "Premium collection",
     priceCurrent,
     priceOriginal: priceOriginal || priceCurrent,
     badge: badge || "NEW",
@@ -521,7 +507,6 @@ function renderProductList() {
           <img src="${escapeHtml(product.images?.[0] || "photos/any.jpeg")}" alt="${escapeHtml(product.name)}" />
           <div class="product-row-info">
             <h3>${escapeHtml(product.name)}</h3>
-            <p>${escapeHtml(product.subtitle)}</p>
             <p class="meta">BDT ${escapeHtml(product.priceCurrent)} | ${escapeHtml(categories)} | ${visibility}</p>
             <div class="product-row-actions">
               <button type="button" data-edit-id="${escapeHtml(product.id)}">Edit</button>
@@ -549,7 +534,6 @@ function renderProductList() {
       }
 
       document.getElementById("product-name").value = selected.name || "";
-      document.getElementById("product-subtitle").value = selected.subtitle || "";
       document.getElementById("price-current").value = selected.priceCurrent || "";
       document.getElementById("price-original").value = selected.priceOriginal || "";
       document.getElementById("product-badge").value = selected.badge || "";
@@ -566,11 +550,6 @@ function renderProductList() {
       document.getElementById("category-hot").checked =
         selected.hotSelling === true ||
         selected.categories?.includes("hot-selling");
-
-      const custom = (selected.categories || []).filter(
-        (item) => item !== "all" && item !== "featured" && item !== "hot-selling",
-      );
-      customCategoriesInput.value = custom.join(", ");
 
       updateDashboardStats();
       updatePreview();
