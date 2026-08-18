@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | Day-1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+
+      :root {
+        --sand-strong: rgba(15, 15, 15, 0.85);
+        --brown: #ffffff;
+        --muted: #e2d5c5;
+        --accent: #e8ddcf;
+        --card-border: rgba(255, 255, 255, 0.15);
+        --header-height: 86px;
+        --header-footer: #7a6a4f;
+        --shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: "Cinzel", "Inter", sans-serif;
+        background-color: #1a1510;
+        background-image: url('photos/main_bg.jpeg');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        color: var(--brown);
+        padding-top: var(--header-height);
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .site-header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 50;
+        background: rgba(15, 15, 15, 0.7);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--card-border);
+      }
+      .nav-inner {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        min-height: var(--header-height);
+        padding: 0 2rem;
+      }
+      .nav-left { justify-self: start; }
+      /* Hamburger */
+      .hamburger {
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-size: 18px;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Mobile menu */
+      #mobile-menu {
+        display: none;
+        position: fixed;
+        top: var(--header-height);
+        left: 0;
+        width: 100%;
+        height: calc(100vh - var(--header-height));
+        background-color: var(--sand-strong);
+        padding: 2rem;
+        flex-direction: column;
+        gap: 1.5rem;
+        z-index: 50;
+        border-top: 1px solid var(--card-border);
+        animation: fadeIn 0.3s ease-out;
+      }
+      #mobile-menu.open { display: flex; }
+      #mobile-menu a {
+        font-family: "Cinzel", serif;
+        font-size: 1.5rem;
+        color: var(--brown);
+        text-transform: uppercase;
+        text-decoration: none;
+        letter-spacing: 0.1em;
+      }
+      #mobile-menu .admin-menu-link {
+        margin-top: auto;
+        padding-top: 1.5rem;
+        font-family: "Inter", sans-serif !important;
+        font-size: 0.7rem !important;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        text-transform: none !important;
+        color: rgba(255, 255, 255, 0.28) !important;
+      }
+      #mobile-menu .admin-menu-link:hover {
+        color: rgba(255, 255, 255, 0.45) !important;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      .brand-center {
+        justify-self: center;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: inherit;
+      }
+      .brand-mark {
+        width: 48px; height: 48px;
+        border: none;
+        background: transparent;
+      }
+      .brand-mark img { width: 100%; height: 100%; object-fit: contain; }
+      .nav-right {
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .header-cart {
+        position: relative;
+        display: inline-flex;
+      }
+      .header-cart .icon-button {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        border: 1px solid rgba(250, 247, 242, 0.4);
+        background: rgba(250, 247, 242, 0.12);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .header-cart .icon-button img {
+        width: 18px;
+        height: 18px;
+      }
+      .cart-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #c4342f;
+        color: #fff;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+      }
+      .brand-text {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #fff;
+      }
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        border: 1px solid var(--card-border);
+        padding: 8px 16px;
+        border-radius: 999px;
+        transition: all 0.2s ease;
+      }
+      .back-btn:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: rgba(255,255,255,0.35);
+      }
+
+      /* Page content */
+      .page-main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: clamp(40px, 6vw, 80px) 24px 80px;
+      }
+
+      /* Hero */
+      .page-hero {
+        text-align: center;
+        margin-bottom: 56px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+      }
+      .page-kicker {
+        font-size: 10px;
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        color: var(--muted);
+        opacity: 0.7;
+        margin-bottom: 16px;
+      }
+      .page-title {
+        font-family: "Cinzel", serif;
+        font-size: clamp(2rem, 5vw, 3.6rem);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.18;
+        color: #fff;
+        margin-bottom: 20px;
+      }
+      .page-sub {
+        font-family: "Inter", sans-serif;
+        font-size: 15px;
+        color: var(--muted);
+        max-width: 52ch;
+        margin: 0 auto;
+        line-height: 1.78;
+      }
+
+      /* Glass cards */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+      @media (max-width: 640px) {
+        .cards-grid { grid-template-columns: 1fr; }
+      }
+      .glass-card {
+        background: rgba(15, 15, 15, 0.55);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        padding: 28px 24px;
+        box-shadow: 0 14px 35px rgba(0,0,0,0.3);
+        transition: border-color 0.2s ease;
+      }
+      .glass-card:hover {
+        border-color: rgba(255,255,255,0.28);
+      }
+      .card-kicker {
+        font-size: 9px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: var(--muted);
+        opacity: 0.6;
+        margin-bottom: 10px;
+      }
+      .card-title {
+        font-family: "Cinzel", serif;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 14px;
+      }
+      .card-body {
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.78;
+      }
+      .card-body ul {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .card-body ul li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .card-body ul li::before {
+        content: "—";
+        color: rgba(255,255,255,0.3);
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+
+      /* Stats strip */
+      .stats-strip {
+        background: rgba(15, 15, 15, 0.55);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--card-border);
+        border-radius: 20px;
+        padding: 28px 24px;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0;
+        margin-bottom: 32px;
+      }
+      .stat-item {
+        flex: 1 1 120px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 12px;
+        text-align: center;
+      }
+      .stat-num {
+        font-family: "Cinzel", serif;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.04em;
+      }
+      .stat-label {
+        font-family: "Inter", sans-serif;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        opacity: 0.65;
+      }
+      .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--card-border);
+        flex-shrink: 0;
+        align-self: center;
+      }
+      @media (max-width: 480px) {
+        .stat-divider { display: none; }
+        .stat-item { flex: 1 1 45%; }
+      }
+
+      /* Footer */
+      .site-footer {
+        background: rgba(10, 10, 10, 0.95);
+        border-top: 1px solid var(--card-border);
+        width: 100%;
+      }
+      .footer-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .footer-links {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .footer-links a {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        transition: color 0.2s ease;
+      }
+      .footer-links a:hover,
+      .footer-links a.active { color: #fff; }
+      .footer-copy {
+        font-family: "Inter", sans-serif;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        color: rgba(255,255,255,0.28);
+      }
+
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="site-header">
+      <nav class="nav-inner">
+
+        <!-- LEFT: Hamburger -->
+        <div class="nav-left">
+          <button class="hamburger" aria-label="Menu">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <!-- CENTER: Brand -->
+        <a href="index.html" class="brand-center" aria-label="Day-1 home">
+          <div class="brand-mark">
+            <img src="favicon.ico" alt="Day-1 logo" />
+          </div>
+        </a>
+
+        <div class="nav-right">
+          <a class="nav-link" href="shop.html" style="font-size:12px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);text-decoration:none;">Shop</a>
+          <div class="header-cart">
+            <button id="cart-button" class="icon-button" type="button" aria-label="Cart">
+              <img src="photos/icons8-bag-100.png" alt="" />
+            </button>
+            <span id="cart-badge" class="cart-badge">0</span>
+          </div>
+        </div>
+
+      </nav>
+    </header>
+
+    <!-- Mobile menu (outside header to avoid contain:paint clipping) -->
+    <div id="mobile-menu">
+      <a href="shop.html">Shop</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="#cart" onclick="window.openGlobalCart && window.openGlobalCart(); return false;">Cart</a>
+      <a href="admin.html" class="admin-menu-link">Admin</a>
+    </div>
+
+    <main class="page-main">
+      <!-- Hero -->
+      <section class="page-hero">
+        <p class="page-kicker">About Day-1</p>
+        <h1 class="page-title">Wear Your<br>Day-1.</h1>
+        <p class="page-sub">Day-1 is a clothing label focused on premium comfort, clean detailing, and limited drops that stay wearable beyond trends.</p>
+      </section>
+
+      <!-- Cards -->
+      <div class="cards-grid">
+        <div class="glass-card">
+          <p class="card-kicker">Who we are</p>
+          <h2 class="card-title">Our Direction</h2>
+          <div class="card-body">
+            <p>We design around fit, fabric feel, and repeat usability. Every release is curated in small runs to keep quality tight and product identity clear. No mass production — each drop is deliberate.</p>
+          </div>
+        </div>
+        <div class="glass-card">
+          <p class="card-kicker">Principles</p>
+          <h2 class="card-title">What We Value</h2>
+          <div class="card-body">
+            <ul>
+              <li>Honest fabric and sizing communication</li>
+              <li>Comfort-first cuts for daily movement</li>
+              <li>Reliable support before and after purchase</li>
+              <li>Limited, considered drops over quantity</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-strip">
+        <div class="stat-item">
+          <span class="stat-num">460</span>
+          <span class="stat-label">GSM Fleece</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">100%</span>
+          <span class="stat-label">Quality Cotton</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">Dhaka</span>
+          <span class="stat-label">Made in Bangladesh</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">2024</span>
+          <span class="stat-label">Est.</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-links">
+          <a href="shop.html">Shop</a>
+          <a href="about.html" class="active">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+        <p class="footer-copy">&copy; 2026 Day-1. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (hamburger && mobileMenu) {
+          hamburger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('open');
+            const icon = hamburger.querySelector('i');
+            if (mobileMenu.classList.contains('open')) {
+              icon.classList.replace('fa-bars', 'fa-times');
+            } else {
+              icon.classList.replace('fa-times', 'fa-bars');
+            }
+          });
+
+          document.addEventListener('click', (e) => {
+            if (!mobileMenu.contains(e.target) && !hamburger.contains(e.target)) {
+              if (mobileMenu.classList.contains('open')) {
+                mobileMenu.classList.remove('open');
+                const icon = hamburger.querySelector('i');
+                icon.classList.replace('fa-times', 'fa-bars');
+              }
+            }
+          });
+        }
+      });
+    </script>
+    <script src="nav-cart.js"></script>
+  </body>
+</html>

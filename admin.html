@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | Day-1</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+      :root {
+        --bg: #15100c;
+        --panel: rgba(18, 15, 12, 0.78);
+        --panel-strong: rgba(11, 10, 9, 0.9);
+        --line: rgba(255, 255, 255, 0.14);
+        --line-strong: rgba(216, 194, 164, 0.34);
+        --muted: rgba(255, 255, 255, 0.66);
+        --muted-strong: rgba(255, 255, 255, 0.82);
+        --accent: #d8c2a4;
+        --accent-strong: #f2dfbf;
+        --danger: #ff7a7a;
+        --ok: #79e0a2;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", sans-serif;
+        background:
+          radial-gradient(circle at 12% 8%, rgba(216, 194, 164, 0.18), transparent 30%),
+          linear-gradient(135deg, rgba(0, 0, 0, 0.72), rgba(21, 16, 12, 0.92)),
+          url("photos/main_bg.jpeg") center / cover fixed;
+        color: #fff;
+      }
+
+      a,
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+        background-size: 100% 72px;
+        opacity: 0.45;
+      }
+
+      .shell {
+        position: relative;
+        z-index: 1;
+        width: min(1440px, 100%);
+        margin: 0 auto;
+        padding: 22px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .brand,
+      .back-link,
+      .eyebrow,
+      label,
+      button,
+      .pill {
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: #fff;
+        font-family: "Cinzel", serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .back-link {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line-strong);
+        border-radius: 28px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .hidden-section {
+        display: none !important;
+      }
+
+      .login-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+        overflow: hidden;
+        min-height: 560px;
+      }
+
+      .login-art {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 18px;
+        min-height: 420px;
+        padding: 36px;
+        background:
+          linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.82)),
+          url("photos/main_bg.jpeg") center / cover;
+      }
+
+      .login-copy {
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background:
+          linear-gradient(135deg, rgba(216, 194, 164, 0.08), rgba(255, 255, 255, 0.025)),
+          rgba(0, 0, 0, 0.18);
+      }
+
+      .title {
+        margin: 0;
+        font-family: "Cinzel", serif;
+        font-size: clamp(1.55rem, 3vw, 2.6rem);
+        line-height: 1.05;
+      }
+
+      .section-title {
+        margin: 0;
+        font-family: "Cinzel", serif;
+        font-size: clamp(1.05rem, 1.7vw, 1.45rem);
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--accent);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .muted,
+      .helper-note,
+      .field-hint {
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .muted {
+        margin: 10px 0 0;
+        font-size: 14px;
+      }
+
+      .dashboard-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 20px;
+        align-items: center;
+        padding: 28px;
+        margin-bottom: 18px;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .stat-card {
+        border: 1px solid rgba(216, 194, 164, 0.22);
+        border-radius: 18px;
+        padding: 14px;
+        background:
+          linear-gradient(145deg, rgba(216, 194, 164, 0.08), rgba(255, 255, 255, 0.035)),
+          rgba(0, 0, 0, 0.14);
+      }
+
+      .stat-card strong {
+        display: block;
+        margin-top: 6px;
+        color: var(--accent-strong);
+        font-size: 1.2rem;
+      }
+
+      .studio-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .composer {
+        padding: 24px;
+      }
+
+      .side-stack {
+        display: grid;
+        gap: 18px;
+      }
+
+      .panel-pad {
+        padding: 22px;
+      }
+
+      form,
+      .input-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .form-section {
+        border: 1px solid rgba(216, 194, 164, 0.22);
+        border-radius: 22px;
+        padding: 18px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(216, 194, 164, 0.035)),
+          rgba(0, 0, 0, 0.24);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .form-section + .form-section {
+        margin-top: 2px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .section-head p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .step-badge,
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line-strong);
+        color: var(--accent-strong);
+        background: rgba(216, 194, 164, 0.08);
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .step-badge {
+        width: 32px;
+        height: 32px;
+        letter-spacing: 0;
+      }
+
+      .pill {
+        padding: 7px 10px;
+      }
+
+      .input-grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted-strong);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      #admin-login-form > div:not(.actions),
+      #product-form .input-grid > div,
+      #product-form .form-section > div:not(.section-head):not(.media-layout),
+      #product-form .media-layout .input-grid > div {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 18px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.045);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+      }
+
+      input,
+      textarea {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 100%;
+        border: 1px solid rgba(216, 194, 164, 0.38);
+        border-radius: 14px;
+        outline: none;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.035)),
+          rgba(8, 7, 6, 0.78);
+        color: #fff;
+        min-height: 48px;
+        padding: 13px 14px;
+        font-size: 14px;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 10px 24px rgba(0, 0, 0, 0.12);
+        transition:
+          border-color 0.2s ease,
+          background 0.2s ease,
+          box-shadow 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: rgba(255, 255, 255, 0.34);
+      }
+
+      textarea {
+        min-height: 118px;
+        resize: vertical;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: rgba(242, 223, 191, 0.92);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.045)),
+          rgba(0, 0, 0, 0.72);
+        box-shadow:
+          0 0 0 4px rgba(216, 194, 164, 0.13),
+          0 16px 32px rgba(0, 0, 0, 0.22);
+        transform: translateY(-1px);
+      }
+
+      .field-hint {
+        margin: 7px 0 0;
+        font-size: 11px;
+      }
+
+      .media-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 260px;
+        gap: 14px;
+      }
+
+      .mini-guide {
+        border: 1px solid var(--line-strong);
+        border-radius: 18px;
+        padding: 14px;
+        background:
+          linear-gradient(145deg, rgba(216, 194, 164, 0.16), rgba(255, 255, 255, 0.035)),
+          rgba(0, 0, 0, 0.2);
+      }
+
+      .mini-guide h4 {
+        margin: 0 0 8px;
+        color: var(--accent-strong);
+        font-size: 13px;
+      }
+
+      .mini-guide ol,
+      .mini-guide ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted-strong);
+        font-size: 12px;
+        line-height: 1.7;
+      }
+
+      .upload-box {
+        border: 1px dashed rgba(216, 194, 164, 0.45);
+        border-radius: 16px;
+        padding: 12px;
+        background:
+          linear-gradient(145deg, rgba(216, 194, 164, 0.12), rgba(255, 255, 255, 0.045)),
+          rgba(0, 0, 0, 0.18);
+      }
+
+      .upload-box input[type="file"] {
+        min-height: auto;
+        padding: 10px;
+        background: rgba(8, 7, 6, 0.62);
+      }
+
+      .upload-actions {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .upload-help {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .checks {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .checks label {
+        min-height: 48px;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px;
+        border: 1px solid rgba(216, 194, 164, 0.24);
+        border-radius: 15px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(216, 194, 164, 0.04)),
+          rgba(0, 0, 0, 0.12);
+        font-size: 12px;
+        letter-spacing: normal;
+        text-transform: none;
+        cursor: pointer;
+      }
+
+      .checks input {
+        appearance: auto;
+        -webkit-appearance: checkbox;
+        width: 18px;
+        height: 18px;
+        min-height: 18px;
+        padding: 0;
+        box-shadow: none;
+        accent-color: var(--accent);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      button {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 999px;
+        background:
+          linear-gradient(135deg, #fff8eb, #d8c2a4);
+        color: #1f1f1f;
+        min-height: 44px;
+        padding: 12px 20px;
+        font-weight: 800;
+        font-size: 11px;
+        cursor: pointer;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.8),
+          0 14px 34px rgba(0, 0, 0, 0.28);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          background 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.86),
+          0 18px 40px rgba(0, 0, 0, 0.34);
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.62;
+        transform: none;
+      }
+
+      button.secondary {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.09), rgba(216, 194, 164, 0.06)),
+          rgba(0, 0, 0, 0.18);
+        color: #fff;
+        border-color: rgba(216, 194, 164, 0.42);
+      }
+
+      button.danger {
+        border-color: rgba(255, 122, 122, 0.45);
+        color: #fff;
+        background:
+          linear-gradient(135deg, rgba(255, 122, 122, 0.24), rgba(255, 122, 122, 0.12)),
+          rgba(0, 0, 0, 0.2);
+      }
+
+      .status,
+      .error-note {
+        margin: 0;
+        min-height: 20px;
+        font-size: 13px;
+      }
+
+      .status {
+        color: var(--muted);
+      }
+
+      .status.is-error,
+      .error-note {
+        color: var(--danger);
+      }
+
+      .status.is-success {
+        color: var(--ok);
+      }
+
+      .preview-card {
+        overflow: hidden;
+      }
+
+      .preview-image {
+        position: relative;
+        aspect-ratio: 4 / 5;
+        border-radius: 22px;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(216, 194, 164, 0.16), rgba(0, 0, 0, 0.28)),
+          #17120e;
+        border: 1px solid var(--line);
+      }
+
+      .preview-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .preview-chip,
+      .preview-badge {
+        position: absolute;
+        top: 12px;
+        border-radius: 999px;
+        padding: 6px 9px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .preview-chip {
+        left: 12px;
+        background: rgba(255, 255, 255, 0.84);
+        color: #1f1f1f;
+      }
+
+      .preview-badge {
+        right: 12px;
+        background: #c4342f;
+        color: #fff;
+      }
+
+      .preview-copy {
+        padding: 16px 2px 2px;
+      }
+
+      .preview-copy h3 {
+        margin: 0;
+        font-family: "Cinzel", serif;
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+      }
+
+      .preview-copy p {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+      }
+
+      .price-line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        color: #dfb76c;
+        font-weight: 800;
+      }
+
+      .price-line del {
+        color: rgba(223, 183, 108, 0.7);
+      }
+
+      .map-list,
+      .product-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .map-item {
+        border: 1px solid rgba(216, 194, 164, 0.18);
+        border-radius: 16px;
+        padding: 12px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(216, 194, 164, 0.025)),
+          rgba(0, 0, 0, 0.12);
+      }
+
+      .map-item strong {
+        display: block;
+        color: var(--accent-strong);
+        font-size: 12px;
+      }
+
+      .map-item span,
+      .map-item ul {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .map-item ul {
+        padding-left: 18px;
+      }
+
+      .product-row {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+        padding: 12px;
+        border: 1px solid rgba(216, 194, 164, 0.2);
+        border-radius: 18px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(216, 194, 164, 0.025)),
+          rgba(0, 0, 0, 0.14);
+      }
+
+      .product-row img {
+        width: 64px;
+        height: 82px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .product-row h3,
+      .product-row p {
+        margin: 0;
+      }
+
+      .product-row h3 {
+        font-size: 14px;
+      }
+
+      .product-row p {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .product-row .meta {
+        color: var(--accent-strong);
+        font-size: 11px;
+      }
+
+      .product-row-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .product-row-actions button {
+        padding: 7px 10px;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+      }
+
+      .chart-editor-wrap {
+        overflow-x: auto;
+      }
+      .chart-editor {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 420px;
+      }
+      .chart-editor th,
+      .chart-editor td {
+        border: 1px solid rgba(255,255,255,0.14);
+        padding: 6px;
+        vertical-align: top;
+      }
+      .chart-editor input {
+        min-width: 72px;
+        margin: 0;
+      }
+      .chart-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .chart-toolbar button,
+      .chart-editor button {
+        text-transform: none;
+        letter-spacing: 0.04em;
+        font-size: 11px;
+        padding: 7px 10px;
+      }
+
+      .empty-note {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 1100px) {
+        .studio-grid,
+        .login-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .media-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          padding: 14px;
+        }
+
+        .topbar,
+        .dashboard-hero,
+        .section-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .dashboard-hero {
+          display: flex;
+          padding: 22px;
+        }
+
+        .stats,
+        .input-grid.two,
+        .checks {
+          grid-template-columns: 1fr;
+        }
+
+        .composer,
+        .panel-pad,
+        .login-copy,
+        .login-art {
+          padding: 18px;
+        }
+
+        .hero-actions {
+          justify-content: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="index.html"><i class="fas fa-shield-alt"></i> Day-1 Admin</a>
+        <a class="back-link" href="shop.html">Back to shop</a>
+      </header>
+
+      <section id="admin-login-card" class="card login-shell">
+        <div class="login-art">
+          <p class="eyebrow">Private product studio</p>
+          <h1 class="title">Sign in and publish cleaner drops.</h1>
+          <p class="muted">
+            Manage shop cards, product page details, photos, categories, and publish status from one guided dashboard.
+          </p>
+        </div>
+        <div class="login-copy">
+          <p class="eyebrow">Admin access</p>
+          <h2 class="title">Admin sign in</h2>
+          <p class="muted">
+            Only the admin account can access this dashboard. No public signup is enabled.
+          </p>
+          <form id="admin-login-form" class="input-grid" style="margin-top: 24px;">
+            <div>
+              <label for="admin-email">Admin email</label>
+              <input id="admin-email" type="email" autocomplete="email" required />
+            </div>
+            <div>
+              <label for="admin-password">Password</label>
+              <input id="admin-password" type="password" autocomplete="current-password" required />
+            </div>
+            <div class="actions">
+              <button type="submit">Sign in</button>
+            </div>
+            <p id="admin-login-error" class="error-note"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="admin-dashboard" class="hidden-section">
+        <div class="card dashboard-hero">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h1 class="title">Product upload studio</h1>
+            <p class="muted">Signed in as <span id="admin-user-email"></span>. Follow steps 1 → 4, then click Save product.</p>
+            <div class="stats" aria-label="Product stats">
+              <div class="stat-card">
+                <span class="muted">Total products</span>
+                <strong id="product-count">0</strong>
+              </div>
+              <div class="stat-card">
+                <span class="muted">Published</span>
+                <strong id="published-count">0</strong>
+              </div>
+              <div class="stat-card">
+                <span class="muted">Mode</span>
+                <strong id="editor-mode">Add</strong>
+              </div>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <a class="back-link" href="shop.html">View shop</a>
+            <button id="admin-logout" type="button" class="secondary">Sign out</button>
+          </div>
+        </div>
+
+        <div class="studio-grid">
+          <article class="card composer">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Editor</p>
+                <h2 id="product-form-title" class="section-title">Add new product</h2>
+                <p>Required: product name, selling price, and at least one photo. Follow the numbered steps below.</p>
+              </div>
+              <span class="pill">Live preview</span>
+            </div>
+
+            <form id="product-form">
+              <section class="form-section" aria-labelledby="product-box-heading">
+                <div class="section-head">
+                  <div>
+                    <h3 id="product-box-heading" class="section-title">1. Shop card (what customers see first)</h3>
+                    <p>This is the small product box on the shop page. Fill this carefully — customers decide to click based on this.</p>
+                  </div>
+                  <span class="step-badge">1</span>
+                </div>
+
+                <div class="input-grid two">
+                  <div>
+                    <label for="product-name">Product name</label>
+                    <input id="product-name" type="text" placeholder="Classic Tee" required />
+                    <p class="field-hint">Write the product title clearly. Example: “Oversized Black Tee”.</p>
+                  </div>
+                  <div>
+                    <label for="product-subtitle">Short subtitle</label>
+                    <input id="product-subtitle" type="text" placeholder="Premium collection" />
+                    <p class="field-hint">One short line under the name. Example: “Heavyweight cotton”.</p>
+                  </div>
+                </div>
+
+                <div class="input-grid two">
+                  <div>
+                    <label for="price-current">Selling price (BDT)</label>
+                    <input id="price-current" type="number" min="0" placeholder="850" required />
+                    <p class="field-hint">The price customers will pay now. Numbers only.</p>
+                  </div>
+                  <div>
+                    <label for="price-original">Old / crossed price (BDT)</label>
+                    <input id="price-original" type="number" min="0" placeholder="1200" />
+                    <p class="field-hint">Optional. Put a higher number if you want a discount look (old price crossed out).</p>
+                  </div>
+                </div>
+
+                <div class="input-grid two">
+                  <div>
+                    <label for="product-badge">Badge text</label>
+                    <input id="product-badge" type="text" placeholder="10% OFF / Limited" />
+                    <p class="field-hint">Small tag on the photo. Example: “New”, “Hot”, “20% OFF”.</p>
+                  </div>
+                  <div>
+                    <label for="product-sort-order">Display order number</label>
+                    <input id="product-sort-order" type="number" min="0" value="9999" />
+                    <p class="field-hint">Smaller number = shows earlier. Example: 1 first, then 2, then 3.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="form-section" aria-labelledby="modal-heading">
+                <div class="section-head">
+                  <div>
+                    <h3 id="modal-heading" class="section-title">2. Sizes and size chart</h3>
+                    <p>Add the sizes customers can pick, then edit the measurement table. You can add extra columns (Chest, Rise, etc.) and extra rows.</p>
+                  </div>
+                  <span class="step-badge">2</span>
+                </div>
+
+                <div>
+                  <label for="product-sizes">Available sizes</label>
+                  <input id="product-sizes" type="text" placeholder="S, M, L, XL or 28, 30, 32, 24.2" />
+                  <p class="field-hint">Comma-separated. Letters (S/M/L/XL) and numbers (28, 24.2) are both fine. These become the size buttons on the product page.</p>
+                </div>
+
+                <div>
+                  <label>Size chart table</label>
+                  <div class="chart-toolbar">
+                    <button id="chart-add-col" type="button" class="secondary">Add column</button>
+                    <button id="chart-add-row" type="button" class="secondary">Add row</button>
+                  </div>
+                  <div class="chart-editor-wrap">
+                    <table class="chart-editor" id="size-chart-table"></table>
+                  </div>
+                  <p class="field-hint">First column is the size label. Other columns are measurements. Leave a cell blank if that size does not need that measurement.</p>
+                </div>
+              </section>
+
+              <section class="form-section" aria-labelledby="media-heading">
+                <div class="section-head">
+                  <div>
+                    <h3 id="media-heading" class="section-title">3. Product photos</h3>
+                    <p>First photo becomes the shop thumbnail. Size chart is edited in step 2.</p>
+                  </div>
+                  <span class="step-badge">3</span>
+                </div>
+
+                <div class="media-layout">
+                  <div class="input-grid">
+                    <div class="upload-box">
+                      <label for="product-image-files">Upload photos from your phone/computer</label>
+                      <input id="product-image-files" type="file" accept="image/*" multiple />
+                      <div class="upload-actions">
+                        <button id="upload-product-images" type="button" class="secondary">
+                          Upload images
+                        </button>
+                      </div>
+                      <p id="upload-status" class="status">No upload started</p>
+                      <p class="upload-help">
+                        Choose clear product photos → click <strong>Upload images</strong> → links will appear automatically in the box below.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label for="product-images">Or paste the URL (one photo link per line)</label>
+                      <textarea id="product-images" placeholder="https://...&#10;https://..."></textarea>
+                      <p class="field-hint">
+                        Prefer uploading above. Use this only if you already have image links. First line = main photo.
+                      </p>
+                    </div>
+                  </div>
+
+                  <aside class="mini-guide" aria-label="Upload instructions">
+                    <h4>Easy photo guide</h4>
+                    <ol>
+                      <li>Click <strong>Choose files</strong> and pick 2–5 clear product photos.</li>
+                      <li>Click <strong>Upload images</strong> and wait until it says success.</li>
+                      <li>Photo links will auto-fill in “paste the URL”.</li>
+                      <li>First photo is the main shop image — put your best one first.</li>
+                      <li>Edit sizes and the size chart in step 2.</li>
+                    </ol>
+                  </aside>
+                </div>
+              </section>
+
+              <section class="form-section" aria-labelledby="publish-heading">
+                <div class="section-head">
+                  <div>
+                    <h3 id="publish-heading" class="section-title">4. Where it appears</h3>
+                    <p>Choose if the product is live, and which shop sections it should show in.</p>
+                  </div>
+                  <span class="step-badge">4</span>
+                </div>
+
+                <div>
+                  <label>Visibility and sections</label>
+                  <div class="checks">
+                    <label><input id="product-published" type="checkbox" checked /> Published (live on shop)</label>
+                    <label><input id="category-featured" type="checkbox" /> Featured products</label>
+                    <label><input id="category-hot" type="checkbox" /> Hot selling</label>
+                  </div>
+                  <p class="field-hint">Uncheck Published to keep it hidden as a draft. Tick Featured / Hot Selling to show in those sections.</p>
+                </div>
+
+                <div>
+                  <label for="category-custom">Extra tags (optional)</label>
+                  <input id="category-custom" type="text" placeholder="new-drop, terry-cotton" />
+                  <p class="field-hint">Optional labels for later filtering. Separate with commas. Most admins can leave this blank.</p>
+                </div>
+              </section>
+
+              <div class="actions">
+                <button id="save-product" type="submit">Save product</button>
+                <button id="cancel-edit" type="button" class="secondary hidden-section">Cancel edit</button>
+                <p id="product-status" class="status">Ready</p>
+              </div>
+            </form>
+          </article>
+
+          <aside class="side-stack">
+            <section class="card panel-pad preview-card" aria-labelledby="preview-heading">
+              <p class="eyebrow">What customers see</p>
+              <h2 id="preview-heading" class="section-title">Product box preview</h2>
+              <p class="helper-note">This is how the shop card will look. First photo, name, subtitle, badge, and prices appear here.</p>
+              <div class="preview-image" style="margin-top: 16px;">
+                <img id="preview-image" src="photos/any.jpeg" alt="Product preview" />
+                <span id="preview-chip" class="preview-chip">Product</span>
+                <span id="preview-badge" class="preview-badge">NEW</span>
+              </div>
+              <div class="preview-copy">
+                <h3 id="preview-name">Product name</h3>
+                <p id="preview-subtitle">Premium collection</p>
+                <div class="price-line">
+                  <span>BDT</span>
+                  <del id="preview-original">0</del>
+                  <span id="preview-current">0</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="card panel-pad" aria-labelledby="mapping-heading">
+              <p class="eyebrow">Field map</p>
+              <h2 id="mapping-heading" class="section-title">Shop card vs product page</h2>
+              <div class="map-list" style="margin-top: 14px;">
+                <div class="map-item">
+                  <strong>Shop card means</strong>
+                  <span id="map-card-fields">Name, subtitle, first photo, badge, and prices in the shop grid.</span>
+                </div>
+                <div class="map-item">
+                  <strong>Product page means</strong>
+                  <span id="map-modal-fields">Photo gallery, size buttons, and the editable size chart table.</span>
+                </div>
+                <div class="map-item">
+                  <strong>Design points preview</strong>
+                  <ul id="preview-design-list">
+                    <li>Add up to three product highlights.</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section class="card panel-pad">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">Inventory</p>
+                  <h2 class="section-title">All products</h2>
+                </div>
+              </div>
+              <p class="helper-note">
+                Click <strong>Edit</strong> to change a product. Click <strong>Delete</strong> only if you are sure — it cannot be undone.
+              </p>
+              <div id="product-list" class="product-list" style="margin-top: 14px;"></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="admin.js"></script>
+  </body>
+</html>
