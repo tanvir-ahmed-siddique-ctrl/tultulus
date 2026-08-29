@@ -7,7 +7,7 @@ const LIST_CACHE_KEY = "day1_products_cache_v2";
 const LEGACY_LIST_KEY = "day1_products_cache";
 const DETAIL_CACHE_KEY = "day1_product_details_v2";
 const LEGACY_DETAIL_KEY = "day1_product_details";
-const CACHE_MS = 30 * 60 * 1000;
+const CACHE_MS = 60 * 60 * 1000;
 
 const params = new URLSearchParams(window.location.search);
 const productId = params.get("id");
@@ -56,6 +56,7 @@ let slideIndex = 0;
 let slidesCount = 0;
 let unitPrice = 0;
 let toastTimer = null;
+let currentProductFingerprint = "";
 
 function toNumber(value, fallback = 0) {
   const parsed = Number.parseInt(String(value ?? "").replace(/[^\d]/g, ""), 10);
@@ -105,8 +106,16 @@ function normalizeSizes(raw) {
   return [];
 }
 
+function getProductFingerprint(data) {
+  if (!data) return "";
+  return `${data.id}:${data.name}:${data.priceCurrent}:${data.priceOriginal}:${(data.images || []).join(",")}:${(data.sizes || []).join(",")}:${(data.colors || []).join(",")}`;
+}
+
 function readCachedProduct(id) {
   if (!id) return null;
+  if (window.__INSTANT_PRODUCT_DATA && window.__INSTANT_PRODUCT_DATA.id === id) {
+    return window.__INSTANT_PRODUCT_DATA;
+  }
   try {
     const detailRaw =
       localStorage.getItem(DETAIL_CACHE_KEY) ||
@@ -153,15 +162,6 @@ function writeCachedProduct(product) {
   } catch {
     // Ignore quota / private mode.
   }
-}
-
-function prefetchImages(urls) {
-  (urls || []).forEach((src) => {
-    if (!src) return;
-    const img = new Image();
-    img.decoding = "async";
-    img.src = src;
-  });
 }
 
 function normalizeProduct(docSnap) {
@@ -277,12 +277,27 @@ function setSlide(index) {
 
 function buildGallery(images) {
   if (!els.track) return;
-  els.track.innerHTML = "";
-  if (els.thumbs) els.thumbs.innerHTML = "";
-
   const items = images.length ? images : ["photos/any.jpeg"];
   slidesCount = items.length;
   slideIndex = 0;
+
+  // If already rendered from inline script, just bind click
+  const existingSlides = els.track.querySelectorAll(".pd-slide img");
+  if (existingSlides.length === items.length) {
+    existingSlides.forEach((img, idx) => {
+      img.onclick = () => openLightbox(items[idx] || img.src);
+    });
+    if (els.thumbs) {
+      els.thumbs.querySelectorAll(".pd-thumb").forEach((thumb, idx) => {
+        thumb.onclick = () => setSlide(idx);
+      });
+    }
+    updateSlider();
+    return;
+  }
+
+  els.track.innerHTML = "";
+  if (els.thumbs) els.thumbs.innerHTML = "";
 
   items.forEach((src, index) => {
     const slide = document.createElement("div");
@@ -464,13 +479,13 @@ async function loadProduct() {
   // 1. Instant Cache Render (0ms perceived load time)
   const cached = readCachedProduct(productId);
   if (cached && cached.isPublished !== false) {
+    currentProductFingerprint = getProductFingerprint(cached);
     renderProduct({
       ...cached,
       sizes: normalizeSizes(cached.sizes),
       colors: normalizeColors(cached.colors),
       sizeChart: normalizeSizeChart(cached.sizeChart),
     });
-    prefetchImages(cached.images);
   }
 
   // 2. Background Revalidation from Firestore
@@ -486,8 +501,12 @@ async function loadProduct() {
       return;
     }
     writeCachedProduct(data);
-    renderProduct(data);
-    prefetchImages(data.images);
+
+    const newFingerprint = getProductFingerprint(data);
+    if (newFingerprint !== currentProductFingerprint) {
+      currentProductFingerprint = newFingerprint;
+      renderProduct(data);
+    }
   } catch (error) {
     console.error("Failed to load product", error);
     if (!cached) {

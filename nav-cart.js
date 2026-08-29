@@ -179,43 +179,8 @@
     if (modal) modal.hidden = true;
   }
 
-  function prefetchUrl(url) {
-    if (!url || document.querySelector(`link[href="${url}"]`)) return;
-    const link = document.createElement("link");
-    link.rel = "prefetch";
-    link.href = url;
-    document.head.appendChild(link);
-  }
-
-  function setupGlobalPrefetch() {
-    const handlePrefetch = (event) => {
-      const anchor = event.target.closest("a[href]");
-      if (!anchor) return;
-      const href = anchor.getAttribute("href");
-      if (href && (href.includes("shop.html") || href.includes("product.html"))) {
-        prefetchUrl(href);
-      }
-    };
-
-    document.addEventListener("mouseover", handlePrefetch, { passive: true });
-    document.addEventListener("touchstart", handlePrefetch, { passive: true });
-    document.addEventListener("pointerdown", handlePrefetch, { passive: true });
-
-    // Idle warming for shop page and background
-    if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(() => {
-        prefetchUrl("shop.html");
-      });
-    } else {
-      setTimeout(() => {
-        prefetchUrl("shop.html");
-      }, 800);
-    }
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     updateBadge();
-    setupGlobalPrefetch();
     const button = document.getElementById("cart-button");
     if (button) {
       button.addEventListener("click", (event) => {

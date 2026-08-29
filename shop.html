@@ -428,35 +428,12 @@
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
       }
-      .firebase-products-loading .product-grid > .product-card,
-      .firebase-products-loading .product-grid > .info-card {
-        display: none !important;
-      }
-      .hero-poster,
       .product-image {
         position: relative;
         overflow: hidden;
       }
-      .hero-poster::after,
-      .product-image::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(
-          110deg,
-          rgba(255, 255, 255, 0.15) 0%,
-          rgba(255, 255, 255, 0.6) 45%,
-          rgba(255, 255, 255, 0.15) 100%
-        );
-        background-size: 200% 100%;
-        animation: glassy-shimmer 1.6s ease-in-out infinite;
-        opacity: 0.55;
-        pointer-events: none;
-      }
-      .hero-poster.is-loaded::after,
       .product-image.is-loaded::after {
-        opacity: 0;
-        animation: none;
+        display: none;
       }
       .hero-poster > *,
       .product-image > * {

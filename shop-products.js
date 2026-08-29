@@ -5,12 +5,13 @@ const CACHE_KEY = "day1_products_cache_v2";
 const LEGACY_CACHE_KEY = "day1_products_cache";
 const DETAIL_CACHE_KEY = "day1_product_details_v2";
 const LEGACY_DETAIL_KEY = "day1_product_details";
-const CACHE_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_MS = 60 * 60 * 1000; // 1 hour valid cache
 
 const featuredGrid = document.querySelector("#featured-products .product-grid");
 const allGrid = document.querySelector("#all-categories .product-grid");
 const hotGrid = document.querySelector("#top-rated .product-grid");
 
+let currentRenderedFingerprint = "";
 const prefetchedProducts = new Set();
 const prefetchedImages = new Set();
 
@@ -108,27 +109,31 @@ function normalizeProduct(docSnap) {
   };
 }
 
+function getProductsFingerprint(list) {
+  if (!Array.isArray(list)) return "";
+  return list
+    .map(
+      (p) =>
+        `${p.id}:${p.name}:${p.priceCurrent}:${p.priceOriginal}:${(p.images || [])[0]}:${(p.sizes || []).join(",")}:${(p.colors || []).join(",")}:${(p.categories || []).join(",")}`,
+    )
+    .join("|");
+}
+
 function prefetchProductAssets(product) {
   if (!product || !product.id || prefetchedProducts.has(product.id)) return;
   prefetchedProducts.add(product.id);
   cacheProductDetail(product);
 
-  (product.images || []).forEach((src) => {
+  (product.images || []).slice(0, 3).forEach((src) => {
     if (!src || prefetchedImages.has(src)) return;
     prefetchedImages.add(src);
-    const link = document.createElement("link");
-    link.rel = "prefetch";
-    link.as = "image";
-    link.href = src;
-    document.head.appendChild(link);
-
     const img = new Image();
     img.decoding = "async";
     img.src = src;
   });
 }
 
-function createProductCard(product, index = 0) {
+function createProductCard(product) {
   const primaryImage = product.images[0] || "photos/any.jpeg";
   const discount = calculateDiscount(product.priceCurrent, product.priceOriginal);
   const labelChip = product.categories.includes("featured")
@@ -138,8 +143,7 @@ function createProductCard(product, index = 0) {
       : "Product";
 
   const card = document.createElement("article");
-  card.className = "product-card info-card product-card-appear";
-  card.style.animationDelay = `${Math.min(index * 0.04, 0.3)}s`;
+  card.className = "product-card info-card";
   card.tabIndex = 0;
   card.setAttribute("role", "button");
   card.setAttribute("aria-label", `View ${product.name}`);
@@ -154,7 +158,7 @@ function createProductCard(product, index = 0) {
 
   card.innerHTML = `
     <div class="product-image">
-      <img src="${primaryImage}" alt="${product.name}" loading="${index < 4 ? "eager" : "lazy"}" decoding="async" />
+      <img src="${primaryImage}" alt="${product.name}" loading="lazy" decoding="async" onload="this.parentElement.classList.add('is-loaded')" />
       <span class="label-chip">${labelChip}</span>
       <span class="badge">${product.badge}</span>
     </div>
@@ -169,12 +173,10 @@ function createProductCard(product, index = 0) {
     </div>
   `;
 
-  // Predictive prefetch on hover/touch/focus
+  // Predictive prefetch on hover/touch
   const triggerPrefetch = () => prefetchProductAssets(product);
   card.addEventListener("mouseenter", triggerPrefetch, { passive: true });
   card.addEventListener("touchstart", triggerPrefetch, { passive: true });
-  card.addEventListener("pointerdown", triggerPrefetch, { passive: true });
-  card.addEventListener("focus", triggerPrefetch, { passive: true });
 
   const openProductPage = () => {
     cacheProductDetail(product);
@@ -221,8 +223,8 @@ function renderIntoGrid(gridElement, products, emptyMessage) {
     return;
   }
 
-  products.forEach((product, idx) => {
-    gridElement.appendChild(createProductCard(product, idx));
+  products.forEach((product) => {
+    gridElement.appendChild(createProductCard(product));
   });
 
   if (typeof window.attachImageLoaders === "function") {
@@ -241,17 +243,6 @@ function renderProducts(products) {
   renderIntoGrid(featuredGrid, featuredProducts, "No featured products yet.");
   renderIntoGrid(allGrid, products, "No products found.");
   renderIntoGrid(hotGrid, hotProducts, "No hot selling products yet.");
-
-  // Progressive prefetch in background after render
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(() => {
-      products.slice(0, 6).forEach(prefetchProductAssets);
-    });
-  } else {
-    setTimeout(() => {
-      products.slice(0, 6).forEach(prefetchProductAssets);
-    }, 200);
-  }
 }
 
 function readCachedProducts() {
@@ -316,6 +307,7 @@ async function loadProducts() {
   const cached = readCachedProducts();
   if (cached?.length) {
     document.documentElement.classList.remove("firebase-products-loading");
+    currentRenderedFingerprint = getProductsFingerprint(cached);
     renderProducts(cached);
   } else {
     renderSkeletons(featuredGrid, 4);
@@ -323,7 +315,7 @@ async function loadProducts() {
     renderSkeletons(hotGrid, 4);
   }
 
-  // 2. Background Revalidation from Firestore
+  // 2. Background Silent Revalidation from Firestore
   try {
     const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
     const products = snapshot.docs
@@ -338,7 +330,13 @@ async function loadProducts() {
 
     writeCachedProducts(products);
     document.documentElement.classList.remove("firebase-products-loading");
-    renderProducts(products);
+
+    const newFingerprint = getProductsFingerprint(products);
+    // ONLY re-render if there is an actual change in products! (Prevents vanishing/flickering)
+    if (newFingerprint !== currentRenderedFingerprint) {
+      currentRenderedFingerprint = newFingerprint;
+      renderProducts(products);
+    }
   } catch (error) {
     console.error("Failed to load products from Firebase", error);
     if (!cached || !cached.length) {

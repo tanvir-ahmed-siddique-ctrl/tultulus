@@ -1046,6 +1046,77 @@
           </div>
         </div>
       </div>
+      <script>
+        // Instant Zero-Latency Paint from Cache (Runs Synchronously)
+        (function() {
+          try {
+            var params = new URLSearchParams(window.location.search);
+            var id = params.get("id");
+            if (!id) return;
+            var raw = localStorage.getItem("day1_product_details_v2") || sessionStorage.getItem("day1_product_details_v2") || localStorage.getItem("day1_product_details");
+            var item = null;
+            if (raw) {
+              var parsed = JSON.parse(raw);
+              item = parsed && parsed.details ? parsed.details[id] : null;
+            }
+            if (!item) {
+              var listRaw = localStorage.getItem("day1_products_cache_v2") || sessionStorage.getItem("day1_products_cache_v2") || localStorage.getItem("day1_products_cache");
+              if (listRaw) {
+                var listParsed = JSON.parse(listRaw);
+                var prods = listParsed && listParsed.products ? listParsed.products : [];
+                for (var i = 0; i < prods.length; i++) {
+                  if (prods[i].id === id) { item = prods[i]; break; }
+                }
+              }
+            }
+            if (item) {
+              var statusEl = document.getElementById("product-status");
+              var pageEl = document.getElementById("product-page");
+              var titleEl = document.getElementById("pd-title");
+              var priceEl = document.getElementById("pd-price");
+              var offerEl = document.getElementById("pd-offer");
+              var badgeEl = document.getElementById("pd-badge");
+              var unitEl = document.getElementById("pd-unit");
+              var trackEl = document.getElementById("pd-track");
+              var thumbsEl = document.getElementById("pd-thumbs");
+              
+              if (titleEl) titleEl.textContent = item.name || "";
+              if (priceEl) priceEl.textContent = item.priceCurrent || item.price || "";
+              if (unitEl) unitEl.textContent = "Unit: BDT " + (item.priceCurrent || item.price || "");
+              if (offerEl) {
+                var orig = item.priceOriginal || item.offer;
+                var curr = item.priceCurrent || item.price;
+                if (orig && orig > curr) {
+                  offerEl.textContent = orig;
+                  offerEl.style.display = "inline-flex";
+                } else {
+                  offerEl.style.display = "none";
+                }
+              }
+              if (badgeEl) badgeEl.textContent = item.badge || "NEW";
+              
+              var imgs = Array.isArray(item.images) && item.images.length ? item.images : ["photos/any.jpeg"];
+              if (trackEl && trackEl.children.length === 0) {
+                var html = "";
+                var thumbsHtml = "";
+                for (var j = 0; j < imgs.length; j++) {
+                  html += '<div class="pd-slide' + (j === 0 ? ' is-active' : '') + '"><img src="' + imgs[j] + '" alt="Product" loading="' + (j === 0 ? 'eager' : 'lazy') + '" decoding="async" /></div>';
+                  if (imgs.length > 1) {
+                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '"><img src="' + imgs[j] + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
+                  }
+                }
+                trackEl.innerHTML = html;
+                if (thumbsEl) thumbsEl.innerHTML = thumbsHtml;
+              }
+              
+              if (statusEl) statusEl.hidden = true;
+              if (pageEl) pageEl.hidden = false;
+              window.__INSTANT_PRODUCT_DATA = item;
+            }
+          } catch(e) {}
+        })();
+      </script>
+    </main>
     </main>
 
     <div id="img-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
