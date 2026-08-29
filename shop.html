@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shop | Day-1</title>
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://firestore.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <style>html,body{background:#1a1510}</style>
     <script>
       (function () {
@@ -93,6 +98,8 @@
         z-index: -1;
         pointer-events: none;
         background: #1a1510 url("photos/main_bg.jpeg") center / cover no-repeat;
+        transform: translateZ(0);
+        will-change: transform;
       }
       a {
         color: inherit;
@@ -2595,7 +2602,7 @@
         id="master-form"
         class="hidden-section fade-in"
         method="POST"
-        action="https://formsubmit.co/tanvir.ahmed0184@gmail.com"
+        action="https://formsubmit.co/runoffdesignes@gmail.com"
         target="hidden-iframe"
       >
         <!-- FormSubmit Configuration -->

@@ -144,6 +144,19 @@ function prefetchProductAssets(product) {
   prefetchedProducts.add(product.id);
   cacheProductDetail(product);
 
+  // 1. Prefetch product page document HTML into browser cache
+  try {
+    const productUrl = `product.html?id=${encodeURIComponent(product.id)}`;
+    if (!document.querySelector(`link[rel="prefetch"][href="${productUrl}"]`)) {
+      const link = document.createElement("link");
+      link.rel = "prefetch";
+      link.as = "document";
+      link.href = productUrl;
+      document.head.appendChild(link);
+    }
+  } catch (e) {}
+
+  // 2. Pre-decode gallery images
   (product.images || []).slice(0, 3).forEach((src) => {
     const optSrc = optimizeImageUrl(src, 1000);
     if (!optSrc || prefetchedImages.has(optSrc)) return;
