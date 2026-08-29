@@ -36,6 +36,23 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function optimizeImageUrl(url, width = 600) {
+  if (!url || typeof url !== "string") return "photos/any.jpeg";
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    if (url.includes("/upload/f_auto,q_auto")) return url;
+    return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width},c_limit/`);
+  }
+  return url;
+}
+
+function getPlaceholderImageUrl(url) {
+  if (!url || typeof url !== "string") return "photos/any.jpeg";
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    return url.replace("/upload/", "/upload/f_auto,q_10,w_80,e_blur:200,c_limit/");
+  }
+  return url;
+}
+
 function getCategories(data) {
   const categories = new Set(["all"]);
   const rawCategories = Array.isArray(data.categories) ? data.categories : [];
@@ -125,16 +142,21 @@ function prefetchProductAssets(product) {
   cacheProductDetail(product);
 
   (product.images || []).slice(0, 3).forEach((src) => {
-    if (!src || prefetchedImages.has(src)) return;
-    prefetchedImages.add(src);
+    const optSrc = optimizeImageUrl(src, 1000);
+    if (!optSrc || prefetchedImages.has(optSrc)) return;
+    prefetchedImages.add(optSrc);
     const img = new Image();
     img.decoding = "async";
-    img.src = src;
+    img.src = optSrc;
   });
 }
 
 function createProductCard(product) {
-  const primaryImage = product.images[0] || "photos/any.jpeg";
+  const rawImage = product.images[0] || "photos/any.jpeg";
+  const optimizedImage = optimizeImageUrl(rawImage, 600);
+  const placeholderImage = getPlaceholderImageUrl(rawImage);
+  const isCloudinary = rawImage.includes("res.cloudinary.com");
+
   const discount = calculateDiscount(product.priceCurrent, product.priceOriginal);
   const labelChip = product.categories.includes("featured")
     ? "Featured"
@@ -156,9 +178,14 @@ function createProductCard(product) {
   card.dataset.badge = product.badge;
   card.dataset.images = product.images.join(",");
 
+  const placeholderHtml = isCloudinary
+    ? `<img class="placeholder-img" src="${placeholderImage}" alt="" aria-hidden="true" />`
+    : "";
+
   card.innerHTML = `
     <div class="product-image">
-      <img src="${primaryImage}" alt="${product.name}" loading="lazy" decoding="async" onload="this.parentElement.classList.add('is-loaded')" />
+      ${placeholderHtml}
+      <img class="main-img" src="${optimizedImage}" alt="${product.name}" loading="lazy" decoding="async" onload="this.style.opacity='1'; this.parentElement.classList.add('is-loaded'); this.parentElement.querySelector('.placeholder-img')?.remove();" />
       <span class="label-chip">${labelChip}</span>
       <span class="badge">${product.badge}</span>
     </div>
@@ -332,7 +359,6 @@ async function loadProducts() {
     document.documentElement.classList.remove("firebase-products-loading");
 
     const newFingerprint = getProductsFingerprint(products);
-    // ONLY re-render if there is an actual change in products! (Prevents vanishing/flickering)
     if (newFingerprint !== currentRenderedFingerprint) {
       currentRenderedFingerprint = newFingerprint;
       renderProducts(products);

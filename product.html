@@ -1095,14 +1095,24 @@
               }
               if (badgeEl) badgeEl.textContent = item.badge || "NEW";
               
+              function optUrl(u, w) {
+                if (!u || typeof u !== "string") return "photos/any.jpeg";
+                if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
+                  if (u.indexOf("/upload/f_auto,q_auto") !== -1) return u;
+                  return u.replace("/upload/", "/upload/f_auto,q_auto,w_" + w + ",c_limit/");
+                }
+                return u;
+              }
               var imgs = Array.isArray(item.images) && item.images.length ? item.images : ["photos/any.jpeg"];
               if (trackEl && trackEl.children.length === 0) {
                 var html = "";
                 var thumbsHtml = "";
                 for (var j = 0; j < imgs.length; j++) {
-                  html += '<div class="pd-slide' + (j === 0 ? ' is-active' : '') + '"><img src="' + imgs[j] + '" alt="Product" loading="' + (j === 0 ? 'eager' : 'lazy') + '" decoding="async" /></div>';
+                  var mainSrc = optUrl(imgs[j], 1000);
+                  var thumbSrc = optUrl(imgs[j], 200);
+                  html += '<div class="pd-slide' + (j === 0 ? ' is-active' : '') + '"><img src="' + mainSrc + '" alt="Product" loading="' + (j === 0 ? 'eager' : 'lazy') + '" decoding="async" /></div>';
                   if (imgs.length > 1) {
-                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '"><img src="' + imgs[j] + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
+                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '"><img src="' + thumbSrc + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
                   }
                 }
                 trackEl.innerHTML = html;

@@ -275,6 +275,15 @@ function setSlide(index) {
   updateSlider();
 }
 
+function optimizeImageUrl(url, width = 1000) {
+  if (!url || typeof url !== "string") return "photos/any.jpeg";
+  if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
+    if (url.includes("/upload/f_auto,q_auto")) return url;
+    return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width},c_limit/`);
+  }
+  return url;
+}
+
 function buildGallery(images) {
   if (!els.track) return;
   const items = images.length ? images : ["photos/any.jpeg"];
@@ -285,7 +294,7 @@ function buildGallery(images) {
   const existingSlides = els.track.querySelectorAll(".pd-slide img");
   if (existingSlides.length === items.length) {
     existingSlides.forEach((img, idx) => {
-      img.onclick = () => openLightbox(items[idx] || img.src);
+      img.onclick = () => openLightbox(optimizeImageUrl(items[idx] || img.src, 1800));
     });
     if (els.thumbs) {
       els.thumbs.querySelectorAll(".pd-thumb").forEach((thumb, idx) => {
@@ -303,11 +312,11 @@ function buildGallery(images) {
     const slide = document.createElement("div");
     slide.className = "pd-slide";
     const img = document.createElement("img");
-    img.src = src;
+    img.src = optimizeImageUrl(src, 1000);
     img.alt = `Product image ${index + 1}`;
     img.loading = index === 0 ? "eager" : "lazy";
     img.decoding = "async";
-    img.addEventListener("click", () => openLightbox(src));
+    img.addEventListener("click", () => openLightbox(optimizeImageUrl(src, 1800)));
     slide.appendChild(img);
     els.track.appendChild(slide);
 
@@ -317,7 +326,7 @@ function buildGallery(images) {
       thumb.className = "pd-thumb";
       thumb.setAttribute("aria-label", `View image ${index + 1}`);
       const thumbImg = document.createElement("img");
-      thumbImg.src = src;
+      thumbImg.src = optimizeImageUrl(src, 200);
       thumbImg.alt = `Thumbnail ${index + 1}`;
       thumbImg.loading = "lazy";
       thumbImg.decoding = "async";
