@@ -7,6 +7,31 @@
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
     <style>html,body{background:#1a1510}</style>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var id = params.get("id");
+        if (id) {
+          try {
+            var raw =
+              localStorage.getItem("day1_product_details_v2") ||
+              sessionStorage.getItem("day1_product_details_v2") ||
+              localStorage.getItem("day1_product_details");
+            if (raw) {
+              var parsed = JSON.parse(raw);
+              var p = parsed && parsed.details ? parsed.details[id] : null;
+              if (p && p.images && p.images[0]) {
+                var l = document.createElement("link");
+                l.rel = "preload";
+                l.as = "image";
+                l.href = p.images[0];
+                document.head.appendChild(l);
+              }
+            }
+          } catch (e) {}
+        }
+      })();
+    </script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -67,7 +92,10 @@
         left: 0;
         right: 0;
         z-index: 60;
-        background: transparent;
+        background: rgba(15, 15, 15, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
       .nav-inner {
         display: grid;
@@ -205,6 +233,17 @@
         color: var(--muted);
       }
 
+      @keyframes card-appear {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
       .pd-layout {
         display: grid;
         grid-template-columns: 1fr;
@@ -212,6 +251,7 @@
         width: 100%;
         max-width: 1400px;
         margin: 0 auto;
+        animation: card-appear 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
       }
 
       @media (min-width: 900px) {
@@ -432,38 +472,48 @@
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
       }
 
-      .pd-size-options {
+      .pd-size-options,
+      .pd-color-options {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
       }
-      .pd-size-btn {
+      .pd-size-btn,
+      .pd-color-btn {
         min-width: 52px;
         height: 44px;
-        padding: 0 14px;
+        padding: 0 16px;
         border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.55);
         background: rgba(255, 255, 255, 0.12);
         color: #fff;
         font-size: 13px;
         font-weight: 800;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.14em;
         cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.1s ease;
       }
-      .pd-size-btn:hover {
+      .pd-size-btn:hover,
+      .pd-color-btn:hover {
         border-color: #fff;
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.22);
       }
-      .pd-size-btn.is-selected {
+      .pd-size-btn:active,
+      .pd-color-btn:active {
+        transform: scale(0.97);
+      }
+      .pd-size-btn.is-selected,
+      .pd-color-btn.is-selected {
         background: var(--button-bg);
         color: var(--button-text);
         border-color: var(--button-bg);
+        box-shadow: 0 0 14px rgba(250, 247, 242, 0.4);
       }
-      .pd-size-hint {
+      .pd-hint-error {
         margin-top: 8px;
         font-size: 11px;
-        color: #ffb4b4;
+        font-weight: 600;
+        color: #ff8c8c;
         letter-spacing: 0.08em;
       }
 
@@ -954,10 +1004,16 @@
           </div>
           <p id="pd-unit" class="pd-unit"></p>
 
-          <div class="pd-block">
-            <span class="pd-field-label">Size</span>
+          <div class="pd-block" id="pd-size-block">
+            <span class="pd-field-label">Size: <span id="pd-selected-size" style="color: var(--price); font-weight: 700;"></span></span>
             <div class="pd-size-options" id="pd-size-options"></div>
-            <p class="pd-size-hint" id="pd-size-hint" hidden></p>
+            <p class="pd-hint-error" id="pd-size-hint" hidden></p>
+          </div>
+
+          <div class="pd-block" id="pd-color-block" hidden>
+            <span class="pd-field-label">Color: <span id="pd-selected-color" style="color: var(--price); font-weight: 700;"></span></span>
+            <div class="pd-color-options" id="pd-color-options"></div>
+            <p class="pd-hint-error" id="pd-color-hint" hidden></p>
           </div>
 
           <div class="pd-block pd-quantity">
@@ -969,9 +1025,9 @@
             </div>
           </div>
 
-          <div class="size-chart-box pd-block" aria-label="Size chart">
+          <div class="size-chart-box pd-block" id="pd-chart-box" aria-label="Size chart" hidden>
             <p class="size-chart-title">Size chart</p>
-            <div style="overflow-x: auto;">
+            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
               <table class="size-chart-table">
                 <thead id="pd-chart-head"></thead>
                 <tbody id="pd-chart-body"></tbody>

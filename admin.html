@@ -932,10 +932,26 @@
                 </div>
 
                 <div>
+                  <label for="product-colors">Available colors (optional)</label>
+                  <input id="product-colors" type="text" placeholder="Black, Off-White, Olive, Navy" />
+                  <p class="field-hint">Comma-separated color names. If filled, customers can choose their color on the product page and it will be recorded in the order and email. Leave blank if no color choices.</p>
+                </div>
+
+                <div class="size-chart-toggle-wrap">
+                  <label class="checkbox-label" for="enable-size-chart">
+                    <input id="enable-size-chart" type="checkbox" />
+                    <span>Include size chart for this product</span>
+                  </label>
+                  <p class="field-hint">Check this only if you want a size chart table shown on this product page. If unchecked, no size chart is displayed.</p>
+                </div>
+
+                <div id="size-chart-editor-section" class="hidden-section">
                   <label>Size chart table</label>
                   <div class="chart-toolbar">
                     <button id="chart-add-col" type="button" class="secondary">Add column</button>
                     <button id="chart-add-row" type="button" class="secondary">Add row</button>
+                    <button id="chart-load-template" type="button" class="secondary">Load template</button>
+                    <button id="chart-clear" type="button" class="danger">Clear table</button>
                   </div>
                   <div class="chart-editor-wrap">
                     <table class="chart-editor" id="size-chart-table"></table>

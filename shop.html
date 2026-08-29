@@ -8,7 +8,21 @@
     <style>html,body{background:#1a1510}</style>
     <script>
       (function () {
-        document.documentElement.classList.add("firebase-products-loading");
+        var cached = localStorage.getItem("day1_products_cache_v2") || sessionStorage.getItem("day1_products_cache_v2") || localStorage.getItem("day1_products_cache");
+        if (cached) {
+          try {
+            var parsed = JSON.parse(cached);
+            if (parsed && parsed.products && parsed.products.length && (Date.now() - (parsed.ts || 0) < 1800000)) {
+              // Valid cache exists - do not add blocking class
+            } else {
+              document.documentElement.classList.add("firebase-products-loading");
+            }
+          } catch (e) {
+            document.documentElement.classList.add("firebase-products-loading");
+          }
+        } else {
+          document.documentElement.classList.add("firebase-products-loading");
+        }
         var params = new URLSearchParams(window.location.search);
         if (params.get("checkout") === "true") {
           document.documentElement.classList.add("open-checkout");
@@ -456,6 +470,49 @@
         100% {
           background-position: 200% 0;
         }
+      }
+      @keyframes card-appear {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .product-card-appear {
+        animation: card-appear 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .product-card-skeleton {
+        border-radius: 16px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 12px;
+      }
+      .skeleton-image {
+        aspect-ratio: 4 / 5;
+        width: 100%;
+        background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
+        background-size: 200% 100%;
+        animation: glassy-shimmer 1.5s infinite;
+      }
+      .skeleton-info {
+        padding: 12px 10px 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .skeleton-line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
+        background-size: 200% 100%;
+        animation: glassy-shimmer 1.5s infinite;
+      }
+      .skeleton-line.short {
+        width: 50%;
       }
       .info-card {
         position: relative;
@@ -1299,7 +1356,7 @@
         }
         .brand-center {
           flex-direction: row;
-          gap: 12px;
+          gap: 8px;
         }
         .brand-text {
           font-size: 0.75rem;
@@ -1310,10 +1367,6 @@
         .brand-mark {
           width: 32px;
           height: 32px;
-        }
-        .icon-button {
-          width: 24px;
-          height: 24px;
         }
         .hero-shell {
           padding: 28px 18px;
@@ -3159,13 +3212,14 @@
         container.innerHTML = cart
           .map((item) => {
             const qtyLabel = item.quantity > 1 ? ` x${item.quantity}` : "";
-            const sizeLabel =
-              item.size && item.size !== "SELECT SIZE"
-                ? ` · Size ${item.size}`
-                : "";
+            const details = [
+              item.color ? `Color: ${item.color}` : "",
+              item.size && item.size !== "SELECT SIZE" ? `Size: ${item.size}` : "",
+            ].filter(Boolean).join(" · ");
+            const metaLabel = details ? ` · ${details}` : "";
             return `<div class="flex justify-between border-b border-dashed border-[#d6c8b4] pb-2 text-sm">
                     <div class="flex flex-wrap items-center gap-2">
-                      <span>${item.name}${qtyLabel}${sizeLabel}</span>
+                      <span class="capitalize font-medium">${item.name}${qtyLabel}${metaLabel}</span>
                     </div>
                     <span class="font-semibold price-text">${item.price} Tk</span>
                 </div>`;
@@ -3188,13 +3242,14 @@
         cartModalItems.innerHTML = cart
           .map((item, index) => {
             const qtyLabel = item.quantity > 1 ? ` x${item.quantity}` : "";
-            const sizeLabel =
-              item.size && item.size !== "SELECT SIZE"
-                ? ` · ${item.size}`
-                : "";
+            const details = [
+              item.color || "",
+              item.size && item.size !== "SELECT SIZE" ? item.size : "",
+            ].filter(Boolean).join(" / ");
+            const metaLabel = details ? ` · ${details}` : "";
             return `<div class="cart-item">
                   <div>
-                    <div class="cart-item-name">${item.name}${qtyLabel}${sizeLabel}</div>
+                    <div class="cart-item-name capitalize">${item.name}${qtyLabel}${metaLabel}</div>
                     <div class="cart-item-price price-text">${item.price} Tk</div>
                   </div>
                   <button class="cart-remove" data-index="${index}">Remove</button>
@@ -3969,12 +4024,6 @@
 
       function startModalAutoScroll() {
         stopModalAutoScroll();
-        if (!isMobileViewport() || modalSlidesCount <= 1) {
-          return;
-        }
-        modalAutoTimer = setInterval(() => {
-          setModalIndex(modalIndex + 1);
-        }, 3200);
       }
 
       function stopModalAutoScroll() {
@@ -4432,8 +4481,9 @@
       function buildOrderReceipt(orderNumber, paymentMethod, billing, totals) {
         const itemsHtml = cart.map((item) => {
           const qty = item.quantity > 1 ? ` × ${item.quantity}` : " × 1";
-          const size = item.size ? ` – ${item.size}` : "";
-          return `<tr><td>${item.name}${size}${qty}</td><td style="text-align:right;">${formatMoney(item.price)}</td></tr>`;
+          const details = [item.color, item.size && item.size !== "SELECT SIZE" ? item.size : ""].filter(Boolean).join(" / ");
+          const detailStr = details ? ` – ${details}` : "";
+          return `<tr><td><span style="text-transform:capitalize;">${item.name}</span>${detailStr}${qty}</td><td style="text-align:right;">${formatMoney(item.price)}</td></tr>`;
         }).join("");
         const bankBlock = paymentMethod === "Direct bank transfer" ? `
           <h3>Our bank details</h3>
@@ -4512,7 +4562,11 @@
               "Order number: " + orderNumber,
               "Payment method: " + paymentMethod,
               "Total: " + formatMoney(finalTotal) + " BDT",
-              "Items: " + cart.map((i) => i.name + " " + (i.size || "") + " x" + (i.quantity || 1)).join(", "),
+              "Items: " + cart.map((i) => {
+                const details = [i.color, i.size && i.size !== "SELECT SIZE" ? i.size : ""].filter(Boolean).join("/");
+                const detailStr = details ? ` [${details}]` : "";
+                return `${i.name}${detailStr} x${i.quantity || 1} (${formatMoney(i.price)} Tk)`;
+              }).join(", "),
               "Customer: " + billing.name,
               "Email: " + billing.email,
               "Phone: " + billing.phone,

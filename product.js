@@ -3,19 +3,11 @@ import { db, doc, getDoc } from "./firebase-config.js";
 const PRODUCTS_COLLECTION = "products";
 const CART_KEY = "store_cart";
 const LEGACY_CART_KEY = "accolade_cart";
-const LIST_CACHE_KEY = "day1_products_cache";
-const DETAIL_CACHE_KEY = "day1_product_details";
-const CACHE_MS = 10 * 60 * 1000;
-const DEFAULT_SIZES = ["S", "M", "L", "XL"];
-const DEFAULT_SIZE_CHART = {
-  columns: ["Length", "Chest", "Sleeve"],
-  rows: [
-    { label: "S", values: ['68 cm (26.8")', '55 cm (21.7")', '26 cm (10.2")'] },
-    { label: "M", values: ['70 cm (27.6")', '57 cm (22.4")', '27 cm (10.6")'] },
-    { label: "L", values: ['72 cm (28.3")', '59 cm (23.2")', '28 cm (11.0")'] },
-    { label: "XL", values: ['74 cm (29.1")', '61 cm (24.0")', '29 cm (11.4")'] },
-  ],
-};
+const LIST_CACHE_KEY = "day1_products_cache_v2";
+const LEGACY_LIST_KEY = "day1_products_cache";
+const DETAIL_CACHE_KEY = "day1_product_details_v2";
+const LEGACY_DETAIL_KEY = "day1_product_details";
+const CACHE_MS = 30 * 60 * 1000;
 
 const params = new URLSearchParams(window.location.search);
 const productId = params.get("id");
@@ -30,8 +22,15 @@ const els = {
   price: document.getElementById("pd-price"),
   badge: document.getElementById("pd-badge"),
   unit: document.getElementById("pd-unit"),
+  sizeBlock: document.getElementById("pd-size-block"),
   sizeOptions: document.getElementById("pd-size-options"),
   sizeHint: document.getElementById("pd-size-hint"),
+  selectedSizeLabel: document.getElementById("pd-selected-size"),
+  colorBlock: document.getElementById("pd-color-block"),
+  colorOptions: document.getElementById("pd-color-options"),
+  colorHint: document.getElementById("pd-color-hint"),
+  selectedColorLabel: document.getElementById("pd-selected-color"),
+  chartBox: document.getElementById("pd-chart-box"),
   chartHead: document.getElementById("pd-chart-head"),
   chartBody: document.getElementById("pd-chart-body"),
   qtyValue: document.getElementById("pd-qty-value"),
@@ -51,6 +50,7 @@ const els = {
 
 let product = null;
 let quantity = 1;
+let selectedColor = "";
 let selectedSize = "";
 let slideIndex = 0;
 let slidesCount = 0;
@@ -82,13 +82,37 @@ function normalizeSizeChart(raw) {
       return { columns, rows };
     }
   }
-  return DEFAULT_SIZE_CHART;
+  return null;
+}
+
+function normalizeColors(raw) {
+  if (Array.isArray(raw)) {
+    return raw.map((item) => String(item).trim()).filter(Boolean);
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    return raw.split(/[,|\n]+/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function normalizeSizes(raw) {
+  if (Array.isArray(raw)) {
+    return raw.map((item) => String(item).trim()).filter(Boolean);
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    return raw.split(/[,|\n]+/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
 }
 
 function readCachedProduct(id) {
   if (!id) return null;
   try {
-    const detailRaw = sessionStorage.getItem(DETAIL_CACHE_KEY);
+    const detailRaw =
+      localStorage.getItem(DETAIL_CACHE_KEY) ||
+      sessionStorage.getItem(DETAIL_CACHE_KEY) ||
+      localStorage.getItem(LEGACY_DETAIL_KEY) ||
+      sessionStorage.getItem(LEGACY_DETAIL_KEY);
     if (detailRaw) {
       const parsed = JSON.parse(detailRaw);
       const cached = parsed?.details?.[id];
@@ -96,7 +120,11 @@ function readCachedProduct(id) {
         return cached;
       }
     }
-    const listRaw = sessionStorage.getItem(LIST_CACHE_KEY);
+    const listRaw =
+      localStorage.getItem(LIST_CACHE_KEY) ||
+      sessionStorage.getItem(LIST_CACHE_KEY) ||
+      localStorage.getItem(LEGACY_LIST_KEY) ||
+      sessionStorage.getItem(LEGACY_LIST_KEY);
     if (listRaw) {
       const parsed = JSON.parse(listRaw);
       if (Date.now() - (parsed.ts || 0) < CACHE_MS) {
@@ -112,20 +140,23 @@ function readCachedProduct(id) {
 function writeCachedProduct(product) {
   if (!product?.id) return;
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(DETAIL_CACHE_KEY) || "{}");
+    const raw =
+      localStorage.getItem(DETAIL_CACHE_KEY) ||
+      sessionStorage.getItem(DETAIL_CACHE_KEY) ||
+      "{}";
+    const parsed = JSON.parse(raw);
     const details = parsed.details && typeof parsed.details === "object" ? parsed.details : {};
     details[product.id] = product;
-    sessionStorage.setItem(
-      DETAIL_CACHE_KEY,
-      JSON.stringify({ ts: Date.now(), details }),
-    );
+    const payload = JSON.stringify({ ts: Date.now(), details });
+    localStorage.setItem(DETAIL_CACHE_KEY, payload);
+    sessionStorage.setItem(DETAIL_CACHE_KEY, payload);
   } catch {
     // Ignore quota / private mode.
   }
 }
 
 function prefetchImages(urls) {
-  (urls || []).slice(0, 4).forEach((src) => {
+  (urls || []).forEach((src) => {
     if (!src) return;
     const img = new Image();
     img.decoding = "async";
@@ -134,7 +165,7 @@ function prefetchImages(urls) {
 }
 
 function normalizeProduct(docSnap) {
-  const data = docSnap.data() || {};
+  const data = typeof docSnap.data === "function" ? (docSnap.data() || {}) : (docSnap || {});
   const images = Array.isArray(data.images)
     ? data.images.filter(Boolean)
     : String(data.images || "")
@@ -144,22 +175,20 @@ function normalizeProduct(docSnap) {
   const priceCurrent = toNumber(data.priceCurrent ?? data.price);
   const priceOriginal = toNumber(data.priceOriginal ?? data.offer, priceCurrent);
   const discount = calculateDiscount(priceCurrent, priceOriginal);
-  const sizes = Array.isArray(data.sizes)
-    ? data.sizes.map((item) => String(item).trim()).filter(Boolean)
-    : String(data.sizes || "")
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean);
+  const sizes = normalizeSizes(data.sizes);
+  const colors = normalizeColors(data.colors);
+  const sizeChart = normalizeSizeChart(data.sizeChart);
 
   return {
-    id: docSnap.id,
+    id: docSnap.id || data.id,
     name: String(data.name || "Unnamed product"),
     priceCurrent,
     priceOriginal,
     badge: String(data.badge || "").trim() || (discount ? `${discount}% OFF` : "NEW"),
-    images,
-    sizes: sizes.length ? sizes : DEFAULT_SIZES,
-    sizeChart: normalizeSizeChart(data.sizeChart),
+    images: images.length ? images : ["photos/any.jpeg"],
+    sizes,
+    colors,
+    sizeChart,
     isPublished: data.isPublished !== false,
   };
 }
@@ -204,7 +233,7 @@ function saveCart(cart) {
   updateCartBadge();
 }
 
-function addToCart(name, price, qty, size) {
+function addToCart(name, price, qty, size, color) {
   const cart = loadCart();
   const safeQty = Math.max(1, parseInt(qty, 10) || 1);
   cart.push({
@@ -212,7 +241,8 @@ function addToCart(name, price, qty, size) {
     price: price * safeQty,
     unitPrice: price,
     quantity: safeQty,
-    size,
+    size: size || "",
+    color: color || "",
   });
   saveCart(cart);
   showToast("Added successfully");
@@ -261,11 +291,12 @@ function buildGallery(images) {
     img.src = src;
     img.alt = `Product image ${index + 1}`;
     img.loading = index === 0 ? "eager" : "lazy";
+    img.decoding = "async";
     img.addEventListener("click", () => openLightbox(src));
     slide.appendChild(img);
     els.track.appendChild(slide);
 
-    if (els.thumbs) {
+    if (els.thumbs && items.length > 1) {
       const thumb = document.createElement("button");
       thumb.type = "button";
       thumb.className = "pd-thumb";
@@ -273,6 +304,8 @@ function buildGallery(images) {
       const thumbImg = document.createElement("img");
       thumbImg.src = src;
       thumbImg.alt = `Thumbnail ${index + 1}`;
+      thumbImg.loading = "lazy";
+      thumbImg.decoding = "async";
       thumb.appendChild(thumbImg);
       thumb.addEventListener("click", () => setSlide(index));
       els.thumbs.appendChild(thumb);
@@ -283,7 +316,11 @@ function buildGallery(images) {
 }
 
 function renderSizeChart(chart) {
-  if (!els.chartHead || !els.chartBody || !chart) return;
+  if (!els.chartBox || !els.chartHead || !els.chartBody) return;
+  if (!chart || !chart.columns?.length || !chart.rows?.length) {
+    els.chartBox.hidden = true;
+    return;
+  }
   const columns = chart.columns || [];
   els.chartHead.innerHTML = `<tr><th scope="col">Size</th>${columns
     .map((col) => `<th scope="col">${col}</th>`)
@@ -296,12 +333,53 @@ function renderSizeChart(chart) {
           .join("")}</tr>`,
     )
     .join("");
+  els.chartBox.hidden = false;
+}
+
+function buildColorOptions(colors) {
+  if (!els.colorBlock || !els.colorOptions) return;
+  els.colorOptions.innerHTML = "";
+  if (!colors || !colors.length) {
+    els.colorBlock.hidden = true;
+    selectedColor = "";
+    if (els.selectedColorLabel) els.selectedColorLabel.textContent = "";
+    return;
+  }
+
+  els.colorBlock.hidden = false;
+  colors.forEach((color) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pd-color-btn";
+    btn.textContent = color;
+    btn.dataset.color = color;
+    btn.addEventListener("click", () => {
+      selectedColor = color;
+      if (els.selectedColorLabel) els.selectedColorLabel.textContent = color;
+      els.colorOptions.querySelectorAll(".pd-color-btn").forEach((el) => {
+        el.classList.toggle("is-selected", el.dataset.color === color);
+      });
+      if (els.colorHint) {
+        els.colorHint.textContent = "";
+        els.colorHint.hidden = true;
+      }
+    });
+    els.colorOptions.appendChild(btn);
+  });
 }
 
 function buildSizeOptions(sizes) {
-  if (!els.sizeOptions) return;
+  if (!els.sizeBlock || !els.sizeOptions) return;
   els.sizeOptions.innerHTML = "";
-  (sizes || DEFAULT_SIZES).forEach((size) => {
+  if (!sizes || !sizes.length) {
+    els.sizeBlock.hidden = true;
+    selectedSize = "";
+    if (els.selectedSizeLabel) els.selectedSizeLabel.textContent = "";
+    return;
+  }
+
+  els.sizeBlock.hidden = false;
+  sizes.forEach((size) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "pd-size-btn";
@@ -309,6 +387,7 @@ function buildSizeOptions(sizes) {
     btn.dataset.size = size;
     btn.addEventListener("click", () => {
       selectedSize = size;
+      if (els.selectedSizeLabel) els.selectedSizeLabel.textContent = size;
       els.sizeOptions.querySelectorAll(".pd-size-btn").forEach((el) => {
         el.classList.toggle("is-selected", el.dataset.size === size);
       });
@@ -321,20 +400,31 @@ function buildSizeOptions(sizes) {
   });
 }
 
-function requireSize() {
-  if (selectedSize) return true;
-  if (els.sizeHint) {
-    els.sizeHint.textContent = "Please select a size";
-    els.sizeHint.hidden = false;
+function requireSelections() {
+  if (product?.sizes?.length && !selectedSize) {
+    if (els.sizeHint) {
+      els.sizeHint.textContent = "Please select a size";
+      els.sizeHint.hidden = false;
+    }
+    showToast("Please select a size");
+    return false;
   }
-  showToast("Please select a size");
-  return false;
+  if (product?.colors?.length && !selectedColor) {
+    if (els.colorHint) {
+      els.colorHint.textContent = "Please select a color";
+      els.colorHint.hidden = false;
+    }
+    showToast("Please select a color");
+    return false;
+  }
+  return true;
 }
 
 function renderProduct(data) {
   product = data;
   unitPrice = data.priceCurrent;
   quantity = 1;
+  selectedColor = "";
   selectedSize = "";
 
   document.title = `${data.name} | Day-1`;
@@ -349,6 +439,7 @@ function renderProduct(data) {
 
   buildGallery(data.images);
   buildSizeOptions(data.sizes);
+  buildColorOptions(data.colors);
   renderSizeChart(data.sizeChart);
   updateTotals();
 
@@ -370,16 +461,19 @@ async function loadProduct() {
     return;
   }
 
+  // 1. Instant Cache Render (0ms perceived load time)
   const cached = readCachedProduct(productId);
   if (cached && cached.isPublished !== false) {
     renderProduct({
       ...cached,
-      sizes: cached.sizes?.length ? cached.sizes : DEFAULT_SIZES,
+      sizes: normalizeSizes(cached.sizes),
+      colors: normalizeColors(cached.colors),
       sizeChart: normalizeSizeChart(cached.sizeChart),
     });
     prefetchImages(cached.images);
   }
 
+  // 2. Background Revalidation from Firestore
   try {
     const snap = await getDoc(doc(db, PRODUCTS_COLLECTION, productId));
     if (!snap.exists()) {
@@ -590,14 +684,14 @@ function bindActions() {
   }
   if (els.addBtn) {
     els.addBtn.addEventListener("click", () => {
-      if (!product || !requireSize()) return;
-      addToCart(product.name.toLowerCase(), unitPrice, quantity, selectedSize);
+      if (!product || !requireSelections()) return;
+      addToCart(product.name, unitPrice, quantity, selectedSize, selectedColor);
     });
   }
   if (els.buyBtn) {
     els.buyBtn.addEventListener("click", () => {
-      if (!product || !requireSize()) return;
-      addToCart(product.name.toLowerCase(), unitPrice, quantity, selectedSize);
+      if (!product || !requireSelections()) return;
+      addToCart(product.name, unitPrice, quantity, selectedSize, selectedColor);
       window.location.href = "shop.html?checkout=true";
     });
   }
@@ -610,20 +704,27 @@ function bindActions() {
   }
 
   let startX = 0;
+  let startY = 0;
   if (els.track) {
     els.track.addEventListener(
       "touchstart",
       (e) => {
-        startX = e.touches[0].clientX;
+        if (e.touches.length === 1) {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }
       },
       { passive: true },
     );
     els.track.addEventListener(
       "touchend",
       (e) => {
-        const delta = e.changedTouches[0].clientX - startX;
-        if (Math.abs(delta) > 40) {
-          setSlide(slideIndex + (delta < 0 ? 1 : -1));
+        if (e.changedTouches.length === 1) {
+          const deltaX = e.changedTouches[0].clientX - startX;
+          const deltaY = e.changedTouches[0].clientY - startY;
+          if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+            setSlide(slideIndex + (deltaX < 0 ? 1 : -1));
+          }
         }
       },
       { passive: true },

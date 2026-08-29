@@ -138,12 +138,13 @@
     }
     itemsEl.innerHTML = cart
       .map((item, index) => {
-        const qty = item.quantity > 1 ? ` x${item.quantity}` : "";
-        const size = item.size && item.size !== "SELECT SIZE" ? ` · ${item.size}` : "";
+        const qty = item.quantity > 1 ? ` × ${item.quantity}` : "";
+        const details = [item.color, item.size && item.size !== "SELECT SIZE" ? item.size : ""].filter(Boolean).join(" / ");
+        const meta = details ? ` · <span style="color:#dfb76c;">${details}</span>` : "";
         return `<div class="global-cart-item">
           <div>
-            <div>${item.name}${qty}${size}</div>
-            <div>${item.price} Tk</div>
+            <div style="font-weight:600; text-transform:capitalize;">${item.name}${qty}${meta}</div>
+            <div style="color:#dfb76c; font-size:12px; margin-top:2px;">${item.price} Tk</div>
           </div>
           <button type="button" data-remove="${index}">Remove</button>
         </div>`;
@@ -178,8 +179,43 @@
     if (modal) modal.hidden = true;
   }
 
+  function prefetchUrl(url) {
+    if (!url || document.querySelector(`link[href="${url}"]`)) return;
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.href = url;
+    document.head.appendChild(link);
+  }
+
+  function setupGlobalPrefetch() {
+    const handlePrefetch = (event) => {
+      const anchor = event.target.closest("a[href]");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (href && (href.includes("shop.html") || href.includes("product.html"))) {
+        prefetchUrl(href);
+      }
+    };
+
+    document.addEventListener("mouseover", handlePrefetch, { passive: true });
+    document.addEventListener("touchstart", handlePrefetch, { passive: true });
+    document.addEventListener("pointerdown", handlePrefetch, { passive: true });
+
+    // Idle warming for shop page and background
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(() => {
+        prefetchUrl("shop.html");
+      });
+    } else {
+      setTimeout(() => {
+        prefetchUrl("shop.html");
+      }, 800);
+    }
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     updateBadge();
+    setupGlobalPrefetch();
     const button = document.getElementById("cart-button");
     if (button) {
       button.addEventListener("click", (event) => {

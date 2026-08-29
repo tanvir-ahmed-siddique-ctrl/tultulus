@@ -83,9 +83,20 @@ function parseSizes(value) {
     .filter(Boolean);
 }
 
+function parseColors(value) {
+  return String(value || "")
+    .split(/[,|\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function readChartFromDom() {
+  const checkbox = document.getElementById("enable-size-chart");
+  if (checkbox && !checkbox.checked) {
+    return null;
+  }
   const table = document.getElementById("size-chart-table");
-  if (!table) return chartState;
+  if (!table) return null;
   const headerInputs = table.querySelectorAll("thead input[data-col]");
   const columns = Array.from(headerInputs).map((input) => input.value.trim()).filter(Boolean);
   const rows = Array.from(table.querySelectorAll("tbody tr")).map((tr) => {
@@ -93,7 +104,10 @@ function readChartFromDom() {
     const values = Array.from(tr.querySelectorAll("input[data-row-cell]")).map((input) => input.value);
     return { label, values };
   }).filter((row) => row.label);
-  return { columns: columns.length ? columns : chartState.columns, rows };
+  if (!columns.length || !rows.length) {
+    return null;
+  }
+  return { columns, rows };
 }
 
 function renderSizeChartEditor() {
@@ -162,7 +176,7 @@ function renderSizeChartEditor() {
 }
 
 function setChartState(nextChart) {
-  if (nextChart && Array.isArray(nextChart.columns) && Array.isArray(nextChart.rows)) {
+  if (nextChart && Array.isArray(nextChart.columns) && Array.isArray(nextChart.rows) && nextChart.columns.length && nextChart.rows.length) {
     chartState = {
       columns: nextChart.columns.map((item) => String(item || "").trim()).filter(Boolean),
       rows: nextChart.rows.map((row) => ({
@@ -292,9 +306,15 @@ function resetForm(statusMessage = "Ready", statusType = "normal") {
   }
   productForm.reset();
   state.editingId = null;
-  setChartState(DEFAULT_CHART);
+  const enableChart = document.getElementById("enable-size-chart");
+  const chartSection = document.getElementById("size-chart-editor-section");
+  if (enableChart) enableChart.checked = false;
+  if (chartSection) chartSection.classList.add("hidden-section");
+  chartState = { columns: [], rows: [] };
   const sizesInput = document.getElementById("product-sizes");
   if (sizesInput) sizesInput.value = "S, M, L, XL";
+  const colorsInput = document.getElementById("product-colors");
+  if (colorsInput) colorsInput.value = "";
   formTitle.textContent = "Add new product";
   cancelEditButton.classList.add("hidden-section");
   if (saveProductButton) {
@@ -451,8 +471,8 @@ function getFormData() {
   const badge = document.getElementById("product-badge").value.trim();
   const imageUrls = parseList(document.getElementById("product-images").value);
   const sizes = parseSizes(document.getElementById("product-sizes")?.value);
+  const colors = parseColors(document.getElementById("product-colors")?.value);
   const sizeChart = readChartFromDom();
-  chartState = sizeChart;
   const sortOrder = Number.parseInt(
     document.getElementById("product-sort-order").value,
     10,
@@ -477,7 +497,8 @@ function getFormData() {
     badge: badge || "NEW",
     images: imageUrls,
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
-    sizeChart,
+    colors: colors.length ? colors : [],
+    sizeChart: sizeChart || null,
     categories,
     featured,
     hotSelling,
@@ -540,8 +561,19 @@ function renderProductList() {
       document.getElementById("product-images").value = (
         selected.images || []
       ).join("\n");
-      document.getElementById("product-sizes").value = (selected.sizes || ["S", "M", "L", "XL"]).join(", ");
-      setChartState(selected.sizeChart);
+      document.getElementById("product-sizes").value = (selected.sizes || []).join(", ");
+      document.getElementById("product-colors").value = (selected.colors || []).join(", ");
+      const enableChart = document.getElementById("enable-size-chart");
+      const chartSection = document.getElementById("size-chart-editor-section");
+      if (selected.sizeChart && Array.isArray(selected.sizeChart.columns) && selected.sizeChart.columns.length && Array.isArray(selected.sizeChart.rows) && selected.sizeChart.rows.length) {
+        if (enableChart) enableChart.checked = true;
+        if (chartSection) chartSection.classList.remove("hidden-section");
+        setChartState(selected.sizeChart);
+      } else {
+        if (enableChart) enableChart.checked = false;
+        if (chartSection) chartSection.classList.add("hidden-section");
+        setChartState(null);
+      }
       document.getElementById("product-sort-order").value = selected.sortOrder ?? "";
       document.getElementById("product-published").checked =
         selected.isPublished !== false;
@@ -643,11 +675,43 @@ if (uploadProductImagesButton) {
   });
 }
 
+const enableSizeChartCheckbox = document.getElementById("enable-size-chart");
+const sizeChartEditorSection = document.getElementById("size-chart-editor-section");
+const loadTemplateBtn = document.getElementById("chart-load-template");
+const clearChartBtn = document.getElementById("chart-clear");
+
+if (enableSizeChartCheckbox) {
+  enableSizeChartCheckbox.addEventListener("change", () => {
+    if (enableSizeChartCheckbox.checked) {
+      if (sizeChartEditorSection) sizeChartEditorSection.classList.remove("hidden-section");
+      if (!chartState.rows || chartState.rows.length === 0 || !chartState.columns || chartState.columns.length === 0) {
+        setChartState(DEFAULT_CHART);
+      } else {
+        renderSizeChartEditor();
+      }
+    } else {
+      if (sizeChartEditorSection) sizeChartEditorSection.classList.add("hidden-section");
+    }
+  });
+}
+
+if (loadTemplateBtn) {
+  loadTemplateBtn.addEventListener("click", () => {
+    setChartState(DEFAULT_CHART);
+  });
+}
+
+if (clearChartBtn) {
+  clearChartBtn.addEventListener("click", () => {
+    setChartState({ columns: ["Measurement"], rows: [{ label: "S", values: [""] }] });
+  });
+}
+
 const addColButton = document.getElementById("chart-add-col");
 const addRowButton = document.getElementById("chart-add-row");
 if (addColButton) {
   addColButton.addEventListener("click", () => {
-    chartState = readChartFromDom();
+    chartState = readChartFromDom() || { columns: ["Measurement"], rows: [{ label: "S", values: [""] }] };
     const name = window.prompt("Column name", "Measurement");
     if (!name || !name.trim()) return;
     chartState.columns.push(name.trim());
@@ -657,7 +721,7 @@ if (addColButton) {
 }
 if (addRowButton) {
   addRowButton.addEventListener("click", () => {
-    chartState = readChartFromDom();
+    chartState = readChartFromDom() || { columns: ["Measurement"], rows: [{ label: "S", values: [""] }] };
     const label = window.prompt("Size label", "XL");
     if (!label || !label.trim()) return;
     chartState.rows.push({
@@ -667,7 +731,6 @@ if (addRowButton) {
     renderSizeChartEditor();
   });
 }
-setChartState(DEFAULT_CHART);
 
 if (productForm) {
   productForm.addEventListener("input", updatePreview);

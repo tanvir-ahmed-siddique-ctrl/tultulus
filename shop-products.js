@@ -1,15 +1,18 @@
 import { collection, db, getDocs } from "./firebase-config.js";
 
 const PRODUCTS_COLLECTION = "products";
-const CACHE_KEY = "day1_products_cache";
-const DETAIL_CACHE_KEY = "day1_product_details";
-const CACHE_MS = 10 * 60 * 1000;
-
-document.documentElement.classList.add("firebase-products-loading");
+const CACHE_KEY = "day1_products_cache_v2";
+const LEGACY_CACHE_KEY = "day1_products_cache";
+const DETAIL_CACHE_KEY = "day1_product_details_v2";
+const LEGACY_DETAIL_KEY = "day1_product_details";
+const CACHE_MS = 30 * 60 * 1000; // 30 minutes
 
 const featuredGrid = document.querySelector("#featured-products .product-grid");
 const allGrid = document.querySelector("#all-categories .product-grid");
 const hotGrid = document.querySelector("#top-rated .product-grid");
+
+const prefetchedProducts = new Set();
+const prefetchedImages = new Set();
 
 function toNumber(value, fallback = 0) {
   const parsed = Number.parseInt(String(value ?? "").replace(/[^\d]/g, ""), 10);
@@ -17,18 +20,10 @@ function toNumber(value, fallback = 0) {
 }
 
 function getTimestampValue(value) {
-  if (!value) {
-    return 0;
-  }
-  if (typeof value.toMillis === "function") {
-    return value.toMillis();
-  }
-  if (typeof value.seconds === "number") {
-    return value.seconds * 1000;
-  }
-  if (typeof value === "number") {
-    return value;
-  }
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.seconds === "number") return value.seconds * 1000;
+  if (typeof value === "number") return value;
   return 0;
 }
 
@@ -45,32 +40,22 @@ function getCategories(data) {
   const rawCategories = Array.isArray(data.categories) ? data.categories : [];
   rawCategories.forEach((item) => {
     const slug = slugify(item);
-    if (slug) {
-      categories.add(slug);
-    }
+    if (slug) categories.add(slug);
   });
-  if (data.featured === true || categories.has("featured")) {
-    categories.add("featured");
-  }
-  if (
-    data.hotSelling === true ||
-    categories.has("hot-selling") ||
-    categories.has("hotselling")
-  ) {
+  if (data.featured === true || categories.has("featured")) categories.add("featured");
+  if (data.hotSelling === true || categories.has("hot-selling") || categories.has("hotselling")) {
     categories.add("hot-selling");
   }
   return Array.from(categories);
 }
 
 function calculateDiscount(priceCurrent, priceOriginal) {
-  if (!priceCurrent || !priceOriginal || priceOriginal <= priceCurrent) {
-    return null;
-  }
+  if (!priceCurrent || !priceOriginal || priceOriginal <= priceCurrent) return null;
   return Math.round(((priceOriginal - priceCurrent) / priceOriginal) * 100);
 }
 
 function normalizeProduct(docSnap) {
-  const data = docSnap.data() || {};
+  const data = typeof docSnap.data === "function" ? (docSnap.data() || {}) : (docSnap || {});
   const images = Array.isArray(data.images)
     ? data.images.filter(Boolean)
     : String(data.images || "")
@@ -90,36 +75,60 @@ function normalizeProduct(docSnap) {
   const sizes = Array.isArray(data.sizes)
     ? data.sizes.map((item) => String(item).trim()).filter(Boolean)
     : String(data.sizes || "")
-        .split(",")
+        .split(/[,|\n]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+  const colors = Array.isArray(data.colors)
+    ? data.colors.map((item) => String(item).trim()).filter(Boolean)
+    : String(data.colors || "")
+        .split(/[,|\n]+/)
         .map((item) => item.trim())
         .filter(Boolean);
 
   return {
-    id: docSnap.id,
+    id: docSnap.id || data.id,
     name: String(data.name || "Unnamed product"),
     subtitle: String(data.subtitle || "Premium collection"),
     priceCurrent,
     priceOriginal,
-    badge:
-      String(data.badge || "").trim() || (discount ? `${discount}% OFF` : "NEW"),
+    badge: String(data.badge || "").trim() || (discount ? `${discount}% OFF` : "NEW"),
     cotton: String(data.cotton || "add details"),
     quality: String(data.quality || "add details"),
     fabric: String(data.fabric || "add details"),
     sizeChartUrl: String(data.sizeChartUrl || data.sizechart || "photos/chart.jpeg"),
-    images,
+    images: images.length ? images : ["photos/any.jpeg"],
     designPoints,
     sizes,
+    colors,
     sizeChart: data.sizeChart || null,
     categories,
     isPublished: data.isPublished !== false,
-    sortOrder: Number.isFinite(Number(data.sortOrder))
-      ? Number(data.sortOrder)
-      : 9999,
+    sortOrder: Number.isFinite(Number(data.sortOrder)) ? Number(data.sortOrder) : 9999,
     createdAt: getTimestampValue(data.createdAt),
   };
 }
 
-function createProductCard(product) {
+function prefetchProductAssets(product) {
+  if (!product || !product.id || prefetchedProducts.has(product.id)) return;
+  prefetchedProducts.add(product.id);
+  cacheProductDetail(product);
+
+  (product.images || []).forEach((src) => {
+    if (!src || prefetchedImages.has(src)) return;
+    prefetchedImages.add(src);
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.as = "image";
+    link.href = src;
+    document.head.appendChild(link);
+
+    const img = new Image();
+    img.decoding = "async";
+    img.src = src;
+  });
+}
+
+function createProductCard(product, index = 0) {
   const primaryImage = product.images[0] || "photos/any.jpeg";
   const discount = calculateDiscount(product.priceCurrent, product.priceOriginal);
   const labelChip = product.categories.includes("featured")
@@ -129,28 +138,23 @@ function createProductCard(product) {
       : "Product";
 
   const card = document.createElement("article");
-  card.className = "product-card info-card";
+  card.className = "product-card info-card product-card-appear";
+  card.style.animationDelay = `${Math.min(index * 0.04, 0.3)}s`;
   card.tabIndex = 0;
   card.setAttribute("role", "button");
   card.setAttribute("aria-label", `View ${product.name}`);
 
   card.dataset.id = product.id;
   card.dataset.name = product.name;
-  card.dataset.subtitle = product.subtitle;
   card.dataset.price = `BDT ${product.priceCurrent}`;
   card.dataset.priceValue = `${product.priceCurrent}`;
   card.dataset.offer = `${product.priceOriginal}`;
   card.dataset.badge = product.badge;
-  card.dataset.cotton = product.cotton;
-  card.dataset.quality = product.quality;
-  card.dataset.fabric = product.fabric;
-  card.dataset.design = product.designPoints.join("|");
-  card.dataset.sizechart = product.sizeChartUrl;
   card.dataset.images = product.images.join(",");
 
   card.innerHTML = `
     <div class="product-image">
-      <img src="${primaryImage}" alt="${product.name}" loading="lazy" />
+      <img src="${primaryImage}" alt="${product.name}" loading="${index < 4 ? "eager" : "lazy"}" decoding="async" />
       <span class="label-chip">${labelChip}</span>
       <span class="badge">${product.badge}</span>
     </div>
@@ -165,9 +169,16 @@ function createProductCard(product) {
     </div>
   `;
 
+  // Predictive prefetch on hover/touch/focus
+  const triggerPrefetch = () => prefetchProductAssets(product);
+  card.addEventListener("mouseenter", triggerPrefetch, { passive: true });
+  card.addEventListener("touchstart", triggerPrefetch, { passive: true });
+  card.addEventListener("pointerdown", triggerPrefetch, { passive: true });
+  card.addEventListener("focus", triggerPrefetch, { passive: true });
+
   const openProductPage = () => {
     cacheProductDetail(product);
-    prefetchImages(product.images);
+    prefetchProductAssets(product);
     window.location.href = `product.html?id=${encodeURIComponent(product.id)}`;
   };
   card.addEventListener("click", openProductPage);
@@ -181,23 +192,37 @@ function createProductCard(product) {
   return card;
 }
 
+function renderSkeletons(gridElement, count = 4) {
+  if (!gridElement) return;
+  gridElement.innerHTML = Array.from({ length: count })
+    .map(
+      () => `
+      <div class="product-card-skeleton">
+        <div class="skeleton-image"></div>
+        <div class="skeleton-info">
+          <div class="skeleton-line" style="width: 75%;"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>`,
+    )
+    .join("");
+}
+
 function renderIntoGrid(gridElement, products, emptyMessage) {
-  if (!gridElement) {
-    return;
-  }
+  if (!gridElement) return;
   gridElement.innerHTML = "";
 
   if (!products.length) {
     const emptyState = document.createElement("div");
     emptyState.className =
-      "col-span-full border border-[rgba(255,255,255,0.18)] rounded-2xl p-6 text-sm tracking-wide";
+      "col-span-full border border-[rgba(255,255,255,0.18)] rounded-2xl p-6 text-sm tracking-wide text-center text-[var(--muted)]";
     emptyState.textContent = emptyMessage;
     gridElement.appendChild(emptyState);
     return;
   }
 
-  products.forEach((product) => {
-    gridElement.appendChild(createProductCard(product));
+  products.forEach((product, idx) => {
+    gridElement.appendChild(createProductCard(product, idx));
   });
 
   if (typeof window.attachImageLoaders === "function") {
@@ -216,14 +241,29 @@ function renderProducts(products) {
   renderIntoGrid(featuredGrid, featuredProducts, "No featured products yet.");
   renderIntoGrid(allGrid, products, "No products found.");
   renderIntoGrid(hotGrid, hotProducts, "No hot selling products yet.");
+
+  // Progressive prefetch in background after render
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => {
+      products.slice(0, 6).forEach(prefetchProductAssets);
+    });
+  } else {
+    setTimeout(() => {
+      products.slice(0, 6).forEach(prefetchProductAssets);
+    }, 200);
+  }
 }
 
 function readCachedProducts() {
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
+    const raw =
+      localStorage.getItem(CACHE_KEY) ||
+      sessionStorage.getItem(CACHE_KEY) ||
+      localStorage.getItem(LEGACY_CACHE_KEY) ||
+      sessionStorage.getItem(LEGACY_CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed?.products || Date.now() - parsed.ts > CACHE_MS) return null;
+    if (!parsed?.products || Date.now() - (parsed.ts || 0) > CACHE_MS) return null;
     return parsed.products;
   } catch {
     return null;
@@ -232,15 +272,17 @@ function readCachedProducts() {
 
 function writeCachedProducts(products) {
   try {
-    sessionStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ ts: Date.now(), products }),
-    );
+    const payload = JSON.stringify({ ts: Date.now(), products });
+    localStorage.setItem(CACHE_KEY, payload);
+    sessionStorage.setItem(CACHE_KEY, payload);
+
     const details = {};
     products.forEach((product) => {
       details[product.id] = product;
     });
-    sessionStorage.setItem(DETAIL_CACHE_KEY, JSON.stringify({ ts: Date.now(), details }));
+    const detailsPayload = JSON.stringify({ ts: Date.now(), details });
+    localStorage.setItem(DETAIL_CACHE_KEY, detailsPayload);
+    sessionStorage.setItem(DETAIL_CACHE_KEY, detailsPayload);
   } catch {
     // Ignore quota / private mode.
   }
@@ -249,25 +291,19 @@ function writeCachedProducts(products) {
 function cacheProductDetail(product) {
   if (!product?.id) return;
   try {
-    const parsed = JSON.parse(sessionStorage.getItem(DETAIL_CACHE_KEY) || "{}");
+    const raw =
+      localStorage.getItem(DETAIL_CACHE_KEY) ||
+      sessionStorage.getItem(DETAIL_CACHE_KEY) ||
+      "{}";
+    const parsed = JSON.parse(raw);
     const details = parsed.details && typeof parsed.details === "object" ? parsed.details : {};
     details[product.id] = product;
-    sessionStorage.setItem(
-      DETAIL_CACHE_KEY,
-      JSON.stringify({ ts: Date.now(), details }),
-    );
+    const detailsPayload = JSON.stringify({ ts: Date.now(), details });
+    localStorage.setItem(DETAIL_CACHE_KEY, detailsPayload);
+    sessionStorage.setItem(DETAIL_CACHE_KEY, detailsPayload);
   } catch {
     // Ignore quota / private mode.
   }
-}
-
-function prefetchImages(urls) {
-  (urls || []).slice(0, 4).forEach((src) => {
-    if (!src) return;
-    const img = new Image();
-    img.decoding = "async";
-    img.src = src;
-  });
 }
 
 async function loadProducts() {
@@ -276,20 +312,22 @@ async function loadProducts() {
     return;
   }
 
+  // 1. Instant Synchronous Cache Render (0ms perceived load)
   const cached = readCachedProducts();
   if (cached?.length) {
-    renderProducts(cached);
     document.documentElement.classList.remove("firebase-products-loading");
+    renderProducts(cached);
   } else {
-    renderIntoGrid(featuredGrid, [], "Loading featured products...");
-    renderIntoGrid(allGrid, [], "Loading products...");
-    renderIntoGrid(hotGrid, [], "Loading hot selling products...");
+    renderSkeletons(featuredGrid, 4);
+    renderSkeletons(allGrid, 8);
+    renderSkeletons(hotGrid, 4);
   }
 
+  // 2. Background Revalidation from Firestore
   try {
     const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
     const products = snapshot.docs
-      .map(normalizeProduct)
+      .map((doc) => normalizeProduct({ id: doc.id, ...doc.data() }))
       .filter((product) => product.isPublished)
       .sort((left, right) => {
         if (left.sortOrder !== right.sortOrder) {
@@ -297,29 +335,17 @@ async function loadProducts() {
         }
         return right.createdAt - left.createdAt;
       });
+
     writeCachedProducts(products);
+    document.documentElement.classList.remove("firebase-products-loading");
     renderProducts(products);
   } catch (error) {
-    console.error("Failed to load Firestore products", error);
-    if (!cached?.length) {
-      renderIntoGrid(
-        featuredGrid,
-        [],
-        "Could not load products from Firebase. Check Firestore rules.",
-      );
-      renderIntoGrid(
-        allGrid,
-        [],
-        "Could not load products from Firebase. Check Firestore rules.",
-      );
-      renderIntoGrid(
-        hotGrid,
-        [],
-        "Could not load products from Firebase. Check Firestore rules.",
-      );
+    console.error("Failed to load products from Firebase", error);
+    if (!cached || !cached.length) {
+      renderIntoGrid(featuredGrid, [], "Unable to load products. Please check your connection.");
+      renderIntoGrid(allGrid, [], "Unable to load products. Please check your connection.");
+      renderIntoGrid(hotGrid, [], "Unable to load products. Please check your connection.");
     }
-  } finally {
-    document.documentElement.classList.remove("firebase-products-loading");
   }
 }
 
