@@ -265,19 +265,29 @@ function updateDashboardStats() {
 function getPreviewFields() {
   const name = document.getElementById("product-name")?.value.trim();
   const priceCurrent = toNumber(document.getElementById("price-current")?.value);
-  const priceOriginal = toNumber(
-    document.getElementById("price-original")?.value || `${priceCurrent}`,
-  );
-  const badge = document.getElementById("product-badge")?.value.trim();
+  const rawOriginal = document.getElementById("price-original")?.value;
+  const priceOriginal = rawOriginal ? toNumber(rawOriginal) : priceCurrent;
+  const discount =
+    priceCurrent && priceOriginal && priceOriginal > priceCurrent
+      ? Math.round(((priceOriginal - priceCurrent) / priceOriginal) * 100)
+      : null;
+  const badgeInput = document.getElementById("product-badge")?.value.trim();
+  const badge = badgeInput || (discount ? `${discount}% OFF` : "NEW");
   const images = parseList(document.getElementById("product-images")?.value);
   const isFeatured = document.getElementById("category-featured")?.checked;
   const isHot = document.getElementById("category-hot")?.checked;
+
+  const discountHintEl = document.getElementById("discount-calc-hint");
+  if (discountHintEl) {
+    discountHintEl.textContent = discount ? `(Auto discount: ${discount}% OFF)` : "";
+  }
 
   return {
     name: name || "Product name",
     priceCurrent,
     priceOriginal: priceOriginal || priceCurrent,
-    badge: badge || "NEW",
+    hasDiscount: !!discount,
+    badge,
     primaryImage: images[0] || "photos/any.jpeg",
     chip: isFeatured ? "Featured" : isHot ? "Hot Selling" : "Product",
   };
@@ -295,7 +305,10 @@ function updatePreview() {
   }
   setText(previewName, preview.name);
   setText(previewCurrent, preview.priceCurrent || 0);
-  setText(previewOriginal, preview.priceOriginal || preview.priceCurrent || 0);
+  if (previewOriginal) {
+    previewOriginal.textContent = preview.priceOriginal || 0;
+    previewOriginal.style.display = preview.hasDiscount ? "inline" : "none";
+  }
   setText(previewBadge, preview.badge);
   setText(previewChip, preview.chip);
 }

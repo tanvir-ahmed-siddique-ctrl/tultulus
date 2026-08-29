@@ -184,7 +184,7 @@ function normalizeProduct(docSnap) {
     name: String(data.name || "Unnamed product"),
     priceCurrent,
     priceOriginal,
-    badge: String(data.badge || "").trim() || (discount ? `${discount}% OFF` : "NEW"),
+    badge: discount ? `${discount}% OFF` : (String(data.badge || "").trim() || "NEW"),
     images: images.length ? images : ["photos/any.jpeg"],
     sizes,
     colors,
@@ -467,13 +467,18 @@ function renderProduct(data) {
   renderSizeChart(data.sizeChart);
   updateTotals();
 
-  if (els.status) els.status.hidden = true;
+  const skel = document.getElementById("product-skeleton");
+  if (skel) skel.remove();
+  if (els.status) els.status.style.display = "none";
   if (els.page) els.page.hidden = false;
 }
 
 function showError(message) {
+  const skel = document.getElementById("product-skeleton");
+  if (skel) skel.remove();
   if (els.status) {
     els.status.textContent = message;
+    els.status.style.display = "block";
     els.status.hidden = false;
   }
   if (els.page) els.page.hidden = true;

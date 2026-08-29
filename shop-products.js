@@ -89,6 +89,9 @@ function normalizeProduct(docSnap) {
   const priceCurrent = toNumber(data.priceCurrent ?? data.price);
   const priceOriginal = toNumber(data.priceOriginal ?? data.offer, priceCurrent);
   const discount = calculateDiscount(priceCurrent, priceOriginal);
+  const badge = discount
+    ? `${discount}% OFF`
+    : (String(data.badge || "").trim() || "NEW");
   const categories = getCategories(data);
   const sizes = Array.isArray(data.sizes)
     ? data.sizes.map((item) => String(item).trim()).filter(Boolean)
@@ -109,7 +112,7 @@ function normalizeProduct(docSnap) {
     subtitle: String(data.subtitle || "Premium collection"),
     priceCurrent,
     priceOriginal,
-    badge: String(data.badge || "").trim() || (discount ? `${discount}% OFF` : "NEW"),
+    badge,
     cotton: String(data.cotton || "add details"),
     quality: String(data.quality || "add details"),
     fabric: String(data.fabric || "add details"),
@@ -182,6 +185,11 @@ function createProductCard(product) {
     ? `<img class="placeholder-img" src="${placeholderImage}" alt="" aria-hidden="true" />`
     : "";
 
+  const originalPriceHtml =
+    product.priceOriginal && product.priceOriginal > product.priceCurrent
+      ? `<span class="price-original">${product.priceOriginal}</span>`
+      : "";
+
   card.innerHTML = `
     <div class="product-image">
       ${placeholderHtml}
@@ -193,9 +201,8 @@ function createProductCard(product) {
       <h3 class="font-bold text-sm uppercase tracking-wider">${product.name}</h3>
       <div class="price-display">
         <span class="price-currency">BDT</span>
-        <span class="price-original">${product.priceOriginal}</span>
+        ${originalPriceHtml}
         <span class="price-current">${product.priceCurrent}</span>
-        <span class="price-badge">${discount ? `${discount}% OFF` : "NEW"}</span>
       </div>
     </div>
   `;

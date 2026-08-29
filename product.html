@@ -218,6 +218,23 @@
         color: rgba(255, 255, 255, 0.45) !important;
       }
 
+      @keyframes glassy-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+      .skeleton-image {
+        aspect-ratio: 4 / 5;
+        width: 100%;
+        background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
+        background-size: 200% 100%;
+        animation: glassy-shimmer 1.5s infinite;
+      }
+      .skeleton-line {
+        background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
+        background-size: 200% 100%;
+        animation: glassy-shimmer 1.5s infinite;
+      }
+
       .product-main {
         flex: 1;
         width: 100%;
@@ -968,7 +985,24 @@
         </a>
       </div>
 
-      <p id="product-status">Loading product...</p>
+      <!-- Skeleton Placeholder for zero-flicker instant loading -->
+      <div id="product-skeleton" class="pd-layout">
+        <div class="pd-media">
+          <div class="pd-gallery skeleton-image" style="min-height: 420px; border-radius: 20px;"></div>
+        </div>
+        <div class="pd-info" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="skeleton-line" style="height: 32px; width: 70%; border-radius: 8px;"></div>
+          <div class="skeleton-line" style="height: 24px; width: 40%; border-radius: 6px;"></div>
+          <div class="skeleton-line" style="height: 16px; width: 25%; border-radius: 4px;"></div>
+          <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <div class="skeleton-line" style="height: 38px; width: 48px; border-radius: 8px;"></div>
+            <div class="skeleton-line" style="height: 38px; width: 48px; border-radius: 8px;"></div>
+            <div class="skeleton-line" style="height: 38px; width: 48px; border-radius: 8px;"></div>
+          </div>
+          <div class="skeleton-line" style="height: 48px; width: 100%; border-radius: 999px; margin-top: 20px;"></div>
+        </div>
+      </div>
+      <p id="product-status" style="display: none;"></p>
 
       <div id="product-page" class="pd-layout" hidden>
         <div class="pd-media">
@@ -1093,7 +1127,8 @@
                   offerEl.style.display = "none";
                 }
               }
-              if (badgeEl) badgeEl.textContent = item.badge || "NEW";
+              var discountVal = (orig && curr && orig > curr) ? Math.round(((orig - curr) / orig) * 100) : null;
+              if (badgeEl) badgeEl.textContent = discountVal ? (discountVal + "% OFF") : (item.badge || "NEW");
               
               function optUrl(u, w) {
                 if (!u || typeof u !== "string") return "photos/any.jpeg";
@@ -1119,14 +1154,15 @@
                 if (thumbsEl) thumbsEl.innerHTML = thumbsHtml;
               }
               
-              if (statusEl) statusEl.hidden = true;
+              var skelEl = document.getElementById("product-skeleton");
+              if (skelEl) skelEl.remove();
+              if (statusEl) statusEl.remove();
               if (pageEl) pageEl.hidden = false;
               window.__INSTANT_PRODUCT_DATA = item;
             }
           } catch(e) {}
         })();
       </script>
-    </main>
     </main>
 
     <div id="img-lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
