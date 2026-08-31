@@ -1,6 +1,6 @@
-# Day-1 Admin + Firebase + Netlify + Cloudinary Setup
+# Tultulus Admin + Firebase + Netlify + Cloudinary Setup
 
-This file is the repeat of the previous Accolade launch, but for the **new brand**. Do not reuse the old Accolade Firebase project, Cloudinary folder, Netlify site, or admin email.
+This file is the repeat of the previous launch, but for the **new brand (Tultulus)**. Do not reuse the old Firebase project, Cloudinary folder, Netlify site, or admin email.
 
 `ADMIN_SETUP.md` is the live checklist. Follow it in order.
 
@@ -8,18 +8,18 @@ This file is the repeat of the previous Accolade launch, but for the **new brand
 
 | Service | Create a **new** one |
 | --- | --- |
-| Firebase project | New project (suggested id: `day-1-store` or similar) |
+| Firebase project | New project (suggested id: `tultulus-store` or similar) |
 | Firebase Auth | Email/Password, **new admin email** |
 | Firestore | New database, **Asia region** |
-| Cloudinary | New cloud **or** new folder `day1/products` |
-| Netlify site | New site, then attach `tultulus.co` / `day-1.com` |
-| FormSubmit | Orders already go to `support@day-1.com` in `shop.html` |
+| Cloudinary | New cloud **or** new folder `tultulus/products` |
+| Netlify site | New site, then attach `tultulus.co` |
+| FormSubmit | Orders go to your configured email in `shop.html` |
 
 ## 1) Firebase project
 
 1. Open [Firebase Console](https://console.firebase.google.com/) → **Add project**.
 2. Skip Google Analytics if you want (optional).
-3. Project settings (gear) → **Your apps** → **Web** (`</>`) → register app name `Day-1`.
+3. Project settings (gear) → **Your apps** → **Web** (`</>`) → register app name `Tultulus`.
 4. Copy the `firebaseConfig` object.
 5. Put **only** the web `apiKey` in Netlify as `FIREBASE_WEB_API_KEY` (and in local `.env`). Do not paste live keys or admin UIDs into repo files.
 
@@ -92,7 +92,7 @@ Shop loading is also improved in code: the last product list is cached in the br
 
 In Netlify:
 
-- Site settings → Domain management → **Add custom domain** (e.g. `tultulus.co` or `day-1.com`)
+- Site settings → Domain management → **Add custom domain** (e.g. `tultulus.co`)
 
 At the domain registrar (Hostinger or wherever the domain lives):
 

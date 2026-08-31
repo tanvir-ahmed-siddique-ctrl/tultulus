@@ -263,8 +263,13 @@ function updateSlider() {
   });
   els.track.style.transform = `translateX(-${slideIndex * 100}%)`;
   if (els.thumbs) {
-    els.thumbs.querySelectorAll(".pd-thumb").forEach((thumb, index) => {
-      thumb.classList.toggle("is-active", index === slideIndex);
+    const thumbs = els.thumbs.querySelectorAll(".pd-thumb");
+    thumbs.forEach((thumb, index) => {
+      const isActive = index === slideIndex;
+      thumb.classList.toggle("is-active", isActive);
+      if (isActive) {
+        thumb.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      }
     });
   }
 }
@@ -451,7 +456,7 @@ function renderProduct(data) {
   selectedColor = "";
   selectedSize = "";
 
-  document.title = `${data.name} | Day-1`;
+  document.title = `${data.name} | Tultulus`;
 
   if (els.title) els.title.textContent = data.name;
   if (els.offer) {

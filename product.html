@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Product | Day-1</title>
+    <title>Product | Tultulus</title>
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
@@ -270,12 +270,17 @@
 
       .pd-layout {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 28px;
         width: 100%;
         max-width: 1400px;
         margin: 0 auto;
         animation: card-appear 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .pd-layout > * {
+        min-width: 0;
+        max-width: 100%;
       }
 
       @media (min-width: 900px) {
@@ -292,11 +297,15 @@
       .pd-media {
         position: relative;
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
       }
 
       .pd-gallery {
         position: relative;
         width: 100%;
+        min-width: 0;
+        max-width: 100%;
         background: rgba(20, 20, 20, 0.55);
         border: 1px solid var(--card-border);
         border-radius: 20px;
@@ -386,26 +395,52 @@
 
       .pd-thumbs {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         margin-top: 14px;
         overflow-x: auto;
-        padding-bottom: 4px;
+        overflow-y: hidden;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding-bottom: 8px;
+        -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+        touch-action: pan-x;
+        scroll-snap-type: x proximity;
+      }
+
+      .pd-thumbs::-webkit-scrollbar {
+        height: 5px;
+      }
+
+      .pd-thumbs::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 999px;
+      }
+
+      .pd-thumbs::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 999px;
       }
 
       .pd-thumb {
-        flex: 0 0 auto;
-        width: 72px;
-        height: 90px;
+        flex: 0 0 62px;
+        width: 62px;
+        height: 78px;
         border-radius: 10px;
         overflow: hidden;
         border: 2px solid transparent;
         background: rgba(20, 20, 20, 0.55);
         cursor: pointer;
         padding: 0;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+        transition: border-color 0.2s ease, transform 0.2s ease;
       }
       @media (min-width: 900px) {
         .pd-thumb {
+          flex: 0 0 88px;
           width: 88px;
           height: 110px;
         }
@@ -960,9 +995,9 @@
             <i class="fas fa-bars"></i>
           </button>
         </div>
-        <a href="index.html" class="brand-center" aria-label="Day-1 home">
+        <a href="index.html" class="brand-center" aria-label="Tultulus home">
           <div class="brand-mark">
-            <img src="favicon.ico" alt="Day-1 logo" />
+            <img src="favicon.ico" alt="Tultulus logo" />
           </div>
         </a>
         <div class="nav-right">
@@ -1189,7 +1224,7 @@
           <a href="about.html">About</a>
           <a href="contact.html">Contact</a>
         </div>
-        <p class="footer-copy">&copy; 2026 Day-1. All rights reserved.</p>
+        <p class="footer-copy">&copy; 2026 Tultulus. All rights reserved.</p>
       </div>
     </footer>
 

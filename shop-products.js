@@ -355,8 +355,20 @@ async function loadProducts() {
   if (cached?.length) {
     document.documentElement.classList.remove("firebase-products-loading");
     currentRenderedFingerprint = getProductsFingerprint(cached);
-    renderProducts(cached);
-  } else {
+    if (!window.__INSTANT_SHOP_PAINTED) {
+      renderProducts(cached);
+    } else {
+      // Bind hover/touch prefetching to instant-painted cards
+      cached.forEach((p) => {
+        const cards = document.querySelectorAll(`.product-card[data-id="${p.id}"]`);
+        cards.forEach((card) => {
+          const triggerPrefetch = () => prefetchProductAssets(p);
+          card.addEventListener("mouseenter", triggerPrefetch, { passive: true });
+          card.addEventListener("touchstart", triggerPrefetch, { passive: true });
+        });
+      });
+    }
+  } else if (!window.__INSTANT_SHOP_PAINTED) {
     renderSkeletons(featuredGrid, 4);
     renderSkeletons(allGrid, 8);
     renderSkeletons(hotGrid, 4);
@@ -379,7 +391,7 @@ async function loadProducts() {
     document.documentElement.classList.remove("firebase-products-loading");
 
     const newFingerprint = getProductsFingerprint(products);
-    if (newFingerprint !== currentRenderedFingerprint) {
+    if (newFingerprint !== currentRenderedFingerprint || !window.__INSTANT_SHOP_PAINTED) {
       currentRenderedFingerprint = newFingerprint;
       renderProducts(products);
     }
@@ -392,5 +404,22 @@ async function loadProducts() {
     }
   }
 }
+
+// Global click delegation for instantaneous product card clicks
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".product-card[data-id]");
+  if (card && !e.target.closest("button") && !e.target.closest("a")) {
+    const id = card.dataset.id;
+    if (id) {
+      const cached = readCachedProducts();
+      const prod = (cached || []).find((p) => p.id === id);
+      if (prod) {
+        cacheProductDetail(prod);
+        prefetchProductAssets(prod);
+      }
+      window.location.href = `product.html?id=${encodeURIComponent(id)}`;
+    }
+  }
+});
 
 loadProducts();

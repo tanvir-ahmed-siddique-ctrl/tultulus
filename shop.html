@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shop | Day-1</title>
+    <title>Shop | Tultulus</title>
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
@@ -2505,9 +2505,9 @@
   </div>
 
   <!-- CENTER: Brand -->
-  <a href="index.html" class="brand-center" aria-label="Day-1 home">
+  <a href="index.html" class="brand-center" aria-label="Tultulus home">
     <div class="brand-mark">
-      <img src="favicon.ico" alt="Day-1 logo" />
+      <img src="favicon.ico" alt="Tultulus logo" />
     </div>
   </a>
 
@@ -2593,6 +2593,110 @@
         </div>
       </div>
 
+      <script>
+        // Instant Zero-Latency Synchronous Hydrator for Shop Grid
+        (function() {
+          try {
+            var raw = localStorage.getItem("day1_products_cache_v2") || sessionStorage.getItem("day1_products_cache_v2") || localStorage.getItem("day1_products_cache");
+            var featGrid = document.querySelector("#featured-products .product-grid");
+            var allGrid = document.querySelector("#all-categories .product-grid");
+            var hotGrid = document.querySelector("#top-rated .product-grid");
+            
+            function optUrl(u, w) {
+              if (!u || typeof u !== "string") return "photos/any.jpeg";
+              if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
+                if (u.indexOf("/upload/f_auto,q_auto") !== -1) return u;
+                return u.replace("/upload/", "/upload/f_auto,q_auto,w_" + w + ",c_limit/");
+              }
+              return u;
+            }
+            function phUrl(u) {
+              if (!u || typeof u !== "string") return "photos/any.jpeg";
+              if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
+                return u.replace("/upload/", "/upload/f_auto,q_10,w_80,e_blur:200,c_limit/");
+              }
+              return u;
+            }
+            function buildCard(p) {
+              var rawImg = (p.images && p.images[0]) ? p.images[0] : "photos/any.jpeg";
+              var optImg = optUrl(rawImg, 600);
+              var phImg = phUrl(rawImg);
+              var isCloudinary = rawImg.indexOf("res.cloudinary.com") !== -1;
+              var cats = Array.isArray(p.categories) ? p.categories : [];
+              var chip = cats.indexOf("featured") !== -1 ? "Featured" : (cats.indexOf("hot-selling") !== -1 ? "Hot Selling" : "Product");
+              var orig = p.priceOriginal || p.offer;
+              var curr = p.priceCurrent || p.price;
+              var disc = (orig && curr && orig > curr) ? Math.round(((orig - curr) / orig) * 100) : null;
+              var badge = disc ? (disc + "% OFF") : (p.badge || "NEW");
+              var origHtml = (orig && orig > curr) ? '<span class="price-original">' + orig + '</span>' : '';
+              var phHtml = isCloudinary ? '<img class="placeholder-img" src="' + phImg + '" alt="" aria-hidden="true" />' : '';
+
+              return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + (p.name || '') + '" data-id="' + p.id + '">' +
+                '<div class="product-image">' +
+                  phHtml +
+                  '<img class="main-img" src="' + optImg + '" alt="' + (p.name || '') + '" loading="lazy" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
+                  '<span class="label-chip">' + chip + '</span>' +
+                  '<span class="badge">' + badge + '</span>' +
+                '</div>' +
+                '<div class="mt-4 space-y-2">' +
+                  '<h3 class="font-bold text-sm uppercase tracking-wider">' + (p.name || '') + '</h3>' +
+                  '<div class="price-display">' +
+                    '<span class="price-currency">BDT</span>' +
+                    origHtml +
+                    '<span class="price-current">' + (curr || 0) + '</span>' +
+                  '</div>' +
+                '</div>' +
+              '</article>';
+            }
+            function buildSkeletons(count) {
+              var out = '';
+              for (var k = 0; k < count; k++) {
+                out += '<div class="product-card-skeleton">' +
+                  '<div class="skeleton-image"></div>' +
+                  '<div class="skeleton-info">' +
+                    '<div class="skeleton-line" style="width: 75%;"></div>' +
+                    '<div class="skeleton-line short"></div>' +
+                  '</div>' +
+                '</div>';
+              }
+              return out;
+            }
+
+            var prods = null;
+            if (raw) {
+              try {
+                var parsed = JSON.parse(raw);
+                if (parsed && parsed.products && parsed.products.length && (Date.now() - (parsed.ts || 0) < 3600000)) {
+                  prods = parsed.products;
+                }
+              } catch(e) {}
+            }
+
+            if (prods && prods.length) {
+              var featHtml = '';
+              var allHtml = '';
+              var hotHtml = '';
+              for (var i = 0; i < prods.length; i++) {
+                var prod = prods[i];
+                var cardHtml = buildCard(prod);
+                allHtml += cardHtml;
+                var c = Array.isArray(prod.categories) ? prod.categories : [];
+                if (c.indexOf("featured") !== -1) featHtml += cardHtml;
+                if (c.indexOf("hot-selling") !== -1) hotHtml += cardHtml;
+              }
+              if (featGrid) featGrid.innerHTML = featHtml;
+              if (allGrid) allGrid.innerHTML = allHtml;
+              if (hotGrid) hotGrid.innerHTML = hotHtml;
+              window.__INSTANT_SHOP_PAINTED = true;
+            } else {
+              if (featGrid) featGrid.innerHTML = buildSkeletons(4);
+              if (allGrid) allGrid.innerHTML = buildSkeletons(8);
+              if (hotGrid) hotGrid.innerHTML = buildSkeletons(4);
+            }
+          } catch(e) {}
+        })();
+      </script>
+
 
 
       <!-- ═══════════════════════════════════════════ -->
@@ -2607,7 +2711,7 @@
       >
         <!-- FormSubmit Configuration -->
         <input type="hidden" name="_captcha" value="false">
-        <input type="hidden" name="_subject" value="New Order Received - Day-1">
+        <input type="hidden" name="_subject" value="New Order Received - Tultulus">
         <input type="hidden" name="_template" value="table">
         <input type="hidden" name="Order Number" id="final-order-number">
         <input type="hidden" name="Payment Method" id="final-payment-method">
@@ -2985,7 +3089,7 @@
           <a href="about.html">About</a>
           <a href="contact.html">Contact</a>
         </div>
-        <p class="footer-copy">&copy; 2026 Day-1. All rights reserved.</p>
+        <p class="footer-copy">&copy; 2026 Tultulus. All rights reserved.</p>
       </div>
     </footer>
 
