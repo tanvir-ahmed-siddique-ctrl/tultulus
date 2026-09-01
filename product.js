@@ -261,7 +261,7 @@ function addToCart(name, price, qty, size, color) {
 function updateTotals() {
   const total = unitPrice * quantity;
   if (els.price) els.price.textContent = String(total);
-  if (els.unit) els.unit.textContent = `Unit: BDT ${unitPrice}`;
+  if (els.unit) els.unit.textContent = `Unit: USD ${unitPrice}`;
   if (els.qtyValue) els.qtyValue.textContent = String(quantity);
 }
 
@@ -454,6 +454,16 @@ function requireSelections() {
     return false;
   }
   return true;
+}
+
+function renderProductDescription(desc) {
+  if (!els.descBox) return;
+  if (desc && desc.trim()) {
+    if (els.descText) els.descText.textContent = desc.trim();
+    els.descBox.hidden = false;
+  } else {
+    els.descBox.hidden = true;
+  }
 }
 
 function renderProduct(data) {

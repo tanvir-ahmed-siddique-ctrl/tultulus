@@ -214,7 +214,7 @@ function createProductCard(product) {
 
   card.dataset.id = product.id;
   card.dataset.name = product.name;
-  card.dataset.price = `BDT ${product.priceCurrent}`;
+  card.dataset.price = `USD ${product.priceCurrent}`;
   card.dataset.priceValue = `${product.priceCurrent}`;
   card.dataset.offer = `${product.priceOriginal}`;
   card.dataset.badge = product.badge;
@@ -239,7 +239,7 @@ function createProductCard(product) {
     <div class="mt-4 space-y-2">
       <h3 class="font-bold text-sm uppercase tracking-wider">${product.name}</h3>
       <div class="price-display">
-        <span class="price-currency">BDT</span>
+        <span class="price-currency">USD</span>
         ${originalPriceHtml}
         <span class="price-current">${product.priceCurrent}</span>
       </div>

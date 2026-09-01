@@ -891,12 +891,12 @@
 
                 <div class="input-grid two">
                   <div>
-                    <label for="price-current">Selling price (BDT)</label>
+                    <label for="price-current">Selling price (USD)</label>
                     <input id="price-current" type="number" min="0" placeholder="850" required />
                     <p class="field-hint">The price customers will pay now. Numbers only.</p>
                   </div>
                   <div>
-                    <label for="price-original">Old / crossed price (BDT)</label>
+                    <label for="price-original">Old / crossed price (USD)</label>
                     <input id="price-original" type="number" min="0" placeholder="1200" />
                     <p class="field-hint">Optional. Put a higher number if you want a discount look (old price crossed out). <span id="discount-calc-hint" style="color: #dfb76c; font-weight: 600;"></span></p>
                   </div>
@@ -946,7 +946,11 @@
                 </div>
 
                 <div id="size-chart-editor-section" class="hidden-section">
-                  <label>Size chart table</label>
+                  <label for="size-chart-raw-text">Quick Paste / Edit Size Chart Text</label>
+                  <textarea id="size-chart-raw-text" rows="5" style="width: 100%; font-family: monospace; font-size: 0.85rem;" placeholder="Size | Length | Chest | Sleeve&#10;S | 68 cm (26.8&quot;) | 58 cm (22.8&quot;) | 21 cm (8.3&quot;)&#10;M | 70 cm (27.6&quot;) | 59 cm (23.2&quot;) | 22 cm (8.7&quot;)&#10;L | 72 cm (28.3&quot;) | 60 cm (23.6&quot;) | 23 cm (9.1&quot;)&#10;XL | 74 cm (29.1&quot;) | 61 cm (24.0&quot;) | 24 cm (9.4&quot;)"></textarea>
+                  <p class="field-hint" style="margin-bottom: 1rem;">Paste table text using pipes (<code>|</code>) or tabs (e.g. copied from ChatGPT or Excel). It automatically updates the table below!</p>
+
+                  <label>Size chart table editor</label>
                   <div class="chart-toolbar">
                     <button id="chart-add-col" type="button" class="secondary">Add column</button>
                     <button id="chart-add-row" type="button" class="secondary">Add row</button>
@@ -1048,7 +1052,7 @@
               <div class="preview-copy">
                 <h3 id="preview-name">Product name</h3>
                 <div class="price-line">
-                  <span>BDT</span>
+                  <span>USD</span>
                   <del id="preview-original">0</del>
                   <span id="preview-current">0</span>
                 </div>

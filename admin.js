@@ -90,10 +90,70 @@ function parseColors(value) {
     .filter(Boolean);
 }
 
+function parseRawTextToChart(rawText) {
+  const lines = String(rawText || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !/^[|\s\-:]+$/.test(line));
+
+  if (!lines.length) return null;
+
+  const parsedLines = lines.map((line) => {
+    let sep = "|";
+    if (line.includes("\t")) {
+      sep = "\t";
+    } else if (!line.includes("|") && line.includes(",")) {
+      sep = ",";
+    }
+    const cells = line.split(sep).map((c) => c.trim());
+    if (cells.length > 1 && cells[0] === "") cells.shift();
+    if (cells.length > 1 && cells[cells.length - 1] === "") cells.pop();
+    return cells;
+  }).filter((cells) => cells.length > 0);
+
+  if (!parsedLines.length) return null;
+
+  const headerCells = parsedLines[0];
+  const columns = headerCells.slice(1).map((col) => col.trim()).filter(Boolean);
+
+  const rows = [];
+  for (let i = 1; i < parsedLines.length; i++) {
+    const rowCells = parsedLines[i];
+    const label = rowCells[0] ? rowCells[0].trim() : "";
+    if (!label) continue;
+    const values = [];
+    const colCount = columns.length || 1;
+    for (let c = 0; c < colCount; c++) {
+      values.push(rowCells[c + 1] !== undefined ? rowCells[c + 1].trim() : "");
+    }
+    rows.push({ label, values });
+  }
+
+  if (!columns.length && !rows.length) return null;
+  return {
+    columns: columns.length ? columns : ["Measurement"],
+    rows: rows.length ? rows : [{ label: "S", values: [""] }],
+  };
+}
+
+function chartToRawText(chart) {
+  if (!chart || !Array.isArray(chart.columns) || !Array.isArray(chart.rows)) return "";
+  const header = ["Size", ...chart.columns].join(" | ");
+  const rowLines = chart.rows.map((row) =>
+    [row.label || "", ...(row.values || []).map((v) => v || "")].join(" | ")
+  );
+  return [header, ...rowLines].join("\n");
+}
+
 function readChartFromDom() {
   const checkbox = document.getElementById("enable-size-chart");
   if (checkbox && !checkbox.checked) {
     return DEFAULT_CHART;
+  }
+  const rawText = document.getElementById("size-chart-raw-text")?.value;
+  const parsedFromText = parseRawTextToChart(rawText);
+  if (parsedFromText && parsedFromText.columns.length && parsedFromText.rows.length) {
+    return parsedFromText;
   }
   const table = document.getElementById("size-chart-table");
   if (!table) return DEFAULT_CHART;
@@ -110,8 +170,14 @@ function readChartFromDom() {
   return { columns, rows };
 }
 
-function renderSizeChartEditor() {
+function renderSizeChartEditor(options = {}) {
   const table = document.getElementById("size-chart-table");
+  const rawTextArea = document.getElementById("size-chart-raw-text");
+
+  if (rawTextArea && !options.skipRawTextSync) {
+    rawTextArea.value = chartToRawText(chartState);
+  }
+
   if (!table) return;
   const columns = chartState.columns.length ? chartState.columns : ["Measurement"];
   table.innerHTML = `
@@ -153,6 +219,9 @@ function renderSizeChartEditor() {
   table.querySelectorAll("input").forEach((input) => {
     input.addEventListener("input", () => {
       chartState = readChartFromDom();
+      if (rawTextArea) {
+        rawTextArea.value = chartToRawText(chartState);
+      }
     });
   });
   table.querySelectorAll("[data-remove-col]").forEach((button) => {
@@ -542,7 +611,7 @@ function renderProductList() {
           <img src="${escapeHtml(product.images?.[0] || "photos/any.jpeg")}" alt="${escapeHtml(product.name)}" />
           <div class="product-row-info">
             <h3>${escapeHtml(product.name)}</h3>
-            <p class="meta">BDT ${escapeHtml(product.priceCurrent)} | ${escapeHtml(categories)} | ${visibility}</p>
+            <p class="meta">USD ${escapeHtml(product.priceCurrent)} | ${escapeHtml(categories)} | ${visibility}</p>
             <div class="product-row-actions">
               <button type="button" data-edit-id="${escapeHtml(product.id)}">Edit</button>
               <button type="button" data-delete-id="${escapeHtml(product.id)}" class="danger">Delete</button>
@@ -632,18 +701,10 @@ function renderProductList() {
 
 async function loadProducts() {
   const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
-  let autoSyncCount = 0;
   state.products = snapshot.docs
     .map((docSnap) => {
       const data = docSnap.data() || {};
       const hasChart = data.sizeChart && Array.isArray(data.sizeChart.columns) && data.sizeChart.columns.length && Array.isArray(data.sizeChart.rows) && data.sizeChart.rows.length;
-      if (!hasChart) {
-        autoSyncCount++;
-        updateDoc(doc(db, PRODUCTS_COLLECTION, docSnap.id), {
-          sizeChart: DEFAULT_CHART,
-          updatedAt: serverTimestamp(),
-        }).catch((err) => console.error("Auto-sync size chart failed for product", docSnap.id, err));
-      }
       return {
         id: docSnap.id,
         ...data,
@@ -663,9 +724,6 @@ async function loadProducts() {
       }
       return right.createdAtMs - left.createdAtMs;
     });
-  if (autoSyncCount > 0) {
-    console.log(`Auto-synced ${autoSyncCount} product(s) missing size chart to default chart.`);
-  }
   renderProductList();
 }
 
@@ -753,6 +811,17 @@ if (enableSizeChartCheckbox) {
       }
     } else {
       if (sizeChartEditorSection) sizeChartEditorSection.classList.add("hidden-section");
+    }
+  });
+}
+
+const sizeChartRawTextArea = document.getElementById("size-chart-raw-text");
+if (sizeChartRawTextArea) {
+  sizeChartRawTextArea.addEventListener("input", () => {
+    const parsed = parseRawTextToChart(sizeChartRawTextArea.value);
+    if (parsed) {
+      chartState = parsed;
+      renderSizeChartEditor({ skipRawTextSync: true });
     }
   });
 }

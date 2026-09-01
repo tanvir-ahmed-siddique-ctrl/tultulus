@@ -2641,7 +2641,7 @@
                 '<div class="mt-4 space-y-2">' +
                   '<h3 class="font-bold text-sm uppercase tracking-wider">' + (p.name || '') + '</h3>' +
                   '<div class="price-display">' +
-                    '<span class="price-currency">BDT</span>' +
+                    '<span class="price-currency">USD</span>' +
                     origHtml +
                     '<span class="price-current">' + (curr || 0) + '</span>' +
                   '</div>' +
@@ -2733,23 +2733,23 @@
               <div class="border-t border-dashed border-white/20 pt-4 space-y-2 text-sm font-semibold">
                 <div class="flex justify-between">
                   <span>Subtotal</span>
-                  <span id="display-subtotal" class="price-text">0 Tk</span>
+                  <span id="display-subtotal" class="price-text">0 USD</span>
                 </div>
                 <div id="display-discount-row" class="hidden-section flex justify-between">
                   <span>Promo discount</span>
-                  <span id="display-discount" class="price-text">-0 Tk</span>
+                  <span id="display-discount" class="price-text">-0 USD</span>
                 </div>
                 <div class="flex justify-between">
                   <span>Total (after promo)</span>
-                  <span id="display-total" class="price-text">0 Tk</span>
+                  <span id="display-total" class="price-text">0 USD</span>
                 </div>
                 <div class="flex justify-between text-white">
                   <span>Delivery fee</span>
-                  <span id="display-delivery" class="price-text">0 Tk</span>
+                  <span id="display-delivery" class="price-text">0 USD</span>
                 </div>
                 <div class="flex justify-between text-lg font-black pt-2 border-t border-dashed border-white/20 mt-2">
                   <span>Amount payable</span>
-                  <span id="display-final-total" class="price-text">0 Tk</span>
+                  <span id="display-final-total" class="price-text">0 USD</span>
                 </div>
               </div>
             </div>
@@ -2864,7 +2864,7 @@
                     <p>By placing an order on this website, you confirm that the billing and shipping details you provide are accurate. We will use this information to process your order, arrange delivery, and contact you if needed.</p>
                     <p>If you choose Direct bank transfer, please send the exact order total to the bank account shown after checkout and use your Order ID as the payment reference. Your order will be prepared and shipped only after the funds have cleared in our account.</p>
                     <p>If you choose Pay in Person (cash on delivery), payment is due when the order is received. Please keep your phone available so our delivery partner can reach you.</p>
-                    <p>All prices are shown in BDT. Delivery fees are calculated from your city and district at checkout. Once an order is confirmed, changes or cancellations are subject to stock and dispatch status. For questions about an order, product, or our service, contact customer service at support@day-1.com or +1 (640) 696-1661 (Monday–Friday, 10:00–6:00 PM).</p>
+                    <p>All prices are shown in USD. Delivery fees are calculated from your city and district at checkout. Once an order is confirmed, changes or cancellations are subject to stock and dispatch status. For questions about an order, product, or our service, contact customer service at support@day-1.com or +1 (640) 696-1661 (Monday–Friday, 10:00–6:00 PM).</p>
                     <p>Your personal data will be used only to process your order, support your experience on this website, and for other purposes described here. We do not sell your information to third parties.</p>
                   </div>
                   <label class="terms-row">
@@ -2913,26 +2913,26 @@
         <div class="cart-footer">
           <div class="cart-subtotal">
             <span>Subtotal</span>
-            <span id="cart-modal-subtotal" class="price-text">0 Tk</span>
+            <span id="cart-modal-subtotal" class="price-text">0 USD</span>
           </div>
           <div
             id="cart-modal-discount-row"
             class="cart-subtotal hidden-section"
           >
             <span>Promo discount</span>
-            <span id="cart-modal-discount" class="price-text">-0 Tk</span>
+            <span id="cart-modal-discount" class="price-text">-0 USD</span>
           </div>
           <div class="cart-subtotal">
             <span>Total (after promo)</span>
-            <span id="cart-modal-total" class="price-text">0 Tk</span>
+            <span id="cart-modal-total" class="price-text">0 USD</span>
           </div>
           <div class="cart-subtotal">
             <span>Delivery fee</span>
-            <span id="cart-modal-delivery" class="price-text">0 Tk</span>
+            <span id="cart-modal-delivery" class="price-text">0 USD</span>
           </div>
           <div class="cart-subtotal font-semibold">
             <span>Amount payable</span>
-            <span id="cart-modal-final-total" class="price-text">0 Tk</span>
+            <span id="cart-modal-final-total" class="price-text">0 USD</span>
           </div>
           <button class="btn-primary" type="button" data-cart-close>
             Continue shopping
@@ -2966,7 +2966,7 @@
           <div class="modal-info">
             <h3 id="modal-title" class="info-title"></h3>
             <div class="info-price-row price-display">
-              <span class="price-currency">BDT</span>
+              <span class="price-currency">USD</span>
               <span id="modal-offer" class="price-original"></span>
               <span id="modal-price" class="price-current"></span>
               <!-- -------------Product Modal Offer Badge-------------------- -->
@@ -3326,7 +3326,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                       <span class="capitalize font-medium">${item.name}${qtyLabel}${metaLabel}</span>
                     </div>
-                    <span class="font-semibold price-text">${item.price} Tk</span>
+                    <span class="font-semibold price-text">${item.price} USD</span>
                 </div>`;
           })
           .join("");
@@ -3340,7 +3340,7 @@
           cartModalItems.innerHTML =
             '<p class="cart-empty">Your cart is empty.</p>';
           if (cartModalSubtotal) {
-            cartModalSubtotal.textContent = "0 Tk";
+            cartModalSubtotal.textContent = "0 USD";
           }
           return;
         }
@@ -3355,14 +3355,14 @@
             return `<div class="cart-item">
                   <div>
                     <div class="cart-item-name capitalize">${item.name}${qtyLabel}${metaLabel}</div>
-                    <div class="cart-item-price price-text">${item.price} Tk</div>
+                    <div class="cart-item-price price-text">${item.price} USD</div>
                   </div>
                   <button class="cart-remove" data-index="${index}">Remove</button>
                 </div>`;
           })
           .join("");
         if (cartModalSubtotal) {
-          cartModalSubtotal.textContent = `${subtotal} Tk`;
+          cartModalSubtotal.textContent = `${subtotal} USD`;
         }
         cartModalItems.querySelectorAll(".cart-remove").forEach((button) => {
           button.addEventListener("click", (event) => {
@@ -3506,10 +3506,10 @@
 
         const displaySubtotal = document.getElementById("display-subtotal");
         if (displaySubtotal) {
-          displaySubtotal.innerText = subtotal + " Tk";
+          displaySubtotal.innerText = subtotal + " USD";
         }
         if (discountValue) {
-          discountValue.innerText = `-${promoDiscount} Tk`;
+          discountValue.innerText = `-${promoDiscount} USD`;
         }
         if (discountRow) {
           if (promoApplied && promoDiscount > 0) {
@@ -3520,26 +3520,26 @@
         }
         const displayDelivery = document.getElementById("display-delivery");
         if (displayDelivery) {
-          displayDelivery.innerText = deliveryFee + " Tk";
+          displayDelivery.innerText = deliveryFee + " USD";
         }
         const displayTotal = document.getElementById("display-total");
         if (displayTotal) {
-          displayTotal.innerText = totalAfterDiscount + " Tk";
+          displayTotal.innerText = totalAfterDiscount + " USD";
         }
         const finalTotalEl = document.getElementById("display-final-total");
         if (finalTotalEl) {
-          finalTotalEl.innerText = finalTotal + " Tk";
+          finalTotalEl.innerText = finalTotal + " USD";
         }
 
         const finalTotalAmount = document.getElementById("final-total-amount");
         if (finalTotalAmount) {
-          finalTotalAmount.value = finalTotal + " Tk";
+          finalTotalAmount.value = finalTotal + " USD";
         }
         const totalWithoutDelivery = document.getElementById(
           "final-total-without-delivery",
         );
         if (totalWithoutDelivery) {
-          totalWithoutDelivery.value = totalAfterDiscount + " Tk";
+          totalWithoutDelivery.value = totalAfterDiscount + " USD";
         }
         const promoCodeField = document.getElementById("final-promo-code");
         if (promoCodeField) {
@@ -3558,10 +3558,10 @@
         }
 
         if (cartModalSubtotal) {
-          cartModalSubtotal.textContent = `${subtotal} Tk`;
+          cartModalSubtotal.textContent = `${subtotal} USD`;
         }
         if (cartModalDiscount) {
-          cartModalDiscount.textContent = `-${promoDiscount} Tk`;
+          cartModalDiscount.textContent = `-${promoDiscount} USD`;
         }
         if (cartModalDiscountRow) {
           if (promoApplied && promoDiscount > 0) {
@@ -3571,13 +3571,13 @@
           }
         }
         if (cartModalDelivery) {
-          cartModalDelivery.textContent = `${deliveryFee} Tk`;
+          cartModalDelivery.textContent = `${deliveryFee} USD`;
         }
         if (cartModalTotal) {
-          cartModalTotal.textContent = `${totalAfterDiscount} Tk`;
+          cartModalTotal.textContent = `${totalAfterDiscount} USD`;
         }
         if (cartModalFinalTotal) {
-          cartModalFinalTotal.textContent = `${finalTotal} Tk`;
+          cartModalFinalTotal.textContent = `${finalTotal} USD`;
         }
       }
 
@@ -4285,7 +4285,7 @@
       function updateModalTotals() {
         const total = modalUnitPrice * modalQuantity;
         modalPrice.textContent = `${total}`;
-        modalUnit.textContent = `Unit: BDT ${modalUnitPrice}`;
+        modalUnit.textContent = `Unit: USD ${modalUnitPrice}`;
         if (qtyValue) {
           qtyValue.textContent = modalQuantity;
         }
@@ -4614,7 +4614,7 @@
           <div class="order-meta">
             <div><span>Order number</span><strong>${orderNumber}</strong></div>
             <div><span>Date</span><strong>${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong></div>
-            <div><span>Total</span><strong>${formatMoney(totals.finalTotal)} BDT</strong></div>
+            <div><span>Total</span><strong>${formatMoney(totals.finalTotal)} USD</strong></div>
             <div><span>Payment method</span><strong>${paymentMethod}</strong></div>
           </div>
           ${bankBlock}
@@ -4624,7 +4624,7 @@
             <tbody>${itemsHtml}
               <tr><td>Subtotal</td><td style="text-align:right;">${formatMoney(totals.totalAfterDiscount)}</td></tr>
               <tr><td>Delivery</td><td style="text-align:right;">${formatMoney(totals.deliveryFee)}</td></tr>
-              <tr><td><strong>Total</strong></td><td style="text-align:right;"><strong>${formatMoney(totals.finalTotal)} BDT</strong></td></tr>
+              <tr><td><strong>Total</strong></td><td style="text-align:right;"><strong>${formatMoney(totals.finalTotal)} USD</strong></td></tr>
               <tr><td>Payment method</td><td style="text-align:right;">${paymentMethod}</td></tr>
             </tbody>
           </table>
@@ -4666,11 +4666,11 @@
             receiptField.value = [
               "Order number: " + orderNumber,
               "Payment method: " + paymentMethod,
-              "Total: " + formatMoney(finalTotal) + " BDT",
+              "Total: " + formatMoney(finalTotal) + " USD",
               "Items: " + cart.map((i) => {
                 const details = [i.color, i.size && i.size !== "SELECT SIZE" ? i.size : ""].filter(Boolean).join("/");
                 const detailStr = details ? ` [${details}]` : "";
-                return `${i.name}${detailStr} x${i.quantity || 1} (${formatMoney(i.price)} Tk)`;
+                return `${i.name}${detailStr} x${i.quantity || 1} (${formatMoney(i.price)} USD)`;
               }).join(", "),
               "Customer: " + billing.name,
               "Email: " + billing.email,

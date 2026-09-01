@@ -1073,7 +1073,7 @@
           <h1 id="pd-title" class="pd-title"></h1>
 
           <div class="price-display">
-            <span class="price-currency">BDT</span>
+            <span class="price-currency">USD</span>
             <span id="pd-offer" class="price-original"></span>
             <span id="pd-price" class="price-current"></span>
             <span id="pd-badge" class="price-badge"></span>
@@ -1158,7 +1158,7 @@
               
               if (titleEl) titleEl.textContent = item.name || "";
               if (priceEl) priceEl.textContent = item.priceCurrent || item.price || "";
-              if (unitEl) unitEl.textContent = "Unit: BDT " + (item.priceCurrent || item.price || "");
+              if (unitEl) unitEl.textContent = "Unit: USD " + (item.priceCurrent || item.price || "");
               if (offerEl) {
                 var orig = item.priceOriginal || item.offer;
                 var curr = item.priceCurrent || item.price;

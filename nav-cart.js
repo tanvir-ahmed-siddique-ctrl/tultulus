@@ -106,7 +106,7 @@
           <button type="button" class="global-cart-close" data-cart-close>Close</button>
         </div>
         <div class="global-cart-items" id="global-cart-items"></div>
-        <div class="global-cart-subtotal" id="global-cart-subtotal">Subtotal: 0 Tk</div>
+        <div class="global-cart-subtotal" id="global-cart-subtotal">Subtotal: 0 USD</div>
         <div class="global-cart-actions">
           <button type="button" class="global-cart-continue" data-cart-close>Continue shopping</button>
           <button type="button" class="global-cart-checkout" id="global-cart-checkout">Proceed to checkout</button>
@@ -133,7 +133,7 @@
     const cart = loadCart();
     if (!cart.length) {
       itemsEl.innerHTML = '<p class="global-cart-empty">Your cart is empty.</p>';
-      if (subtotalEl) subtotalEl.textContent = "Subtotal: 0 Tk";
+      if (subtotalEl) subtotalEl.textContent = "Subtotal: 0 USD";
       return;
     }
     itemsEl.innerHTML = cart
@@ -144,7 +144,7 @@
         return `<div class="global-cart-item">
           <div>
             <div style="font-weight:600; text-transform:capitalize;">${item.name}${qty}${meta}</div>
-            <div style="color:#dfb76c; font-size:12px; margin-top:2px;">${item.price} Tk</div>
+            <div style="color:#dfb76c; font-size:12px; margin-top:2px;">${item.price} USD</div>
           </div>
           <button type="button" data-remove="${index}">Remove</button>
         </div>`;
@@ -160,7 +160,7 @@
       });
     });
     const subtotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
-    if (subtotalEl) subtotalEl.textContent = `Subtotal: ${subtotal} Tk`;
+    if (subtotalEl) subtotalEl.textContent = `Subtotal: ${subtotal} USD`;
   }
 
   function openGlobalCart() {
