@@ -70,6 +70,16 @@ function calculateDiscount(priceCurrent, priceOriginal) {
   return Math.round(((priceOriginal - priceCurrent) / priceOriginal) * 100);
 }
 
+const DEFAULT_SIZE_CHART = {
+  columns: ["Length", "Chest", "Sleeve"],
+  rows: [
+    { label: "S", values: ['68 cm (26.8")', '55 cm (21.7")', '26 cm (10.2")'] },
+    { label: "M", values: ['70 cm (27.6")', '57 cm (22.4")', '27 cm (10.6")'] },
+    { label: "L", values: ['72 cm (28.3")', '59 cm (23.2")', '28 cm (11.0")'] },
+    { label: "XL", values: ['74 cm (29.1")', '61 cm (24.0")', '29 cm (11.4")'] },
+  ],
+};
+
 function normalizeSizeChart(raw) {
   if (raw && Array.isArray(raw.columns) && Array.isArray(raw.rows)) {
     const columns = raw.columns.map((item) => String(item || "").trim()).filter(Boolean);
@@ -83,7 +93,7 @@ function normalizeSizeChart(raw) {
       return { columns, rows };
     }
   }
-  return null;
+  return DEFAULT_SIZE_CHART;
 }
 
 function normalizeColors(raw) {
@@ -346,15 +356,12 @@ function buildGallery(images) {
 
 function renderSizeChart(chart) {
   if (!els.chartBox || !els.chartHead || !els.chartBody) return;
-  if (!chart || !chart.columns?.length || !chart.rows?.length) {
-    els.chartBox.hidden = true;
-    return;
-  }
-  const columns = chart.columns || [];
+  const validChart = (chart && Array.isArray(chart.columns) && chart.columns.length && Array.isArray(chart.rows) && chart.rows.length) ? chart : DEFAULT_SIZE_CHART;
+  const columns = validChart.columns || [];
   els.chartHead.innerHTML = `<tr><th scope="col">Size</th>${columns
     .map((col) => `<th scope="col">${col}</th>`)
     .join("")}</tr>`;
-  els.chartBody.innerHTML = (chart.rows || [])
+  els.chartBody.innerHTML = (validChart.rows || [])
     .map(
       (row) =>
         `<tr><th scope="row">${row.label}</th>${columns

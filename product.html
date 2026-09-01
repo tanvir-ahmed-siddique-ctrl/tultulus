@@ -1196,6 +1196,42 @@
                 if (thumbsEl) thumbsEl.innerHTML = thumbsHtml;
               }
               
+              var DEFAULT_SIZE_CHART = {
+                columns: ["Length", "Chest", "Sleeve"],
+                rows: [
+                  { label: "S", values: ['68 cm (26.8")', '55 cm (21.7")', '26 cm (10.2")'] },
+                  { label: "M", values: ['70 cm (27.6")', '57 cm (22.4")', '27 cm (10.6")'] },
+                  { label: "L", values: ['72 cm (28.3")', '59 cm (23.2")', '28 cm (11.0")'] },
+                  { label: "XL", values: ['74 cm (29.1")', '61 cm (24.0")', '29 cm (11.4")'] },
+                ]
+              };
+              var chartBox = document.getElementById("pd-chart-box");
+              var chartHead = document.getElementById("pd-chart-head");
+              var chartBody = document.getElementById("pd-chart-body");
+              if (chartBox && chartHead && chartBody) {
+                var chart = (item.sizeChart && Array.isArray(item.sizeChart.columns) && item.sizeChart.columns.length && Array.isArray(item.sizeChart.rows) && item.sizeChart.rows.length) ? item.sizeChart : DEFAULT_SIZE_CHART;
+                var cols = chart.columns || [];
+                var headHtml = '<tr><th scope="col">Size</th>';
+                for (var c = 0; c < cols.length; c++) {
+                  headHtml += '<th scope="col">' + cols[c] + '</th>';
+                }
+                headHtml += '</tr>';
+                chartHead.innerHTML = headHtml;
+
+                var bodyHtml = '';
+                var rows = chart.rows || [];
+                for (var r = 0; r < rows.length; r++) {
+                  bodyHtml += '<tr><th scope="row">' + (rows[r].label || rows[r].size || '') + '</th>';
+                  var vals = rows[r].values || [];
+                  for (var c = 0; c < cols.length; c++) {
+                    bodyHtml += '<td>' + (vals[c] || '') + '</td>';
+                  }
+                  bodyHtml += '</tr>';
+                }
+                chartBody.innerHTML = bodyHtml;
+                chartBox.hidden = false;
+              }
+
               var skelEl = document.getElementById("product-skeleton");
               if (skelEl) skelEl.remove();
               if (statusEl) statusEl.remove();

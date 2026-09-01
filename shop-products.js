@@ -67,6 +67,32 @@ function getCategories(data) {
   return Array.from(categories);
 }
 
+const DEFAULT_SIZE_CHART = {
+  columns: ["Length", "Chest", "Sleeve"],
+  rows: [
+    { label: "S", values: ['68 cm (26.8")', '55 cm (21.7")', '26 cm (10.2")'] },
+    { label: "M", values: ['70 cm (27.6")', '57 cm (22.4")', '27 cm (10.6")'] },
+    { label: "L", values: ['72 cm (28.3")', '59 cm (23.2")', '28 cm (11.0")'] },
+    { label: "XL", values: ['74 cm (29.1")', '61 cm (24.0")', '29 cm (11.4")'] },
+  ],
+};
+
+function normalizeSizeChart(raw) {
+  if (raw && Array.isArray(raw.columns) && Array.isArray(raw.rows)) {
+    const columns = raw.columns.map((item) => String(item || "").trim()).filter(Boolean);
+    const rows = raw.rows
+      .map((row) => ({
+        label: String(row.label || row.size || "").trim(),
+        values: Array.isArray(row.values) ? row.values.map((item) => String(item ?? "")) : [],
+      }))
+      .filter((row) => row.label);
+    if (columns.length && rows.length) {
+      return { columns, rows };
+    }
+  }
+  return DEFAULT_SIZE_CHART;
+}
+
 function calculateDiscount(priceCurrent, priceOriginal) {
   if (!priceCurrent || !priceOriginal || priceOriginal <= priceCurrent) return null;
   return Math.round(((priceOriginal - priceCurrent) / priceOriginal) * 100);
@@ -121,7 +147,7 @@ function normalizeProduct(docSnap) {
     designPoints,
     sizes,
     colors,
-    sizeChart: data.sizeChart || null,
+    sizeChart: normalizeSizeChart(data.sizeChart),
     categories,
     isPublished: data.isPublished !== false,
     sortOrder: Number.isFinite(Number(data.sortOrder)) ? Number(data.sortOrder) : 9999,

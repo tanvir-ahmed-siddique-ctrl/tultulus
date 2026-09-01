@@ -67,10 +67,10 @@ function parseList(value, separatorRegex = /[\n,]+/) {
 const DEFAULT_CHART = {
   columns: ["Length", "Chest", "Sleeve"],
   rows: [
-    { label: "S", values: ["", "", ""] },
-    { label: "M", values: ["", "", ""] },
-    { label: "L", values: ["", "", ""] },
-    { label: "XL", values: ["", "", ""] },
+    { label: "S", values: ['68 cm (26.8")', '55 cm (21.7")', '26 cm (10.2")'] },
+    { label: "M", values: ['70 cm (27.6")', '57 cm (22.4")', '27 cm (10.6")'] },
+    { label: "L", values: ['72 cm (28.3")', '59 cm (23.2")', '28 cm (11.0")'] },
+    { label: "XL", values: ['74 cm (29.1")', '61 cm (24.0")', '29 cm (11.4")'] },
   ],
 };
 
@@ -93,10 +93,10 @@ function parseColors(value) {
 function readChartFromDom() {
   const checkbox = document.getElementById("enable-size-chart");
   if (checkbox && !checkbox.checked) {
-    return null;
+    return DEFAULT_CHART;
   }
   const table = document.getElementById("size-chart-table");
-  if (!table) return null;
+  if (!table) return DEFAULT_CHART;
   const headerInputs = table.querySelectorAll("thead input[data-col]");
   const columns = Array.from(headerInputs).map((input) => input.value.trim()).filter(Boolean);
   const rows = Array.from(table.querySelectorAll("tbody tr")).map((tr) => {
@@ -105,7 +105,7 @@ function readChartFromDom() {
     return { label, values };
   }).filter((row) => row.label);
   if (!columns.length || !rows.length) {
-    return null;
+    return DEFAULT_CHART;
   }
   return { columns, rows };
 }
@@ -323,7 +323,8 @@ function resetForm(statusMessage = "Ready", statusType = "normal") {
   const chartSection = document.getElementById("size-chart-editor-section");
   if (enableChart) enableChart.checked = false;
   if (chartSection) chartSection.classList.add("hidden-section");
-  chartState = { columns: [], rows: [] };
+  chartState = JSON.parse(JSON.stringify(DEFAULT_CHART));
+  renderSizeChartEditor();
   const sizesInput = document.getElementById("product-sizes");
   if (sizesInput) sizesInput.value = "S, M, L, XL";
   const colorsInput = document.getElementById("product-colors");
@@ -485,7 +486,7 @@ function getFormData() {
   const imageUrls = parseList(document.getElementById("product-images").value);
   const sizes = parseSizes(document.getElementById("product-sizes")?.value);
   const colors = parseColors(document.getElementById("product-colors")?.value);
-  const sizeChart = readChartFromDom();
+  const sizeChart = readChartFromDom() || DEFAULT_CHART;
   const sortOrder = Number.parseInt(
     document.getElementById("product-sort-order").value,
     10,
@@ -511,7 +512,7 @@ function getFormData() {
     images: imageUrls,
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
     colors: colors.length ? colors : [],
-    sizeChart: sizeChart || null,
+    sizeChart,
     categories,
     featured,
     hotSelling,
@@ -631,12 +632,22 @@ function renderProductList() {
 
 async function loadProducts() {
   const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+  let autoSyncCount = 0;
   state.products = snapshot.docs
     .map((docSnap) => {
       const data = docSnap.data() || {};
+      const hasChart = data.sizeChart && Array.isArray(data.sizeChart.columns) && data.sizeChart.columns.length && Array.isArray(data.sizeChart.rows) && data.sizeChart.rows.length;
+      if (!hasChart) {
+        autoSyncCount++;
+        updateDoc(doc(db, PRODUCTS_COLLECTION, docSnap.id), {
+          sizeChart: DEFAULT_CHART,
+          updatedAt: serverTimestamp(),
+        }).catch((err) => console.error("Auto-sync size chart failed for product", docSnap.id, err));
+      }
       return {
         id: docSnap.id,
         ...data,
+        sizeChart: hasChart ? data.sizeChart : DEFAULT_CHART,
         createdAtMs: getTimestamp(data.createdAt),
       };
     })
@@ -652,7 +663,38 @@ async function loadProducts() {
       }
       return right.createdAtMs - left.createdAtMs;
     });
+  if (autoSyncCount > 0) {
+    console.log(`Auto-synced ${autoSyncCount} product(s) missing size chart to default chart.`);
+  }
   renderProductList();
+}
+
+async function syncMissingSizeCharts() {
+  const btn = document.getElementById("admin-sync-size-charts");
+  if (btn) btn.disabled = true;
+  setStatus("Syncing missing size charts...");
+  try {
+    const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+    let updatedCount = 0;
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data() || {};
+      const hasChart = data.sizeChart && Array.isArray(data.sizeChart.columns) && data.sizeChart.columns.length && Array.isArray(data.sizeChart.rows) && data.sizeChart.rows.length;
+      if (!hasChart) {
+        await updateDoc(doc(db, PRODUCTS_COLLECTION, docSnap.id), {
+          sizeChart: DEFAULT_CHART,
+          updatedAt: serverTimestamp(),
+        });
+        updatedCount++;
+      }
+    }
+    await loadProducts();
+    setStatus(updatedCount > 0 ? `Successfully updated ${updatedCount} product(s) with default size chart.` : "All products already have a size chart.", "success");
+  } catch (error) {
+    console.error("Sync failed", error);
+    setStatus("Sync failed: " + error.message, "error");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 if (loginForm) {
@@ -692,6 +734,13 @@ const enableSizeChartCheckbox = document.getElementById("enable-size-chart");
 const sizeChartEditorSection = document.getElementById("size-chart-editor-section");
 const loadTemplateBtn = document.getElementById("chart-load-template");
 const clearChartBtn = document.getElementById("chart-clear");
+const syncSizeChartsBtn = document.getElementById("admin-sync-size-charts");
+
+if (syncSizeChartsBtn) {
+  syncSizeChartsBtn.addEventListener("click", () => {
+    syncMissingSizeCharts();
+  });
+}
 
 if (enableSizeChartCheckbox) {
   enableSizeChartCheckbox.addEventListener("change", () => {
