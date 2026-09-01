@@ -398,6 +398,8 @@ function resetForm(statusMessage = "Ready", statusType = "normal") {
   if (sizesInput) sizesInput.value = "S, M, L, XL";
   const colorsInput = document.getElementById("product-colors");
   if (colorsInput) colorsInput.value = "";
+  const descInput = document.getElementById("product-description");
+  if (descInput) descInput.value = "";
   formTitle.textContent = "Add new product";
   cancelEditButton.classList.add("hidden-section");
   if (saveProductButton) {
@@ -556,6 +558,7 @@ function getFormData() {
   const sizes = parseSizes(document.getElementById("product-sizes")?.value);
   const colors = parseColors(document.getElementById("product-colors")?.value);
   const sizeChart = readChartFromDom() || DEFAULT_CHART;
+  const description = document.getElementById("product-description")?.value.trim() || "";
   const sortOrder = Number.parseInt(
     document.getElementById("product-sort-order").value,
     10,
@@ -581,6 +584,7 @@ function getFormData() {
     images: imageUrls,
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
     colors: colors.length ? colors : [],
+    description,
     sizeChart,
     categories,
     featured,
@@ -646,6 +650,8 @@ function renderProductList() {
       ).join("\n");
       document.getElementById("product-sizes").value = (selected.sizes || []).join(", ");
       document.getElementById("product-colors").value = (selected.colors || []).join(", ");
+      const descField = document.getElementById("product-description");
+      if (descField) descField.value = selected.description || "";
       const enableChart = document.getElementById("enable-size-chart");
       const chartSection = document.getElementById("size-chart-editor-section");
       if (selected.sizeChart && Array.isArray(selected.sizeChart.columns) && selected.sizeChart.columns.length && Array.isArray(selected.sizeChart.rows) && selected.sizeChart.rows.length) {
