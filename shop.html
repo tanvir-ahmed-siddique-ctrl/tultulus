@@ -7,7 +7,6 @@
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-    <link rel="preconnect" href="https://firestore.googleapis.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <style>html,body{background:#1a1510}</style>
@@ -17,7 +16,7 @@
         if (cached) {
           try {
             var parsed = JSON.parse(cached);
-            if (parsed && parsed.products && parsed.products.length && (Date.now() - (parsed.ts || 0) < 1800000)) {
+            if (parsed && parsed.products && parsed.products.length && (Date.now() - (parsed.ts || 0) < 604800000)) {
               // Valid cache exists - do not add blocking class
             } else {
               document.documentElement.classList.add("firebase-products-loading");
@@ -32,9 +31,14 @@
         if (params.get("checkout") === "true") {
           document.documentElement.classList.add("open-checkout");
         }
+        window.__PRODUCTS_REQUEST__ = fetch("/.netlify/functions/products", {
+          headers: { Accept: "application/json" }
+        }).then(function (response) {
+          return response.ok ? response.json() : null;
+        }).catch(function () { return null; });
       })();
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com" defer></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
@@ -430,6 +434,11 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 1.5rem;
       }
+      #all-categories,
+      #top-rated {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 900px;
+      }
       @media (max-width: 1100px) {
         .product-grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -476,7 +485,7 @@
         padding-bottom: 12px;
       }
       .skeleton-image {
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 1 / 1;
         width: 100%;
         background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
         background-size: 200% 100%;
@@ -526,7 +535,7 @@
       }
       .product-image {
         width: 100%;
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 1 / 1;
         border-radius: 0;
         background: rgba(255, 255, 255, 0.06);
         display: flex;
@@ -578,7 +587,7 @@
         width: 100%;
         height: 100%;
         display: block;
-        object-fit: cover;
+        object-fit: contain;
         object-position: center;
         z-index: 0;
       }
@@ -1396,9 +1405,7 @@
         .hero-arrow {
           display: none;
         }
-        .product-image {
-          aspect-ratio: 4 / 5;
-        }
+        .product-image { aspect-ratio: 1 / 1; }
         .cart-panel {
           padding: 16px;
         }
@@ -1470,14 +1477,10 @@
         .product-card {
           --card-pad: 6px;
           padding: 0;
-          border-radius: 16px;
+          border-radius: 0;
         }
         .product-image {
           border-radius: 0;
-        }
-        .product-image .label-chip {
-          font-size: 8px;
-          padding: 4px 8px;
         }
         .badge {
           top: 8px;
@@ -2000,6 +2003,58 @@
         line-height: 1.6;
         color: rgba(255,255,255,0.78) !important;
       }
+      .square-payment-card {
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 18px;
+        background: rgba(20, 20, 20, 0.45);
+        display: grid;
+        gap: 14px;
+      }
+      .square-payment-card .card-brands {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font: 600 12px/1.5 "Inter", sans-serif;
+        color: rgba(255,255,255,0.78);
+      }
+      .square-payment-card .card-brands i {
+        color: var(--price);
+        margin-right: 7px;
+      }
+      #square-card-container {
+        min-height: 90px;
+      }
+      .payment-status {
+        display: none;
+        border-radius: 12px;
+        padding: 11px 13px;
+        font: 600 13px/1.5 "Inter", sans-serif;
+      }
+      .payment-status.is-visible { display: block; }
+      .payment-status.is-error {
+        color: #fecaca;
+        background: rgba(185, 28, 28, 0.22);
+        border: 1px solid rgba(248, 113, 113, 0.35);
+      }
+      .payment-status.is-info {
+        color: #fef3c7;
+        background: rgba(146, 64, 14, 0.2);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+      }
+      .secure-payment-note {
+        margin: 0;
+        font: 12px/1.6 "Inter", sans-serif;
+        color: rgba(255,255,255,0.62);
+      }
+      .square-receipt-link {
+        display: inline-flex;
+        margin-top: 14px;
+        color: var(--price);
+        font: 700 13px/1.4 "Inter", sans-serif;
+        text-decoration: underline;
+      }
       .terms-box {
         border: 1px solid var(--card-border);
         border-radius: 16px;
@@ -2513,7 +2568,6 @@
 
   <!-- RIGHT: Shop + Cart -->
   <div class="nav-right flex items-center gap-4">
-    <a class="nav-link inline-flex" href="shop.html">Shop</a>
     <div class="header-cart relative">
       <button id="cart-button" class="icon-button" type="button" aria-label="Cart">
         <img src="photos/icons8-bag-100.png" alt="" />
@@ -2606,36 +2660,34 @@
               if (!u || typeof u !== "string") return "photos/any.jpeg";
               if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
                 if (u.indexOf("/upload/f_auto,q_auto") !== -1) return u;
-                return u.replace("/upload/", "/upload/f_auto,q_auto,w_" + w + ",c_limit/");
+                return u.replace("/upload/", "/upload/f_auto,q_auto:eco,w_" + w + ",c_limit/");
               }
               return u;
             }
             function phUrl(u) {
               if (!u || typeof u !== "string") return "photos/any.jpeg";
               if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
-                return u.replace("/upload/", "/upload/f_auto,q_10,w_80,e_blur:200,c_limit/");
+                return u.replace("/upload/", "/upload/f_auto,q_5,w_48,e_blur:300,c_limit/");
               }
               return u;
             }
-            function buildCard(p) {
+            function buildCard(p, priority) {
               var rawImg = (p.images && p.images[0]) ? p.images[0] : "photos/any.jpeg";
-              var optImg = optUrl(rawImg, 600);
+              var optImg = optUrl(rawImg, 480);
               var phImg = phUrl(rawImg);
               var isCloudinary = rawImg.indexOf("res.cloudinary.com") !== -1;
-              var cats = Array.isArray(p.categories) ? p.categories : [];
-              var chip = cats.indexOf("featured") !== -1 ? "Featured" : (cats.indexOf("hot-selling") !== -1 ? "Hot Selling" : "Product");
               var orig = p.priceOriginal || p.offer;
               var curr = p.priceCurrent || p.price;
               var disc = (orig && curr && orig > curr) ? Math.round(((orig - curr) / orig) * 100) : null;
               var badge = disc ? (disc + "% OFF") : (p.badge || "NEW");
               var origHtml = (orig && orig > curr) ? '<span class="price-original">' + orig + '</span>' : '';
               var phHtml = isCloudinary ? '<img class="placeholder-img" src="' + phImg + '" alt="" aria-hidden="true" />' : '';
+              var responsiveAttrs = isCloudinary ? ' srcset="' + optUrl(rawImg, 320) + ' 320w, ' + optUrl(rawImg, 480) + ' 480w, ' + optUrl(rawImg, 640) + ' 640w" sizes="(max-width:640px) calc(50vw - 12px), (max-width:1100px) 33vw, 25vw"' : '';
 
               return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + (p.name || '') + '" data-id="' + p.id + '">' +
                 '<div class="product-image">' +
                   phHtml +
-                  '<img class="main-img" src="' + optImg + '" alt="' + (p.name || '') + '" loading="lazy" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
-                  '<span class="label-chip">' + chip + '</span>' +
+                  '<img class="main-img" src="' + optImg + '"' + responsiveAttrs + ' alt="' + (p.name || '') + '" loading="' + (priority ? 'eager' : 'lazy') + '" fetchpriority="' + (priority ? 'high' : 'auto') + '" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
                   '<span class="badge">' + badge + '</span>' +
                 '</div>' +
                 '<div class="mt-4 space-y-2">' +
@@ -2666,7 +2718,7 @@
             if (raw) {
               try {
                 var parsed = JSON.parse(raw);
-                if (parsed && parsed.products && parsed.products.length && (Date.now() - (parsed.ts || 0) < 3600000)) {
+                if (parsed && parsed.products && parsed.products.length && (Date.now() - (parsed.ts || 0) < 604800000)) {
                   prods = parsed.products;
                 }
               } catch(e) {}
@@ -2678,7 +2730,7 @@
               var hotHtml = '';
               for (var i = 0; i < prods.length; i++) {
                 var prod = prods[i];
-                var cardHtml = buildCard(prod);
+                var cardHtml = buildCard(prod, i < 4);
                 allHtml += cardHtml;
                 var c = Array.isArray(prod.categories) ? prod.categories : [];
                 if (c.indexOf("featured") !== -1) featHtml += cardHtml;
@@ -2687,6 +2739,12 @@
               if (featGrid) featGrid.innerHTML = featHtml;
               if (allGrid) allGrid.innerHTML = allHtml;
               if (hotGrid) hotGrid.innerHTML = hotHtml;
+              var featSection = document.getElementById("featured-products");
+              var hotSection = document.getElementById("top-rated");
+              var featScrollButton = document.getElementById("scroll-featured");
+              if (featSection) featSection.hidden = !featHtml;
+              if (hotSection) hotSection.hidden = !hotHtml;
+              if (featScrollButton) featScrollButton.hidden = !featHtml;
               window.__INSTANT_SHOP_PAINTED = true;
             } else {
               if (featGrid) featGrid.innerHTML = buildSkeletons(4);
@@ -2706,23 +2764,7 @@
         id="master-form"
         class="hidden-section fade-in"
         method="POST"
-        action="https://formsubmit.co/runoffdesignes@gmail.com"
-        target="hidden-iframe"
       >
-        <!-- FormSubmit Configuration -->
-        <input type="hidden" name="_captcha" value="false">
-        <input type="hidden" name="_subject" value="New Order Received - Tultulus">
-        <input type="hidden" name="_template" value="table">
-        <input type="hidden" name="Order Number" id="final-order-number">
-        <input type="hidden" name="Payment Method" id="final-payment-method">
-        <input type="hidden" name="Order Receipt" id="final-order-receipt">
-        
-        <!-- Order Details (Populated by Javascript) -->
-        <input type="hidden" name="Items Ordered" id="final-cart-items">
-        <input type="hidden" name="Subtotal (after discount)" id="final-total-without-delivery">
-        <input type="hidden" name="Total Amount (including delivery)" id="final-total-amount">
-        <input type="hidden" name="Promo Code Used" id="final-promo-code">
-
         <div class="flex flex-col md:flex-row gap-8 mt-8">
 
           <!-- LEFT: Order summary -->
@@ -2758,72 +2800,83 @@
           <!-- RIGHT: Steps -->
           <div class="w-full md:w-2/3 order-2 space-y-6">
 
-            <div id="step-shipping" class="panel-card p-8 fade-in">
-              <h2 class="text-xl font-black uppercase mb-6 tracking-widest">Shipping details</h2>
-              <div class="grid grid-cols-1 gap-5">
+            <div id="step-shipping" class="panel-card p-6 fade-in">
+              <h2 class="text-xl font-black uppercase mb-5 tracking-widest">Shipping details</h2>
+              <div class="grid grid-cols-1 gap-4">
                 <p class="form-label" style="margin:0;">Contact information</p>
-                <div>
-                  <label class="form-label" for="inp-email">Email address *</label>
-                  <input type="email" name="Email Address" id="inp-email" required class="form-input" placeholder="you@email.com" />
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="form-label" for="inp-email">Email address *</label>
+                    <input type="email" name="Email Address" id="inp-email" required class="form-input" autocomplete="email" placeholder="you@example.com" />
+                  </div>
+                  <div>
+                    <label class="form-label" for="inp-phone">Phone *</label>
+                    <input type="tel" name="Phone Number" id="inp-phone" required class="form-input" autocomplete="tel" placeholder="(212) 555-0123" />
+                  </div>
                 </div>
 
-                <p class="form-label" style="margin:8px 0 0;">Billing details</p>
+                <p class="form-label" style="margin:8px 0 0;">Shipping address</p>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="form-label" for="inp-first-name">First name *</label>
-                    <input type="text" name="First Name" id="inp-first-name" required class="form-input" placeholder="First name" />
+                    <input type="text" name="First Name" id="inp-first-name" required class="form-input" autocomplete="given-name" placeholder="First name" />
                   </div>
                   <div>
                     <label class="form-label" for="inp-last-name">Last name *</label>
-                    <input type="text" name="Last Name" id="inp-last-name" required class="form-input" placeholder="Last name" />
+                    <input type="text" name="Last Name" id="inp-last-name" required class="form-input" autocomplete="family-name" placeholder="Last name" />
                   </div>
                 </div>
                 <div>
-                  <label class="form-label" for="inp-company">Company name (optional)</label>
-                  <input type="text" name="Company Name" id="inp-company" class="form-input" placeholder="Company name" />
+                  <label class="form-label" for="inp-care-of">C/O (optional)</label>
+                  <input type="text" name="Care Of" id="inp-care-of" class="form-input" maxlength="100" placeholder="Care of name" />
                 </div>
                 <div>
                   <label class="form-label" for="inp-country">Country / Region *</label>
                   <div class="select-wrap">
-                    <select name="Country" id="inp-country" class="select-field" required>
-                      <option value="Bangladesh" selected>Bangladesh</option>
-                      <option value="United States">United States</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="India">India</option>
-                      <option value="United Arab Emirates">United Arab Emirates</option>
-                      <option value="Canada">Canada</option>
-                      <option value="Australia">Australia</option>
-                      <option value="Other">Other</option>
+                    <select name="Country" id="inp-country" class="select-field" required autocomplete="country" onchange="syncCountryFields()">
+                      <option value="" selected disabled>Select country / region</option>
+                      <option value="US">United States</option>
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label class="form-label" for="inp-street">Street address *</label>
-                  <input type="text" name="Street Address" id="inp-street" required class="form-input" placeholder="House number and street name" />
+                  <label class="form-label" for="inp-street">Address line 1 *</label>
+                  <input type="text" name="Address Line 1" id="inp-street" required class="form-input" autocomplete="address-line1" placeholder="Street address" />
                 </div>
                 <div>
-                  <label class="form-label" for="inp-apartment">Apartment, suite, unit, etc. (optional)</label>
-                  <input type="text" name="Apartment" id="inp-apartment" class="form-input" placeholder="Apartment, suite, unit, etc." />
+                  <label class="form-label" for="inp-address-2">Address line 2 (optional)</label>
+                  <input type="text" name="Address Line 2" id="inp-address-2" class="form-input" autocomplete="address-line2" placeholder="Apartment, suite, unit, building, floor" />
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="form-label" for="inp-city">Town / City *</label>
-                    <input type="text" name="Town / City" id="inp-city" required class="form-input" placeholder="City" oninput="updateCalculations()" />
+                    <input type="text" name="Town / City" id="inp-city" required class="form-input" autocomplete="address-level2" placeholder="City" />
                   </div>
                   <div>
-                    <label class="form-label" for="inp-district">District *</label>
-                    <input type="text" name="District" id="inp-district" required class="form-input" value="Dhaka" placeholder="District" oninput="updateCalculations()" />
+                    <label class="form-label" for="inp-state">State *</label>
+                    <div class="select-wrap">
+                      <select name="State" id="inp-state" class="select-field" required autocomplete="address-level1" disabled>
+                        <option value="" selected>Select state</option>
+                        <option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option>
+                        <option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option>
+                        <option value="DC">District of Columbia</option><option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii</option>
+                        <option value="ID">Idaho</option><option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option>
+                        <option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine</option>
+                        <option value="MD">Maryland</option><option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option>
+                        <option value="MS">Mississippi</option><option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option>
+                        <option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="NM">New Mexico</option>
+                        <option value="NY">New York</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option><option value="OH">Ohio</option>
+                        <option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option>
+                        <option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option><option value="TX">Texas</option>
+                        <option value="UT">Utah</option><option value="VT">Vermont</option><option value="VA">Virginia</option><option value="WA">Washington</option>
+                        <option value="WV">West Virginia</option><option value="WI">Wisconsin</option><option value="WY">Wyoming</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label class="form-label" for="inp-postcode">Postcode / ZIP (optional)</label>
-                    <input type="text" name="Postcode" id="inp-postcode" class="form-input" placeholder="Postcode / ZIP" />
-                  </div>
-                  <div>
-                    <label class="form-label" for="inp-phone">Phone *</label>
-                    <input type="tel" name="Phone Number" id="inp-phone" required class="form-input" placeholder="Phone number" />
-                  </div>
+                <div>
+                  <label class="form-label" for="inp-zip">ZIP Code *</label>
+                  <input type="text" name="ZIP Code" id="inp-zip" required class="form-input" inputmode="numeric" pattern="[0-9]{5}(-[0-9]{4})?" autocomplete="postal-code" placeholder="10001" />
                 </div>
 
                 <p class="form-label" style="margin:8px 0 0;">Additional information</p>
@@ -2844,27 +2897,24 @@
               </div>
 
               <div class="space-y-4">
-                <label class="pay-option">
-                  <span class="pay-option-head">
-                    <input type="radio" name="payment_choice" value="Direct bank transfer" />
-                    Direct bank transfer
-                  </span>
-                  <p>Make your payment directly into our bank account. Please use your Order ID as the payment reference. Your order will not be shipped until the funds have cleared in our account.</p>
-                </label>
-                <label class="pay-option">
-                  <span class="pay-option-head">
-                    <input type="radio" name="payment_choice" value="Pay in Person" />
-                    Pay in Person
-                  </span>
-                  <p>Cash on delivery. Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our privacy policy.</p>
-                </label>
+                <div class="square-payment-card">
+                  <div class="card-brands">
+                    <span><i class="fas fa-credit-card"></i>Debit or credit card</span>
+                    <span>Visa · Mastercard · Amex · Discover</span>
+                  </div>
+                  <div id="square-card-container" aria-label="Secure card details"></div>
+                  <p class="secure-payment-note">
+                    Card details are securely collected by Square and never touch our server.
+                    Your order is confirmed only after Square completes the payment.
+                  </p>
+                  <div id="payment-status" class="payment-status" role="alert" aria-live="polite"></div>
+                </div>
                 <div class="terms-box">
                   <h3>Terms and conditions</h3>
                   <div class="terms-copy">
                     <p>By placing an order on this website, you confirm that the billing and shipping details you provide are accurate. We will use this information to process your order, arrange delivery, and contact you if needed.</p>
-                    <p>If you choose Direct bank transfer, please send the exact order total to the bank account shown after checkout and use your Order ID as the payment reference. Your order will be prepared and shipped only after the funds have cleared in our account.</p>
-                    <p>If you choose Pay in Person (cash on delivery), payment is due when the order is received. Please keep your phone available so our delivery partner can reach you.</p>
-                    <p>All prices are shown in USD. Delivery fees are calculated from your city and district at checkout. Once an order is confirmed, changes or cancellations are subject to stock and dispatch status. For questions about an order, product, or our service, contact customer service at support@day-1.com or +1 (640) 696-1661 (Monday–Friday, 10:00–6:00 PM).</p>
+                    <p>Your debit or credit card will be securely processed by Square. An order is confirmed only when Square reports that the payment is completed.</p>
+                    <p>All prices and charges are shown in USD. Once an order is confirmed, changes or cancellations are subject to stock and dispatch status. For questions about an order, product, or our service, contact customer service at support@day-1.com or +1 (640) 696-1661 (Monday–Friday, 10:00–6:00 PM).</p>
                     <p>Your personal data will be used only to process your order, support your experience on this website, and for other purposes described here. We do not sell your information to third parties.</p>
                   </div>
                   <label class="terms-row">
@@ -2875,14 +2925,13 @@
               </div>
 
               <button type="submit" id="final-btn" class="btn-primary w-full justify-center mt-8">
-                Place order
+                Pay securely with Square
               </button>
             </div>
 
           </div>
         </div>
       </form>
-      <iframe name="hidden-iframe" style="display:none;"></iframe>
 
       <!-- Step success -->
       <div id="step-success" class="hidden-section fade-in order-complete-page">
@@ -2890,7 +2939,7 @@
           <div class="order-complete-hero">
             <div class="check-circle"><i class="fas fa-check"></i></div>
             <h2>Thank you. Your order has been received.</h2>
-            <p>Please screenshot this page and keep it until your order arrives.</p>
+            <p>Your Square payment is complete. A confirmation email and official receipt link are provided below.</p>
           </div>
           <div id="order-receipt" class="order-receipt"></div>
           <div class="order-complete-actions">
@@ -3028,9 +3077,6 @@
               <button id="modal-buy" class="btn-primary" type="button">
                 Buy now <i class="fas fa-arrow-right text-xs"></i>
               </button>
-                            <button class="btn-outline" type="button" data-modal-close style="color:#ffffff !important; border-color:rgba(255,255,255,0.5) !important; background:transparent !important;">
-                Continue Shopping
-              </button>
             </div>
           </div>
         </div>
@@ -3099,6 +3145,13 @@
       let subtotal = 0;
       let promoApplied = false;
       let toastTimer = null;
+      let squarePublicConfig = null;
+      let squareConfigPromise = null;
+      let squareCard = null;
+      let squareCardPromise = null;
+      let paymentInFlight = false;
+      let checkoutAttemptId = null;
+      const PENDING_SQUARE_PAYMENT_KEY = "tultulus_pending_square_payment";
 
       function saveCart() {
         localStorage.setItem("store_cart", JSON.stringify(cart));
@@ -3130,7 +3183,7 @@
       const promoInput = document.getElementById("promo-code");
       const promoButton = document.getElementById("promo-apply");
       const promoMessage = document.getElementById("promo-message");
-      const discountRow = document.getElementById("discount-row");
+      const discountRow = document.getElementById("display-discount-row");
       const discountValue = document.getElementById("display-discount");
       const cartModalDiscountRow = document.getElementById(
         "cart-modal-discount-row",
@@ -3404,6 +3457,9 @@
         saveCart();
         renderCartSummary();
         updateCalculations();
+        loadSquareConfiguration().catch(() => {
+          // A clear configuration error is shown when the buyer reaches payment.
+        });
         // Hide products, show checkout form
         document.documentElement.classList.add("open-checkout");
         const stepProducts = document.getElementById('step-products');
@@ -3456,26 +3512,45 @@
       setupPosterCarousel();
 
       function getDeliveryFee() {
-        const city = (document.getElementById("inp-city")?.value || "").toLowerCase();
-        const district = (document.getElementById("inp-district")?.value || "").toLowerCase();
-        if (city.includes("dhaka") || district.includes("dhaka")) return 80;
-        return 130;
+        return Number(squarePublicConfig?.shippingFeeCents || 0) / 100;
       }
 
       function formatMoney(amount) {
-        return Number(amount || 0).toLocaleString("en-BD", {
+        return Number(amount || 0).toLocaleString("en-US", {
+          style: "currency",
+          currency: "USD",
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        }) + "৳";
+        });
       }
 
-      function generateOrderNumber() {
-        return String(2000 + (Date.now() % 8000));
+      function centsToMoney(cents) {
+        return formatMoney(Number(cents || 0) / 100);
       }
 
-      function getSelectedPayment() {
-        const selected = document.querySelector('input[name="payment_choice"]:checked');
-        return selected ? selected.value : "";
+      function getClientTotals() {
+        const subtotalCents = Math.round(Number(subtotal || 0) * 100);
+        const discountPercent = Number(squarePublicConfig?.promoDiscountPercent ?? 0);
+        const promoDiscountCents = promoApplied
+          ? Math.round(subtotalCents * (discountPercent / 100))
+          : 0;
+        const shippingFeeCents = Number(squarePublicConfig?.shippingFeeCents || 0);
+        return {
+          subtotalCents,
+          promoDiscountCents,
+          shippingFeeCents,
+          totalAfterDiscountCents: subtotalCents - promoDiscountCents,
+          finalTotalCents: subtotalCents - promoDiscountCents + shippingFeeCents,
+        };
+      }
+
+      function syncCountryFields() {
+        const country = document.getElementById("inp-country");
+        const state = document.getElementById("inp-state");
+        if (!state) return;
+        const isUnitedStates = country?.value === "US";
+        state.disabled = !isUnitedStates;
+        if (!isUnitedStates) state.value = "";
       }
 
       function collectBilling() {
@@ -3486,33 +3561,30 @@
           first,
           last,
           name: (first + " " + last).trim(),
-          company: document.getElementById("inp-company")?.value.trim() || "",
           country: document.getElementById("inp-country")?.value.trim() || "",
+          careOf: document.getElementById("inp-care-of")?.value.trim() || "",
           street: document.getElementById("inp-street")?.value.trim() || "",
-          apartment: document.getElementById("inp-apartment")?.value.trim() || "",
+          address2: document.getElementById("inp-address-2")?.value.trim() || "",
           city: document.getElementById("inp-city")?.value.trim() || "",
-          district: document.getElementById("inp-district")?.value.trim() || "",
-          postcode: document.getElementById("inp-postcode")?.value.trim() || "",
+          state: document.getElementById("inp-state")?.value.trim() || "",
+          zip: document.getElementById("inp-zip")?.value.trim() || "",
           phone: document.getElementById("inp-phone")?.value.trim() || "",
           notes: document.getElementById("inp-notes")?.value.trim() || "",
         };
       }
 
       function updateCalculations() {
-        const deliveryFee = getDeliveryFee();
-        const promoDiscount = promoApplied ? Math.round(subtotal * 0.05) : 0;
-        const totalAfterDiscount = subtotal - promoDiscount;
-        const finalTotal = totalAfterDiscount + deliveryFee;
+        const totals = getClientTotals();
 
         const displaySubtotal = document.getElementById("display-subtotal");
         if (displaySubtotal) {
-          displaySubtotal.innerText = subtotal + " USD";
+          displaySubtotal.innerText = centsToMoney(totals.subtotalCents);
         }
         if (discountValue) {
-          discountValue.innerText = `-${promoDiscount} USD`;
+          discountValue.innerText = `-${centsToMoney(totals.promoDiscountCents)}`;
         }
         if (discountRow) {
-          if (promoApplied && promoDiscount > 0) {
+          if (promoApplied && totals.promoDiscountCents > 0) {
             discountRow.classList.remove("hidden-section");
           } else {
             discountRow.classList.add("hidden-section");
@@ -3520,91 +3592,102 @@
         }
         const displayDelivery = document.getElementById("display-delivery");
         if (displayDelivery) {
-          displayDelivery.innerText = deliveryFee + " USD";
+          displayDelivery.innerText = centsToMoney(totals.shippingFeeCents);
         }
         const displayTotal = document.getElementById("display-total");
         if (displayTotal) {
-          displayTotal.innerText = totalAfterDiscount + " USD";
+          displayTotal.innerText = centsToMoney(totals.totalAfterDiscountCents);
         }
         const finalTotalEl = document.getElementById("display-final-total");
         if (finalTotalEl) {
-          finalTotalEl.innerText = finalTotal + " USD";
-        }
-
-        const finalTotalAmount = document.getElementById("final-total-amount");
-        if (finalTotalAmount) {
-          finalTotalAmount.value = finalTotal + " USD";
-        }
-        const totalWithoutDelivery = document.getElementById(
-          "final-total-without-delivery",
-        );
-        if (totalWithoutDelivery) {
-          totalWithoutDelivery.value = totalAfterDiscount + " USD";
-        }
-        const promoCodeField = document.getElementById("final-promo-code");
-        if (promoCodeField) {
-          promoCodeField.value =
-            promoApplied && promoInput ? promoInput.value : "None";
-        }
-        const finalCartItems = document.getElementById("final-cart-items");
-        if (finalCartItems) {
-          finalCartItems.value = cart
-            .map((i) => {
-              const sizeLabel = i.size ? ` (Size: ${i.size})` : "";
-              const qtyLabel = i.quantity > 1 ? ` x${i.quantity}` : "";
-              return `${i.name}${sizeLabel}${qtyLabel}`;
-            })
-            .join(", ");
+          finalTotalEl.innerText = centsToMoney(totals.finalTotalCents);
         }
 
         if (cartModalSubtotal) {
-          cartModalSubtotal.textContent = `${subtotal} USD`;
+          cartModalSubtotal.textContent = centsToMoney(totals.subtotalCents);
         }
         if (cartModalDiscount) {
-          cartModalDiscount.textContent = `-${promoDiscount} USD`;
+          cartModalDiscount.textContent = `-${centsToMoney(totals.promoDiscountCents)}`;
         }
         if (cartModalDiscountRow) {
-          if (promoApplied && promoDiscount > 0) {
+          if (promoApplied && totals.promoDiscountCents > 0) {
             cartModalDiscountRow.classList.remove("hidden-section");
           } else {
             cartModalDiscountRow.classList.add("hidden-section");
           }
         }
         if (cartModalDelivery) {
-          cartModalDelivery.textContent = `${deliveryFee} USD`;
+          cartModalDelivery.textContent = centsToMoney(totals.shippingFeeCents);
         }
         if (cartModalTotal) {
-          cartModalTotal.textContent = `${totalAfterDiscount} USD`;
+          cartModalTotal.textContent = centsToMoney(totals.totalAfterDiscountCents);
         }
         if (cartModalFinalTotal) {
-          cartModalFinalTotal.textContent = `${finalTotal} USD`;
+          cartModalFinalTotal.textContent = centsToMoney(totals.finalTotalCents);
         }
       }
 
-      function applyPromo() {
+      function displayVerifiedQuote(quote) {
+        const values = {
+          "display-subtotal": quote.subtotalCents,
+          "display-discount": quote.discountCents,
+          "display-delivery": quote.shippingFeeCents,
+          "display-total": quote.subtotalCents - quote.discountCents,
+          "display-final-total": quote.totalCents,
+        };
+        Object.entries(values).forEach(([id, cents]) => {
+          const element = document.getElementById(id);
+          if (!element) return;
+          element.textContent = id === "display-discount" ? `-${centsToMoney(cents)}` : centsToMoney(cents);
+        });
+      }
+
+      async function applyPromo() {
         if (promoApplied || !promoInput) {
           return;
         }
-        const code = promoInput.value;
-        if (code === "Ethika05") {
-          //--------------------------------------------promo code name
+        const code = promoInput.value.trim();
+        if (!code) {
+          promoMessage.textContent = "Enter a promo code";
+          promoMessage.className = "promo-message text-red-600";
+          return;
+        }
+        if (promoButton) promoButton.disabled = true;
+        try {
+          const response = await fetch("/.netlify/functions/validate-promo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ promoCode: code }),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (response.ok && result.valid) {
           promoApplied = true;
-          if (promoButton) {
-            promoButton.disabled = true;
-          }
+          squarePublicConfig = {
+            ...(squarePublicConfig || {}),
+            promoDiscountPercent: Number(result.discountPercent || 0),
+          };
           promoInput.disabled = true;
           if (promoMessage) {
-            promoMessage.textContent = "Promo applied: 5% off"; //-----------------promo code percentage(display)
+            promoMessage.textContent = `Promo applied: ${result.discountPercent}% off`;
             promoMessage.classList.remove("text-red-600");
             promoMessage.classList.add("text-green-600", "is-success");
           }
           updateCalculations();
           return;
-        }
-        if (promoMessage) {
-          promoMessage.textContent = "Invalid promo code";
-          promoMessage.classList.remove("text-green-600", "is-success");
-          promoMessage.classList.add("text-red-600");
+          }
+          if (promoMessage) {
+            promoMessage.textContent = "Invalid promo code";
+            promoMessage.classList.remove("text-green-600", "is-success");
+            promoMessage.classList.add("text-red-600");
+          }
+        } catch (error) {
+          if (promoMessage) {
+            promoMessage.textContent = "Could not verify promo code. Try again.";
+            promoMessage.classList.remove("text-green-600", "is-success");
+            promoMessage.classList.add("text-red-600");
+          }
+        } finally {
+          if (promoButton && !promoApplied) promoButton.disabled = false;
         }
       }
 
@@ -3612,8 +3695,97 @@
         promoButton.addEventListener("click", applyPromo);
       }
 
-      function goToPayment() {
+      function setPaymentStatus(message, type = "info") {
+        const status = document.getElementById("payment-status");
+        if (!status) return;
+        status.textContent = message || "";
+        status.className = `payment-status${message ? " is-visible" : ""} is-${type}`;
+      }
+
+      async function loadSquareConfiguration() {
+        if (squarePublicConfig) return squarePublicConfig;
+        if (squareConfigPromise) return squareConfigPromise;
+        squareConfigPromise = fetch("/.netlify/functions/square-config", {
+          headers: { Accept: "application/json" },
+        })
+          .then(async (response) => {
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Square checkout is not configured.");
+            squarePublicConfig = payload;
+            updateCalculations();
+            return payload;
+          })
+          .catch((error) => {
+            squareConfigPromise = null;
+            throw error;
+          });
+        return squareConfigPromise;
+      }
+
+      function loadSquareSdk(environment) {
+        if (window.Square) return Promise.resolve();
+        const existing = document.getElementById("square-web-payments-sdk");
+        if (existing) {
+          return new Promise((resolve, reject) => {
+            existing.addEventListener("load", resolve, { once: true });
+            existing.addEventListener("error", () => reject(new Error("Could not load Square securely.")), { once: true });
+          });
+        }
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.id = "square-web-payments-sdk";
+          script.src = environment === "production"
+            ? "https://web.squarecdn.com/v1/square.js"
+            : "https://sandbox.web.squarecdn.com/v1/square.js";
+          script.onload = resolve;
+          script.onerror = () => reject(new Error("Could not load Square securely."));
+          document.head.appendChild(script);
+        });
+      }
+
+      async function initializeSquareCard() {
+        if (squareCard) return squareCard;
+        if (squareCardPromise) return squareCardPromise;
+        squareCardPromise = (async () => {
+          const config = await loadSquareConfiguration();
+          await loadSquareSdk(config.environment);
+          if (!window.Square) throw new Error("Square payment services are unavailable.");
+          const payments = window.Square.payments(config.applicationId, config.locationId);
+          const card = await payments.card();
+          await card.attach("#square-card-container");
+          squareCard = card;
+          return card;
+        })().catch((error) => {
+          squareCardPromise = null;
+          throw error;
+        });
+        return squareCardPromise;
+      }
+
+      async function requestVerifiedQuote(billing) {
+        const response = await fetch("/.netlify/functions/square-quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            cart,
+            billing,
+            promoCode: promoApplied && promoInput ? promoInput.value : "",
+            checkoutAttemptId,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "Could not verify your order total.");
+        return payload;
+      }
+
+      async function goToPayment() {
         const billing = collectBilling();
+        const checkoutForm = document.getElementById("master-form");
+
+        if (checkoutForm && !checkoutForm.checkValidity()) {
+          checkoutForm.reportValidity();
+          return;
+        }
 
         if (cart.length > 0 && hasUnselectedSize()) {
           openSizeWarning();
@@ -3628,7 +3800,8 @@
           !billing.country ||
           !billing.street ||
           !billing.city ||
-          !billing.district ||
+          !billing.state ||
+          !billing.zip ||
           cart.length === 0
         ) {
           alert("Please fill all required shipping details and add items to cart.");
@@ -3649,11 +3822,24 @@
         }
         hideScrollFeaturedButton();
         showPaymentScrollButton();
-
         window.scrollTo(0, 0);
+
+        const button = document.getElementById("final-btn");
+        if (button) button.disabled = true;
+        setPaymentStatus("Loading secure Square card form…", "info");
+        try {
+          await initializeSquareCard();
+          setPaymentStatus("", "info");
+        } catch (error) {
+          setPaymentStatus(error.message || "Square checkout could not be loaded.", "error");
+        } finally {
+          if (button && !paymentInFlight) button.disabled = !squareCard;
+        }
       }
 
       function backToShipping() {
+        checkoutAttemptId = null;
+        try { sessionStorage.removeItem(PENDING_SQUARE_PAYMENT_KEY); } catch (error) {}
         document.getElementById("step-payment").classList.add("hidden-section");
         document
           .getElementById("step-shipping")
@@ -4583,133 +4769,242 @@
         }
       });
 
-      function buildOrderReceipt(orderNumber, paymentMethod, billing, totals) {
-        const itemsHtml = cart.map((item) => {
-          const qty = item.quantity > 1 ? ` × ${item.quantity}` : " × 1";
-          const details = [item.color, item.size && item.size !== "SELECT SIZE" ? item.size : ""].filter(Boolean).join(" / ");
-          const detailStr = details ? ` – ${details}` : "";
-          return `<tr><td><span style="text-transform:capitalize;">${item.name}</span>${detailStr}${qty}</td><td style="text-align:right;">${formatMoney(item.price)}</td></tr>`;
+      function escapeReceiptHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function buildPaidOrderReceipt(result, billing) {
+        const itemsHtml = (result.order?.lineItems || []).map((item) => {
+          const note = item.note ? ` – ${escapeReceiptHtml(item.note)}` : "";
+          const lineTotal = item.total_money?.amount;
+          return `<tr><td><span style="text-transform:capitalize;">${escapeReceiptHtml(item.name)}</span>${note} × ${escapeReceiptHtml(item.quantity)}</td><td style="text-align:right;">${lineTotal == null ? "" : centsToMoney(lineTotal)}</td></tr>`;
         }).join("");
-        const bankBlock = paymentMethod === "Direct bank transfer" ? `
-          <h3>Our bank details</h3>
-          <div class="order-meta">
-            <div><span>Account name</span><strong>Sadia Chowdhury</strong></div>
-            <div><span>Bank</span><strong>Chase Bank</strong></div>
-            <div><span>Account number</span><strong>2900926738</strong></div>
-            <div><span>Sort code</span><strong>021202337</strong></div>
-          </div>` : "";
         const addressLines = [
           billing.name,
-          billing.company,
+          billing.careOf ? `C/O ${billing.careOf}` : "",
           billing.street,
-          billing.apartment,
+          billing.address2,
           billing.city,
-          billing.district,
-          billing.postcode,
-          billing.country,
+          billing.state,
+          billing.zip,
+          billing.country === "US" ? "United States" : billing.country,
           billing.phone,
           billing.email,
-        ].filter(Boolean).join("<br>");
+        ].filter(Boolean).map(escapeReceiptHtml).join("<br>");
+        const payment = result.payment || {};
+        const order = result.order || {};
+        const cardLabel = `${payment.cardBrand || "Card"}${payment.last4 ? ` ending in ${payment.last4}` : ""}`;
+        const receiptLink = payment.receiptUrl
+          ? `<a class="square-receipt-link" href="${escapeReceiptHtml(payment.receiptUrl)}" target="_blank" rel="noopener noreferrer">View official Square receipt</a>`
+          : "";
         return `
           <div class="order-meta">
-            <div><span>Order number</span><strong>${orderNumber}</strong></div>
+            <div><span>Order ID</span><strong>${escapeReceiptHtml(order.id)}</strong></div>
+            <div><span>Square receipt</span><strong>${escapeReceiptHtml(payment.receiptNumber || "Confirmed")}</strong></div>
             <div><span>Date</span><strong>${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong></div>
-            <div><span>Total</span><strong>${formatMoney(totals.finalTotal)} USD</strong></div>
-            <div><span>Payment method</span><strong>${paymentMethod}</strong></div>
+            <div><span>Total paid</span><strong>${centsToMoney(payment.amountMoney?.amount || order.totalMoney?.amount)}</strong></div>
+            <div><span>Payment method</span><strong>${escapeReceiptHtml(cardLabel)}</strong></div>
           </div>
-          ${bankBlock}
           <h3>Order details</h3>
           <table>
             <thead><tr><th style="text-align:left;">Product</th><th style="text-align:right;">Total</th></tr></thead>
             <tbody>${itemsHtml}
-              <tr><td>Subtotal</td><td style="text-align:right;">${formatMoney(totals.totalAfterDiscount)}</td></tr>
-              <tr><td>Delivery</td><td style="text-align:right;">${formatMoney(totals.deliveryFee)}</td></tr>
-              <tr><td><strong>Total</strong></td><td style="text-align:right;"><strong>${formatMoney(totals.finalTotal)} USD</strong></td></tr>
-              <tr><td>Payment method</td><td style="text-align:right;">${paymentMethod}</td></tr>
+              <tr><td><strong>Total paid</strong></td><td style="text-align:right;"><strong>${centsToMoney(payment.amountMoney?.amount || order.totalMoney?.amount)}</strong></td></tr>
             </tbody>
           </table>
-          <h3>Billing address</h3>
+          <h3>Shipping address</h3>
           <p style="font-family:Inter,sans-serif;line-height:1.7;">${addressLines}</p>
+          ${receiptLink}
         `;
+      }
+
+      function showPaidOrder(result, billing) {
+        const receiptEl = document.getElementById("order-receipt");
+        if (receiptEl) receiptEl.innerHTML = buildPaidOrderReceipt(result, billing);
+        cart = [];
+        subtotal = 0;
+        saveCart();
+        updateCartBadges();
+        const masterForm = document.getElementById("master-form");
+        if (masterForm) masterForm.classList.add("hidden-section");
+        const stepSuccess = document.getElementById("step-success");
+        if (stepSuccess) stepSuccess.classList.remove("hidden-section");
+        document.documentElement.classList.remove("open-checkout");
+        document.documentElement.classList.add("order-complete");
+        history.replaceState({}, "", "shop.html");
+        hidePaymentScrollButton();
+        checkoutAttemptId = null;
+        try { sessionStorage.removeItem(PENDING_SQUARE_PAYMENT_KEY); } catch (error) {}
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+
+      function rememberPendingPayment(orderId, attemptId, amountCents, billing) {
+        try {
+          sessionStorage.setItem(PENDING_SQUARE_PAYMENT_KEY, JSON.stringify({
+            orderId,
+            attemptId,
+            amountCents,
+            billing,
+          }));
+        } catch (error) {}
+      }
+
+      function restoreBillingForm(billing = {}) {
+        const values = {
+          "inp-email": billing.email,
+          "inp-first-name": billing.first,
+          "inp-last-name": billing.last,
+          "inp-care-of": billing.careOf,
+          "inp-street": billing.street,
+          "inp-address-2": billing.address2 || billing.apartment,
+          "inp-city": billing.city,
+          "inp-state": billing.state || billing.district,
+          "inp-zip": billing.zip || billing.postcode,
+          "inp-phone": billing.phone,
+          "inp-notes": billing.notes,
+        };
+        Object.entries(values).forEach(([id, value]) => {
+          const field = document.getElementById(id);
+          if (field && value) field.value = value;
+        });
+        const countryField = document.getElementById("inp-country");
+        if (countryField && billing.country) {
+          countryField.value = billing.country === "United States" ? "US" : billing.country;
+          syncCountryFields();
+          const stateField = document.getElementById("inp-state");
+          if (stateField) stateField.value = billing.state || billing.district || "";
+        }
+      }
+
+      async function recoverPaymentStatus(orderId, attemptId) {
+        const response = await fetch("/.netlify/functions/square-payment-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ orderId, checkoutAttemptId: attemptId }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        return response.ok ? payload : { success: false, status: "UNKNOWN" };
+      }
+
+      async function resumePendingSquarePayment() {
+        let pending;
+        try {
+          pending = JSON.parse(sessionStorage.getItem(PENDING_SQUARE_PAYMENT_KEY) || "null");
+        } catch (error) {
+          pending = null;
+        }
+        if (!pending?.orderId || !pending?.attemptId) return;
+        restoreBillingForm(pending.billing);
+        checkoutAttemptId = pending.attemptId;
+        const recovered = await recoverPaymentStatus(pending.orderId, pending.attemptId);
+        if (recovered.success && recovered.payment?.status === "COMPLETED") {
+          showPaidOrder(recovered, pending.billing || {});
+        }
       }
 
       const form = document.getElementById("master-form");
       if (form) {
-        form.addEventListener("submit", function (e) {
-          const paymentMethod = getSelectedPayment();
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          if (paymentInFlight) return;
+          const paymentStep = document.getElementById("step-payment");
+          if (paymentStep?.classList.contains("hidden-section")) {
+            await goToPayment();
+            return;
+          }
           const terms = document.getElementById("inp-terms");
-          if (!paymentMethod) {
-            e.preventDefault();
-            alert("Please select a payment method.");
-            return;
-          }
           if (!terms || !terms.checked) {
-            e.preventDefault();
-            alert("Please agree to the website terms and conditions.");
+            setPaymentStatus("Please agree to the terms and conditions before paying.", "error");
             return;
           }
-
           const billing = collectBilling();
-          const deliveryFee = getDeliveryFee();
-          const promoDiscount = promoApplied ? Math.round(subtotal * 0.05) : 0;
-          const totalAfterDiscount = subtotal - promoDiscount;
-          const finalTotal = totalAfterDiscount + deliveryFee;
-          const orderNumber = generateOrderNumber();
-          const totals = { deliveryFee, totalAfterDiscount, finalTotal };
-
-          const orderField = document.getElementById("final-order-number");
-          const payField = document.getElementById("final-payment-method");
-          const receiptField = document.getElementById("final-order-receipt");
-          if (orderField) orderField.value = orderNumber;
-          if (payField) payField.value = paymentMethod;
-          if (receiptField) {
-            receiptField.value = [
-              "Order number: " + orderNumber,
-              "Payment method: " + paymentMethod,
-              "Total: " + formatMoney(finalTotal) + " USD",
-              "Items: " + cart.map((i) => {
-                const details = [i.color, i.size && i.size !== "SELECT SIZE" ? i.size : ""].filter(Boolean).join("/");
-                const detailStr = details ? ` [${details}]` : "";
-                return `${i.name}${detailStr} x${i.quantity || 1} (${formatMoney(i.price)} USD)`;
-              }).join(", "),
-              "Customer: " + billing.name,
-              "Email: " + billing.email,
-              "Phone: " + billing.phone,
-              "Address: " + [billing.street, billing.apartment, billing.city, billing.district, billing.postcode, billing.country].filter(Boolean).join(", "),
-              billing.notes ? ("Notes: " + billing.notes) : "",
-            ].filter(Boolean).join(" | ");
+          const btn = document.getElementById("final-btn");
+          paymentInFlight = true;
+          if (btn) {
+            btn.innerText = "Verifying order…";
+            btn.disabled = true;
           }
 
-          const receiptEl = document.getElementById("order-receipt");
-          if (receiptEl) receiptEl.innerHTML = buildOrderReceipt(orderNumber, paymentMethod, billing, totals);
+          let preparedOrderId = "";
+          const activeAttemptId = checkoutAttemptId || crypto.randomUUID();
+          checkoutAttemptId = activeAttemptId;
+          try {
+            const card = await initializeSquareCard();
+            const quote = await requestVerifiedQuote(billing);
+            preparedOrderId = quote.orderId;
+            rememberPendingPayment(quote.orderId, activeAttemptId, quote.totalCents, billing);
+            displayVerifiedQuote(quote);
+            if (btn) btn.innerText = `Pay ${centsToMoney(quote.totalCents)}`;
+            setPaymentStatus("Securely verifying your card with Square…", "info");
 
-          const btn = document.getElementById("final-btn");
-          btn.innerText = "Placing order...";
-          btn.disabled = true;
+            const tokenResult = await card.tokenize({
+              amount: (quote.totalCents / 100).toFixed(2),
+              billingContact: {
+                givenName: billing.first,
+                familyName: billing.last,
+                email: billing.email,
+                phone: billing.phone,
+                addressLines: [
+                  billing.street,
+                  billing.address2,
+                  billing.careOf ? `C/O ${billing.careOf}` : "",
+                ].filter(Boolean),
+                city: billing.city,
+                state: billing.state,
+                postalCode: billing.zip,
+                countryCode: "US",
+              },
+              currencyCode: "USD",
+              intent: "CHARGE",
+              customerInitiated: true,
+              sellerKeyedIn: false,
+            });
+            if (tokenResult.status !== "OK" || !tokenResult.token) {
+              const detail = tokenResult.errors?.[0]?.message || tokenResult.errors?.[0]?.detail;
+              throw new Error(detail || "Please check your card details and try again.");
+            }
 
-          setTimeout(() => {
-            cart = [];
-            subtotal = 0;
-            saveCart();
-            const masterForm = document.getElementById("master-form");
-            if (masterForm) masterForm.classList.add("hidden-section");
-            const stepSuccess = document.getElementById("step-success");
-            if (stepSuccess) stepSuccess.classList.remove("hidden-section");
-            document.documentElement.classList.remove("open-checkout");
-            document.documentElement.classList.add("order-complete");
-            history.replaceState({}, "", "shop.html");
-            if (typeof hidePaymentScrollButton === "function") hidePaymentScrollButton();
-            window.scrollTo({ top: 0, behavior: "instant" });
-          }, 1500);
+            if (btn) btn.innerText = "Processing payment…";
+            const response = await fetch("/.netlify/functions/create-square-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({
+                sourceId: tokenResult.token,
+                orderId: quote.orderId,
+                checkoutAttemptId: activeAttemptId,
+                paymentAttemptId: crypto.randomUUID(),
+                expectedAmountCents: quote.totalCents,
+              }),
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || !result.success || result.payment?.status !== "COMPLETED") {
+              throw new Error(result.error || "Square did not complete the payment. No order was confirmed.");
+            }
+            showPaidOrder(result, billing);
+          } catch (error) {
+            if (preparedOrderId && error instanceof TypeError) {
+              setPaymentStatus("The connection was interrupted. Checking Square before allowing another attempt…", "info");
+              const recovered = await recoverPaymentStatus(preparedOrderId, activeAttemptId);
+              if (recovered.success && recovered.payment?.status === "COMPLETED") {
+                showPaidOrder(recovered, billing);
+                return;
+              }
+            }
+            setPaymentStatus(error.message || "Payment failed. Your order was not confirmed.", "error");
+          } finally {
+            paymentInFlight = false;
+            if (btn && !document.documentElement.classList.contains("order-complete")) {
+              btn.innerText = `Pay ${centsToMoney(getClientTotals().finalTotalCents)} securely`;
+              btn.disabled = !squareCard;
+            }
+          }
         });
       }
-
-      document.querySelectorAll('input[name="payment_choice"]').forEach((input) => {
-        input.addEventListener("change", () => {
-          document.querySelectorAll(".pay-option").forEach((box) => box.classList.remove("is-selected"));
-          input.closest(".pay-option")?.classList.add("is-selected");
-        });
-      });
 
 // --- MOBILE MENU LOGIC ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -4775,20 +5070,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const isReload = (window.performance && window.performance.getEntriesByType && window.performance.getEntriesByType("navigation")[0] && window.performance.getEntriesByType("navigation")[0].type === "reload") || (window.performance && window.performance.navigation && window.performance.navigation.type === 1);
-    if (isReload) {
-      localStorage.removeItem("store_cart");
-      localStorage.removeItem("store_subtotal");
-      localStorage.removeItem("accolade_cart");
-      localStorage.removeItem("accolade_subtotal");
-    }
-
     loadCart();
 
     // Check if redirected for checkout
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get("checkout") === "true") {
       openCheckout();
+      resumePendingSquarePayment().catch(() => {
+        // The regular checkout flow remains available if status recovery is unavailable.
+      });
     }
   });
 

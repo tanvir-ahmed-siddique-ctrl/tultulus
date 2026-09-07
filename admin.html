@@ -549,7 +549,7 @@
 
       .preview-image {
         position: relative;
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 1 / 1;
         border-radius: 22px;
         overflow: hidden;
         background:
@@ -561,7 +561,7 @@
       .preview-image img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         display: block;
       }
 
@@ -892,7 +892,7 @@
                 <div>
                   <label for="product-description">Product description (optional)</label>
                   <textarea id="product-description" rows="4" placeholder="100% Premium Cotton, 240 GSM heavy fabric. Oversized relaxed fit..."></textarea>
-                  <p class="field-hint">Paste or type details about fabric, fit, care instructions, etc. Shows in a collapsible accordion under the size chart on the product page.</p>
+                  <p class="field-hint">Paste or type details about fabric, fit, and care. It appears in a highlighted section below the purchase buttons.</p>
                 </div>
 
                 <div class="input-grid two">
@@ -941,6 +941,18 @@
                   <label for="product-colors">Available colors (optional)</label>
                   <input id="product-colors" type="text" placeholder="Black, Off-White, Olive, Navy" />
                   <p class="field-hint">Comma-separated color names. If filled, customers can choose their color on the product page and it will be recorded in the order and email. Leave blank if no color choices.</p>
+                </div>
+
+                <div class="upload-box">
+                  <label for="size-chart-image-file">Size-chart guide image (optional)</label>
+                  <input id="size-chart-image-file" type="file" accept="image/*" />
+                  <div class="upload-actions">
+                    <button id="upload-size-chart-image" type="button" class="secondary">Upload size-chart image</button>
+                  </div>
+                  <p id="size-chart-upload-status" class="status">No size-chart image uploaded</p>
+                  <label for="size-chart-image-url" style="margin-top: 12px;">Or paste image URL</label>
+                  <input id="size-chart-image-url" type="url" placeholder="https://..." />
+                  <p class="field-hint">Shown above the measurement table and before the purchase buttons.</p>
                 </div>
 
                 <div class="size-chart-toggle-wrap">
@@ -1046,13 +1058,36 @@
           </article>
 
           <aside class="side-stack">
+            <section class="card panel-pad" aria-labelledby="promo-settings-heading">
+              <p class="eyebrow">Checkout</p>
+              <h2 id="promo-settings-heading" class="section-title">Promo code</h2>
+              <p class="helper-note">Set the exact code and percentage. Square verifies the final discounted total on the server.</p>
+              <form id="promo-settings-form" class="input-grid" style="margin-top: 16px;">
+                <div>
+                  <label for="promo-settings-code">Promo code</label>
+                  <input id="promo-settings-code" type="text" maxlength="64" placeholder="Ethika05" required />
+                </div>
+                <div>
+                  <label for="promo-settings-percent">Discount percentage</label>
+                  <input id="promo-settings-percent" type="number" min="0" max="100" step="1" value="5" required />
+                </div>
+                <label class="checkbox-label" for="promo-settings-enabled">
+                  <input id="promo-settings-enabled" type="checkbox" checked />
+                  <span>Promo code enabled</span>
+                </label>
+                <div class="actions">
+                  <button id="save-promo-settings" type="submit">Save promo</button>
+                  <p id="promo-settings-status" class="status">Loading...</p>
+                </div>
+              </form>
+            </section>
+
             <section class="card panel-pad preview-card" aria-labelledby="preview-heading">
               <p class="eyebrow">What customers see</p>
               <h2 id="preview-heading" class="section-title">Product box preview</h2>
               <p class="helper-note">This is how the shop card will look. First photo, name, badge, and prices appear here.</p>
               <div class="preview-image" style="margin-top: 16px;">
                 <img id="preview-image" src="photos/any.jpeg" alt="Product preview" />
-                <span id="preview-chip" class="preview-chip">Product</span>
                 <span id="preview-badge" class="preview-badge">NEW</span>
               </div>
               <div class="preview-copy">

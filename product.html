@@ -230,7 +230,7 @@
         100% { background-position: -200% 0; }
       }
       .skeleton-image {
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 1 / 1;
         width: 100%;
         background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
         background-size: 200% 100%;
@@ -288,7 +288,7 @@
           padding: 32px 40px 64px;
         }
         .pd-layout {
-          grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+          grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
           gap: 48px;
           align-items: start;
         }
@@ -299,6 +299,7 @@
         width: 100%;
         min-width: 0;
         max-width: 100%;
+        margin-inline: auto;
       }
 
       .pd-gallery {
@@ -316,16 +317,16 @@
         display: flex;
         width: 100%;
         transition: transform 0.35s ease;
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 1 / 1;
         min-height: 320px;
       }
 
       @media (min-width: 900px) {
         .pd-track {
-          aspect-ratio: 1 / 1.05;
-          min-height: 560px;
-          max-height: 78vh;
+          aspect-ratio: 1 / 1;
+          min-height: 0;
         }
+        .pd-media { max-width: 640px; }
       }
 
       .pd-slide {
@@ -341,7 +342,7 @@
       .pd-slide img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         cursor: zoom-in;
         user-select: none;
         -webkit-user-drag: none;
@@ -694,6 +695,20 @@
         text-transform: uppercase;
         color: #fff;
       }
+      .size-chart-image-wrap {
+        margin: 0 14px 14px;
+        border: 1px solid rgba(216, 183, 108, 0.38);
+        border-radius: 12px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.04);
+      }
+      .size-chart-image-wrap img {
+        display: block;
+        width: 100%;
+        max-height: 440px;
+        object-fit: contain;
+        margin: 0 auto;
+      }
       .size-chart-table {
         width: 100%;
         border-collapse: collapse;
@@ -738,6 +753,38 @@
         grid-template-columns: 1fr;
         gap: 10px;
         margin-top: 8px;
+      }
+      .pd-description {
+        position: relative;
+        margin-top: 4px;
+        padding: 20px 20px 20px 24px;
+        border: 1px solid rgba(216, 183, 108, 0.4);
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(216, 183, 108, 0.12), rgba(255, 255, 255, 0.035));
+        overflow: hidden;
+      }
+      .pd-description::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 4px;
+        background: var(--price);
+      }
+      .pd-description-title {
+        margin: 0 0 10px;
+        color: var(--price);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .pd-description-text {
+        margin: 0;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.75;
+        white-space: pre-line;
       }
       @media (min-width: 520px) {
         .pd-actions {
@@ -1001,7 +1048,6 @@
           </div>
         </a>
         <div class="nav-right">
-          <a class="nav-link" href="shop.html">Shop</a>
           <div class="header-cart">
             <button id="cart-button" class="icon-button" type="button" aria-label="Cart">
               <img src="photos/icons8-bag-100.png" alt="" />
@@ -1102,6 +1148,9 @@
           </div>
 
           <div class="size-chart-box pd-block" id="pd-chart-box" aria-label="Size chart" hidden>
+            <div id="pd-chart-image-wrap" class="size-chart-image-wrap" hidden>
+              <img id="pd-chart-image" alt="Product size guide" loading="lazy" decoding="async" />
+            </div>
             <p class="size-chart-title">Size chart</p>
             <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
               <table class="size-chart-table">
@@ -1118,8 +1167,12 @@
             <button id="pd-buy" class="btn-primary" type="button">
               Buy now <i class="fas fa-arrow-right text-xs"></i>
             </button>
-            <a class="btn-outline" href="shop.html">Continue shopping</a>
           </div>
+
+          <section id="pd-description" class="pd-description" hidden>
+            <h2 class="pd-description-title">Product description</h2>
+            <p id="pd-description-text" class="pd-description-text"></p>
+          </section>
         </div>
       </div>
       <script>
@@ -1230,6 +1283,19 @@
                 }
                 chartBody.innerHTML = bodyHtml;
                 chartBox.hidden = false;
+              }
+
+              var chartImageWrap = document.getElementById("pd-chart-image-wrap");
+              var chartImage = document.getElementById("pd-chart-image");
+              if (chartImageWrap && chartImage && item.sizeChartImageUrl) {
+                chartImage.src = optUrl(item.sizeChartImageUrl, 1200);
+                chartImageWrap.hidden = false;
+              }
+              var descBox = document.getElementById("pd-description");
+              var descText = document.getElementById("pd-description-text");
+              if (descBox && descText && item.description) {
+                descText.textContent = item.description;
+                descBox.hidden = false;
               }
 
               var skelEl = document.getElementById("product-skeleton");

@@ -1,11 +1,9 @@
-import { collection, db, getDocs } from "./firebase-config.js";
-
-const PRODUCTS_COLLECTION = "products";
+const PRODUCTS_ENDPOINT = "/.netlify/functions/products";
 const CACHE_KEY = "day1_products_cache_v2";
 const LEGACY_CACHE_KEY = "day1_products_cache";
 const DETAIL_CACHE_KEY = "day1_product_details_v2";
 const LEGACY_DETAIL_KEY = "day1_product_details";
-const CACHE_MS = 60 * 60 * 1000; // 1 hour valid cache
+const CACHE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const featuredGrid = document.querySelector("#featured-products .product-grid");
 const allGrid = document.querySelector("#all-categories .product-grid");
@@ -40,7 +38,7 @@ function optimizeImageUrl(url, width = 600) {
   if (!url || typeof url !== "string") return "photos/any.jpeg";
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
     if (url.includes("/upload/f_auto,q_auto")) return url;
-    return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width},c_limit/`);
+    return url.replace("/upload/", `/upload/f_auto,q_auto:eco,w_${width},c_limit/`);
   }
   return url;
 }
@@ -48,7 +46,7 @@ function optimizeImageUrl(url, width = 600) {
 function getPlaceholderImageUrl(url) {
   if (!url || typeof url !== "string") return "photos/any.jpeg";
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
-    return url.replace("/upload/", "/upload/f_auto,q_10,w_80,e_blur:200,c_limit/");
+    return url.replace("/upload/", "/upload/f_auto,q_5,w_48,e_blur:300,c_limit/");
   }
   return url;
 }
@@ -142,7 +140,8 @@ function normalizeProduct(docSnap) {
     cotton: String(data.cotton || "add details"),
     quality: String(data.quality || "add details"),
     fabric: String(data.fabric || "add details"),
-    sizeChartUrl: String(data.sizeChartUrl || data.sizechart || "photos/chart.jpeg"),
+    sizeChartImageUrl: String(data.sizeChartImageUrl || "").trim(),
+    description: String(data.description || "").trim(),
     images: images.length ? images : ["photos/any.jpeg"],
     designPoints,
     sizes,
@@ -160,7 +159,7 @@ function getProductsFingerprint(list) {
   return list
     .map(
       (p) =>
-        `${p.id}:${p.name}:${p.priceCurrent}:${p.priceOriginal}:${(p.images || [])[0]}:${(p.sizes || []).join(",")}:${(p.colors || []).join(",")}:${(p.categories || []).join(",")}`,
+        `${p.id}:${p.name}:${p.priceCurrent}:${p.priceOriginal}:${(p.images || [])[0]}:${p.sizeChartImageUrl}:${p.description}:${(p.sizes || []).join(",")}:${(p.colors || []).join(",")}:${(p.categories || []).join(",")}`,
     )
     .join("|");
 }
@@ -193,18 +192,11 @@ function prefetchProductAssets(product) {
   });
 }
 
-function createProductCard(product) {
+function createProductCard(product, priority = false) {
   const rawImage = product.images[0] || "photos/any.jpeg";
-  const optimizedImage = optimizeImageUrl(rawImage, 600);
+  const optimizedImage = optimizeImageUrl(rawImage, 480);
   const placeholderImage = getPlaceholderImageUrl(rawImage);
   const isCloudinary = rawImage.includes("res.cloudinary.com");
-
-  const discount = calculateDiscount(product.priceCurrent, product.priceOriginal);
-  const labelChip = product.categories.includes("featured")
-    ? "Featured"
-    : product.categories.includes("hot-selling")
-      ? "Hot Selling"
-      : "Product";
 
   const card = document.createElement("article");
   card.className = "product-card info-card";
@@ -223,6 +215,9 @@ function createProductCard(product) {
   const placeholderHtml = isCloudinary
     ? `<img class="placeholder-img" src="${placeholderImage}" alt="" aria-hidden="true" />`
     : "";
+  const responsiveAttrs = isCloudinary
+    ? `srcset="${optimizeImageUrl(rawImage, 320)} 320w, ${optimizeImageUrl(rawImage, 480)} 480w, ${optimizeImageUrl(rawImage, 640)} 640w" sizes="(max-width: 640px) calc(50vw - 12px), (max-width: 1100px) 33vw, 25vw"`
+    : "";
 
   const originalPriceHtml =
     product.priceOriginal && product.priceOriginal > product.priceCurrent
@@ -232,8 +227,7 @@ function createProductCard(product) {
   card.innerHTML = `
     <div class="product-image">
       ${placeholderHtml}
-      <img class="main-img" src="${optimizedImage}" alt="${product.name}" loading="lazy" decoding="async" onload="this.style.opacity='1'; this.parentElement.classList.add('is-loaded'); this.parentElement.querySelector('.placeholder-img')?.remove();" />
-      <span class="label-chip">${labelChip}</span>
+      <img class="main-img" src="${optimizedImage}" ${responsiveAttrs} alt="${product.name}" loading="${priority ? "eager" : "lazy"}" fetchpriority="${priority ? "high" : "auto"}" decoding="async" onload="this.style.opacity='1'; this.parentElement.classList.add('is-loaded'); this.parentElement.querySelector('.placeholder-img')?.remove();" />
       <span class="badge">${product.badge}</span>
     </div>
     <div class="mt-4 space-y-2">
@@ -283,7 +277,7 @@ function renderSkeletons(gridElement, count = 4) {
     .join("");
 }
 
-function renderIntoGrid(gridElement, products, emptyMessage) {
+function renderIntoGrid(gridElement, products, emptyMessage, priorityCount = 0) {
   if (!gridElement) return;
   gridElement.innerHTML = "";
 
@@ -296,8 +290,8 @@ function renderIntoGrid(gridElement, products, emptyMessage) {
     return;
   }
 
-  products.forEach((product) => {
-    gridElement.appendChild(createProductCard(product));
+  products.forEach((product, index) => {
+    gridElement.appendChild(createProductCard(product, index < priorityCount));
   });
 
   if (typeof window.attachImageLoaders === "function") {
@@ -313,9 +307,16 @@ function renderProducts(products) {
     product.categories.includes("hot-selling"),
   );
 
-  renderIntoGrid(featuredGrid, featuredProducts, "No featured products yet.");
-  renderIntoGrid(allGrid, products, "No products found.");
-  renderIntoGrid(hotGrid, hotProducts, "No hot selling products yet.");
+  const featuredSection = document.getElementById("featured-products");
+  const hotSection = document.getElementById("top-rated");
+  const featuredScrollButton = document.getElementById("scroll-featured");
+  if (featuredSection) featuredSection.hidden = featuredProducts.length === 0;
+  if (hotSection) hotSection.hidden = hotProducts.length === 0;
+  if (featuredScrollButton) featuredScrollButton.hidden = featuredProducts.length === 0;
+
+  if (featuredProducts.length) renderIntoGrid(featuredGrid, featuredProducts, "", 4);
+  renderIntoGrid(allGrid, products, "No products found.", featuredProducts.length ? 0 : 4);
+  if (hotProducts.length) renderIntoGrid(hotGrid, hotProducts, "");
 }
 
 function readCachedProducts() {
@@ -400,11 +401,20 @@ async function loadProducts() {
     renderSkeletons(hotGrid, 4);
   }
 
-  // 2. Background Silent Revalidation from Firestore
+  // 2. Background revalidation starts in <head>, before the page finishes parsing.
   try {
-    const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
-    const products = snapshot.docs
-      .map((doc) => normalizeProduct({ id: doc.id, ...doc.data() }))
+    let payload = await window.__PRODUCTS_REQUEST__;
+    if (!payload?.products) {
+      const response = await fetch(PRODUCTS_ENDPOINT, { headers: { Accept: "application/json" } });
+      if (response.ok) payload = await response.json();
+    }
+    if (!payload?.products) {
+      const { collection, db, getDocs } = await import("./firebase-config.js");
+      const snapshot = await getDocs(collection(db, "products"));
+      payload = { products: snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) };
+    }
+    const products = payload.products
+      .map((item) => normalizeProduct(item))
       .filter((product) => product.isPublished)
       .sort((left, right) => {
         if (left.sortOrder !== right.sortOrder) {
@@ -422,11 +432,15 @@ async function loadProducts() {
       renderProducts(products);
     }
   } catch (error) {
-    console.error("Failed to load products from Firebase", error);
+    console.error("Failed to load product catalog", error);
     if (!cached || !cached.length) {
-      renderIntoGrid(featuredGrid, [], "Unable to load products. Please check your connection.");
+      const featuredSection = document.getElementById("featured-products");
+      const hotSection = document.getElementById("top-rated");
+      const featuredScrollButton = document.getElementById("scroll-featured");
+      if (featuredSection) featuredSection.hidden = true;
+      if (hotSection) hotSection.hidden = true;
+      if (featuredScrollButton) featuredScrollButton.hidden = true;
       renderIntoGrid(allGrid, [], "Unable to load products. Please check your connection.");
-      renderIntoGrid(hotGrid, [], "Unable to load products. Please check your connection.");
     }
   }
 }

@@ -14,6 +14,7 @@ import {
   getDocs,
   getFirestore,
   serverTimestamp,
+  setDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
@@ -43,6 +44,7 @@ export {
   getDocs,
   onAuthStateChanged,
   serverTimestamp,
+  setDoc,
   signInWithEmailAndPassword,
   signOut,
   updateDoc,
