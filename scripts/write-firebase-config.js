@@ -42,10 +42,17 @@ if (!apiKey) {
 
 const filePath = path.join(__dirname, "..", "firebase-config.js");
 const original = fs.readFileSync(filePath, "utf8");
-const updated = original.replace(/apiKey:\s*"[^"]*"/, `apiKey: "${apiKey}"`);
+// Accept either quote style in the tracked template. JSON.stringify also keeps the
+// generated JavaScript valid if a value ever contains a character that needs escaping.
+const updated = original.replace(
+  /(\bapiKey\s*:\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)/,
+  `$1${JSON.stringify(apiKey)}`,
+);
 
 if (updated === original) {
-  console.error("Could not find apiKey in firebase-config.js to replace.");
+  console.error(
+    "Could not find a quoted apiKey property in firebase-config.js. Restore the firebaseConfig apiKey entry and redeploy.",
+  );
   process.exit(1);
 }
 
