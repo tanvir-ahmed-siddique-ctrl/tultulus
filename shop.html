@@ -2889,9 +2889,9 @@
                     </div>
                   </div>
                 </div>
-                <div>
-                  <label class="form-label" for="inp-zip">ZIP Code *</label>
-                  <input type="text" name="ZIP Code" id="inp-zip" required class="form-input" inputmode="numeric" pattern="[0-9]{5}(-[0-9]{4})?" autocomplete="postal-code" placeholder="10001" />
+                  <div>
+                    <label class="form-label" for="inp-zip">ZIP / Postal Code *</label>
+                    <input type="text" name="ZIP Code" id="inp-zip" required class="form-input" autocomplete="postal-code" placeholder="ZIP or postal code" pattern="[A-Za-z0-9][A-Za-z0-9 -]{2,11}" />
                 </div>
 
                 <p class="form-label" style="margin:8px 0 0;">Additional information</p>
@@ -3559,14 +3559,51 @@
         };
       }
 
+      const SHIPPING_COUNTRY_CODES = "AF AL DZ AS AD AO AI AQ AG AR AM AW AU AT AZ BS BH BD BB BY BE BZ BJ BM BT BO BQ BA BW BV BR IO BN BG BF BI CV KH CM CA KY CF TD CL CN CX CC CO KM CG CD CK CR CI HR CU CW CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FK FO FJ FI FR GF PF TF GA GM GE DE GH GI GR GL GD GP GU GT GG GN GW GY HT HM VA HN HK HU IS IN ID IR IQ IE IM IL IT JM JP JE JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MO MG MW MY MV ML MT MH MQ MR MU YT MX FM MD MC MN ME MS MA MZ MM NA NR NP NL NC NZ NI NE NG NU NF MK MP NO OM PK PW PS PA PG PY PE PH PN PL PT PR QA RE RO RU RW BL SH KN LC MF PM VC WS SM ST SA SN RS SC SL SG SX SK SI SB SO ZA GS SS ES LK SD SR SJ SE CH SY TW TJ TZ TH TL TG TK TO TT TN TR TM TC TV UG UA AE GB US UM UY UZ VU VE VN VG VI WF EH YE ZM ZW".split(" ");
+      const SHIPPING_REGIONS = {
+        US: "AL|Alabama,AK|Alaska,AZ|Arizona,AR|Arkansas,CA|California,CO|Colorado,CT|Connecticut,DE|Delaware,DC|District of Columbia,FL|Florida,GA|Georgia,HI|Hawaii,ID|Idaho,IL|Illinois,IN|Indiana,IA|Iowa,KS|Kansas,KY|Kentucky,LA|Louisiana,ME|Maine,MD|Maryland,MA|Massachusetts,MI|Michigan,MN|Minnesota,MS|Mississippi,MO|Missouri,MT|Montana,NE|Nebraska,NV|Nevada,NH|New Hampshire,NJ|New Jersey,NM|New Mexico,NY|New York,NC|North Carolina,ND|North Dakota,OH|Ohio,OK|Oklahoma,OR|Oregon,PA|Pennsylvania,RI|Rhode Island,SC|South Carolina,SD|South Dakota,TN|Tennessee,TX|Texas,UT|Utah,VT|Vermont,VA|Virginia,WA|Washington,WV|West Virginia,WI|Wisconsin,WY|Wyoming".split(","),
+        CA: "AB|Alberta,BC|British Columbia,MB|Manitoba,NB|New Brunswick,NL|Newfoundland and Labrador,NS|Nova Scotia,NT|Northwest Territories,NU|Nunavut,ON|Ontario,PE|Prince Edward Island,QC|Quebec,SK|Saskatchewan,YT|Yukon".split(","),
+        BD: "BD-05|Bagerhat,BD-01|Bandarban,BD-02|Barguna,BD-06|Barishal,BD-07|Bhola,BD-03|Bogura,BD-04|Brahmanbaria,BD-09|Chandpur,BD-10|Chattogram,BD-12|Chuadanga,BD-11|Cox's Bazar,BD-08|Cumilla,BD-13|Dhaka,BD-14|Dinajpur,BD-15|Faridpur,BD-16|Feni,BD-19|Gaibandha,BD-18|Gazipur,BD-17|Gopalganj,BD-20|Habiganj,BD-21|Jamalpur,BD-22|Jashore,BD-25|Jhalakathi,BD-23|Jhenaidah,BD-24|Joypurhat,BD-29|Khagrachhari,BD-27|Khulna,BD-26|Kishoreganj,BD-28|Kurigram,BD-30|Kushtia,BD-31|Lakshmipur,BD-36|Lalmonirhat,BD-32|Lalmonirhat,BD-37|Madaripur,BD-33|Manikganj,BD-39|Meherpur,BD-38|Moulvibazar,BD-35|Munshiganj,BD-34|Mymensingh,BD-48|Naogaon,BD-43|Narail,BD-40|Narayanganj,BD-42|Narsingdi,BD-44|Natore,BD-45|Nawabganj,BD-41|Netrakona,BD-46|Nilphamari,BD-47|Noakhali,BD-49|Pabna,BD-52|Panchagarh,BD-51|Patuakhali,BD-50|Pirojpur,BD-53|Rajbari,BD-54|Rajshahi,BD-56|Rangamati,BD-55|Rangpur,BD-58|Satkhira,BD-62|Shariatpur,BD-57|Sherpur,BD-59|Sirajganj,BD-61|Sunamganj,BD-60|Sylhet,BD-63|Tangail,BD-64|Thakurgaon".split(","),
+        GB: "ENG|England,NIR|Northern Ireland,SCT|Scotland,WLS|Wales".split(","),
+        AU: "ACT|Australian Capital Territory,NSW|New South Wales,NT|Northern Territory,QLD|Queensland,SA|South Australia,TAS|Tasmania,VIC|Victoria,WA|Western Australia".split(","),
+        IN: "AP|Andhra Pradesh,AR|Arunachal Pradesh,AS|Assam,BR|Bihar,CT|Chhattisgarh,GA|Goa,GJ|Gujarat,HR|Haryana,HP|Himachal Pradesh,JH|Jharkhand,KA|Karnataka,KL|Kerala,MP|Madhya Pradesh,MH|Maharashtra,ML|Meghalaya,MZ|Mizoram,NL|Nagaland,OD|Odisha,PJ|Punjab,RJ|Rajasthan,TN|Tamil Nadu,TS|Telangana,TR|Tripura,UP|Uttar Pradesh,UK|Uttarakhand,WB|West Bengal,DL|Delhi".split(","),
+      };
+
+      function populateShippingCountries() {
+        const field = document.getElementById("inp-country");
+        if (!field || field.dataset.populated === "true") return;
+        const displayNames = typeof Intl !== "undefined" && Intl.DisplayNames
+          ? new Intl.DisplayNames(["en"], { type: "region" })
+          : null;
+        const options = SHIPPING_COUNTRY_CODES.map((code) => {
+          let label = code;
+          try { label = displayNames?.of(code) || code; } catch (error) {}
+          return `<option value="${code}">${label}</option>`;
+        }).join("");
+        field.innerHTML = `<option value="" selected disabled>Select country / region</option>${options}`;
+        field.dataset.populated = "true";
+      }
+
       function syncCountryFields() {
         const country = document.getElementById("inp-country");
+        const currentState = document.getElementById("inp-state")?.value || "";
         const state = document.getElementById("inp-state");
-        if (!state) return;
-        const isUnitedStates = country?.value === "US";
-        state.disabled = !isUnitedStates;
-        if (!isUnitedStates) state.value = "";
+        const wrapper = state?.closest(".select-wrap");
+        if (!country || !wrapper) return;
+        const regionOptions = SHIPPING_REGIONS[country.value] || [];
+        if (!regionOptions.length) {
+          wrapper.innerHTML = '<input type="text" name="State" id="inp-state" class="form-input" required autocomplete="address-level1" placeholder="State / province / region" />';
+          const fallback = document.getElementById("inp-state");
+          fallback.value = currentState;
+          return;
+        }
+        wrapper.innerHTML = `<select name="State" id="inp-state" class="select-field" required autocomplete="address-level1"><option value="" selected>Select state / province / region</option>${regionOptions.map((entry) => { const [value, label] = entry.split("|"); return `<option value="${value}">${label}</option>`; }).join("")}</select>`;
+        const nextState = document.getElementById("inp-state");
+        if (currentState && [...nextState.options].some((option) => option.value === currentState)) nextState.value = currentState;
       }
+
+      populateShippingCountries();
+      syncCountryFields();
 
       function collectBilling() {
         const first = document.getElementById("inp-first-name")?.value.trim() || "";
@@ -4973,7 +5010,7 @@
                 city: billing.city,
                 state: billing.state,
                 postalCode: billing.zip,
-                countryCode: "US",
+                countryCode: billing.country || "US",
               },
               currencyCode: "USD",
               intent: "CHARGE",
