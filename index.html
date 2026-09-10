@@ -11,7 +11,31 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="prefetch" href="/.netlify/functions/products" as="fetch" />
     <style>html,body{background:#1a1510}</style>
+    <script>
+      window.addEventListener("load", function () {
+        var warmCatalog = function () {
+          fetch("/.netlify/functions/products", {
+            headers: { Accept: "application/json" },
+            priority: "low"
+          }).then(function (response) {
+            return response.ok ? response.json() : null;
+          }).then(function (payload) {
+            if (!payload || !payload.products) return;
+            sessionStorage.setItem("tultulus_catalog_prefetch_v1", JSON.stringify({
+              ts: Date.now(),
+              payload: payload
+            }));
+          }).catch(function () {});
+        };
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(warmCatalog, { timeout: 1200 });
+        } else {
+          window.setTimeout(warmCatalog, 200);
+        }
+      }, { once: true });
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"

@@ -20,7 +20,7 @@ import {
 
 // apiKey is filled at Netlify build from FIREBASE_WEB_API_KEY. Never commit the live key.
 const firebaseConfig = {
-  apiKey: "",
+  apiKey: "AIzaSyDopQxnz7rx5aXcgDNDCYMxP9x_XPgmfLM",
   authDomain: "tultulus.firebaseapp.com",
   projectId: "tultulus",
   storageBucket: "tultulus.firebasestorage.app",

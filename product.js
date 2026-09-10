@@ -1,6 +1,5 @@
-import { db, doc, getDoc } from "./firebase-config.js";
-
 const PRODUCTS_COLLECTION = "products";
+const PRODUCTS_ENDPOINT = "/.netlify/functions/products";
 const CART_KEY = "store_cart";
 const LEGACY_CART_KEY = "accolade_cart";
 const LIST_CACHE_KEY = "day1_products_cache_v2";
@@ -122,7 +121,7 @@ function normalizeSizes(raw) {
 
 function getProductFingerprint(data) {
   if (!data) return "";
-  return `${data.id}:${data.name}:${data.priceCurrent}:${data.priceOriginal}:${data.sizeChartImageUrl || ""}:${data.description || ""}:${(data.images || []).join(",")}:${(data.sizes || []).join(",")}:${(data.colors || []).join(",")}`;
+  return `${data.id}:${data.name}:${data.priceCurrent}:${data.priceOriginal}:${data.badge || ""}:${data.badgeEnabled}:${data.sizeChartImageUrl || ""}:${data.description || ""}:${(data.images || []).join(",")}:${(data.sizes || []).join(",")}:${(data.colors || []).join(",")}`;
 }
 
 function readCachedProduct(id) {
@@ -188,7 +187,7 @@ function normalizeProduct(docSnap) {
         .filter(Boolean);
   const priceCurrent = toNumber(data.priceCurrent ?? data.price);
   const priceOriginal = toNumber(data.priceOriginal ?? data.offer, priceCurrent);
-  const discount = calculateDiscount(priceCurrent, priceOriginal);
+  const rawBadge = String(data.badge || "").trim();
   const sizes = normalizeSizes(data.sizes);
   const colors = normalizeColors(data.colors);
   const sizeChart = normalizeSizeChart(data.sizeChart);
@@ -198,7 +197,10 @@ function normalizeProduct(docSnap) {
     name: String(data.name || "Unnamed product"),
     priceCurrent,
     priceOriginal,
-    badge: discount ? `${discount}% OFF` : (String(data.badge || "").trim() || "NEW"),
+    badge: data.badgeEnabled === true
+      ? rawBadge
+      : (rawBadge.toUpperCase() === "NEW" ? "" : rawBadge),
+    badgeEnabled: data.badgeEnabled === true || (Boolean(rawBadge) && rawBadge.toUpperCase() !== "NEW"),
     images: images.length ? images : ["photos/any.jpeg"],
     sizes,
     colors,
@@ -477,12 +479,10 @@ function requireSelections() {
 
 function renderProductDescription(desc) {
   if (!els.descBox) return;
-  if (desc && desc.trim()) {
-    if (els.descText) els.descText.textContent = desc.trim();
-    els.descBox.hidden = false;
-  } else {
-    els.descBox.hidden = true;
+  if (els.descText) {
+    els.descText.textContent = String(desc || "").trim() || "Product details will be added soon.";
   }
+  els.descBox.hidden = false;
 }
 
 function renderProduct(data) {
@@ -500,7 +500,10 @@ function renderProduct(data) {
     els.offer.style.display =
       data.priceOriginal > data.priceCurrent ? "inline-flex" : "none";
   }
-  if (els.badge) els.badge.textContent = data.badge;
+  if (els.badge) {
+    els.badge.textContent = data.badge || "";
+    els.badge.hidden = !data.badge;
+  }
 
   buildGallery(data.images);
   buildSizeOptions(data.sizes);
@@ -545,14 +548,27 @@ async function loadProduct() {
     });
   }
 
-  // 2. Background Revalidation from Firestore
+  // 2. Background revalidation. Keep Firebase SDK off the critical interaction path.
   try {
-    const snap = await getDoc(doc(db, PRODUCTS_COLLECTION, productId));
-    if (!snap.exists()) {
+    let remoteProduct = null;
+    const response = await fetch(PRODUCTS_ENDPOINT, { headers: { Accept: "application/json" } });
+    if (response.ok) {
+      const payload = await response.json();
+      remoteProduct = (payload.products || []).find((item) => item.id === productId) || null;
+    }
+
+    // Static localhost servers do not run Netlify Functions, so retain a local fallback.
+    if (!remoteProduct) {
+      const { db, doc, getDoc } = await import("./firebase-config.js");
+      const snap = await getDoc(doc(db, PRODUCTS_COLLECTION, productId));
+      if (snap.exists()) remoteProduct = { id: snap.id, ...snap.data() };
+    }
+
+    if (!remoteProduct) {
       if (!cached) showError("This product is no longer available.");
       return;
     }
-    const data = normalizeProduct(snap);
+    const data = normalizeProduct(remoteProduct);
     if (!data.isPublished) {
       if (!cached) showError("This product is no longer available.");
       return;

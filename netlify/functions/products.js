@@ -9,9 +9,9 @@ function jsonResponse(statusCode, payload, extraHeaders = {}) {
     statusCode,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=0, must-revalidate",
-      "Netlify-CDN-Cache-Control": "public, durable, s-maxage=60, stale-while-revalidate=86400",
-      "CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
+      "Netlify-CDN-Cache-Control": "public, durable, s-maxage=300, stale-while-revalidate=86400",
+      "CDN-Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400",
       "X-Content-Type-Options": "nosniff",
       ...extraHeaders,
     },
@@ -77,7 +77,7 @@ exports.handler = async (event) => {
     const products = await fetchPublishedProducts();
     const etag = `"${crypto.createHash("sha1").update(JSON.stringify(products)).digest("hex")}"`;
     if (event.headers?.["if-none-match"] === etag) {
-      return { statusCode: 304, headers: { ETag: etag, "Netlify-CDN-Cache-Control": "public, durable, s-maxage=60, stale-while-revalidate=86400" }, body: "" };
+      return { statusCode: 304, headers: { ETag: etag, "Netlify-CDN-Cache-Control": "public, durable, s-maxage=300, stale-while-revalidate=86400" }, body: "" };
     }
     return jsonResponse(200, { products }, { ETag: etag });
   } catch (error) {

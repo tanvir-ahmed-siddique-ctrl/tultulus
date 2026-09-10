@@ -351,7 +351,7 @@ function getPreviewFields() {
       ? Math.round(((priceOriginal - priceCurrent) / priceOriginal) * 100)
       : null;
   const badgeInput = document.getElementById("product-badge")?.value.trim();
-  const badge = badgeInput || (discount ? `${discount}% OFF` : "NEW");
+  const badge = badgeInput;
   const images = parseList(document.getElementById("product-images")?.value);
 
   const discountHintEl = document.getElementById("discount-calc-hint");
@@ -386,6 +386,7 @@ function updatePreview() {
     previewOriginal.style.display = preview.hasDiscount ? "inline" : "none";
   }
   setText(previewBadge, preview.badge);
+  if (previewBadge) previewBadge.hidden = !preview.badge;
 }
 
 function resetForm(statusMessage = "Ready", statusType = "normal") {
@@ -618,7 +619,8 @@ function getFormData() {
     name,
     priceCurrent,
     priceOriginal: priceOriginal || priceCurrent,
-    badge: badge || "NEW",
+    badge,
+    badgeEnabled: Boolean(badge),
     images: imageUrls,
     sizes: sizes.length ? sizes : ["S", "M", "L", "XL"],
     colors: colors.length ? colors : [],
@@ -683,7 +685,10 @@ function renderProductList() {
       document.getElementById("product-name").value = selected.name || "";
       document.getElementById("price-current").value = selected.priceCurrent || "";
       document.getElementById("price-original").value = selected.priceOriginal || "";
-      document.getElementById("product-badge").value = selected.badge || "";
+      document.getElementById("product-badge").value =
+        selected.badgeEnabled === true || String(selected.badge || "").toUpperCase() !== "NEW"
+          ? (selected.badge || "")
+          : "";
       document.getElementById("product-images").value = (
         selected.images || []
       ).join("\n");
@@ -853,8 +858,8 @@ async function loadPromoSettings() {
       : "Using Netlify defaults until you save.";
   } catch (error) {
     console.error("Could not load promo settings", error);
-    promoSettingsStatus.textContent = "Could not load promo settings. Check Firestore rules.";
-    promoSettingsStatus.className = "status is-error";
+    promoSettingsStatus.textContent = "Using Netlify defaults. Save once to activate admin-managed promo settings.";
+    promoSettingsStatus.className = "status";
   }
 }
 
@@ -880,7 +885,11 @@ if (promoSettingsForm) {
         promoCode: code,
         promoDiscountPercent: Math.round(percent),
         promoEnabled: enabled,
-        isPublished: false,
+        name: "Checkout Settings",
+        priceCurrent: 0,
+        images: [],
+        categories: [],
+        isPublished: true,
         documentType: "checkout-settings",
         updatedAt: serverTimestamp(),
       }, { merge: true });

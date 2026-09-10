@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://firestore.googleapis.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="modulepreload" href="product.js" />
     <style>html,body{background:#1a1510}</style>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -407,7 +408,7 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-        touch-action: pan-x;
+        touch-action: pan-x pan-y;
         scroll-snap-type: x proximity;
       }
 
@@ -438,6 +439,9 @@
         flex-shrink: 0;
         scroll-snap-align: start;
         transition: border-color 0.2s ease, transform 0.2s ease;
+        touch-action: manipulation;
+        position: relative;
+        z-index: 2;
       }
       @media (min-width: 900px) {
         .pd-thumb {
@@ -454,6 +458,7 @@
         height: 100%;
         object-fit: cover;
         display: block;
+        pointer-events: none;
       }
 
       .pd-info {
@@ -1222,8 +1227,12 @@
                   offerEl.style.display = "none";
                 }
               }
-              var discountVal = (orig && curr && orig > curr) ? Math.round(((orig - curr) / orig) * 100) : null;
-              if (badgeEl) badgeEl.textContent = discountVal ? (discountVal + "% OFF") : (item.badge || "NEW");
+              var rawBadge = String(item.badge || "").trim();
+              var displayBadge = item.badgeEnabled === true ? rawBadge : (rawBadge.toUpperCase() === "NEW" ? "" : rawBadge);
+              if (badgeEl) {
+                badgeEl.textContent = displayBadge;
+                badgeEl.hidden = !displayBadge;
+              }
               
               function optUrl(u, w) {
                 if (!u || typeof u !== "string") return "photos/any.jpeg";
@@ -1242,11 +1251,24 @@
                   var thumbSrc = optUrl(imgs[j], 200);
                   html += '<div class="pd-slide' + (j === 0 ? ' is-active' : '') + '"><img src="' + mainSrc + '" alt="Product" loading="' + (j === 0 ? 'eager' : 'lazy') + '" decoding="async" /></div>';
                   if (imgs.length > 1) {
-                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '"><img src="' + thumbSrc + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
+                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '" data-slide-index="' + j + '" aria-label="View image ' + (j + 1) + '"><img src="' + thumbSrc + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
                   }
                 }
                 trackEl.innerHTML = html;
-                if (thumbsEl) thumbsEl.innerHTML = thumbsHtml;
+                if (thumbsEl) {
+                  thumbsEl.innerHTML = thumbsHtml;
+                  thumbsEl.addEventListener("click", function (event) {
+                    var thumb = event.target.closest(".pd-thumb");
+                    if (!thumb || !trackEl) return;
+                    event.preventDefault();
+                    var nextIndex = Number(thumb.getAttribute("data-slide-index")) || 0;
+                    trackEl.style.transform = "translateX(-" + (nextIndex * 100) + "%)";
+                    var buttons = thumbsEl.querySelectorAll(".pd-thumb");
+                    for (var b = 0; b < buttons.length; b++) {
+                      buttons[b].classList.toggle("is-active", b === nextIndex);
+                    }
+                  });
+                }
               }
               
               var DEFAULT_SIZE_CHART = {
@@ -1293,8 +1315,8 @@
               }
               var descBox = document.getElementById("pd-description");
               var descText = document.getElementById("pd-description-text");
-              if (descBox && descText && item.description) {
-                descText.textContent = item.description;
+              if (descBox && descText) {
+                descText.textContent = String(item.description || "").trim() || "Product details will be added soon.";
                 descBox.hidden = false;
               }
 

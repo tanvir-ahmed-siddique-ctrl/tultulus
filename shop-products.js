@@ -112,10 +112,10 @@ function normalizeProduct(docSnap) {
         .filter(Boolean);
   const priceCurrent = toNumber(data.priceCurrent ?? data.price);
   const priceOriginal = toNumber(data.priceOriginal ?? data.offer, priceCurrent);
-  const discount = calculateDiscount(priceCurrent, priceOriginal);
-  const badge = discount
-    ? `${discount}% OFF`
-    : (String(data.badge || "").trim() || "NEW");
+  const rawBadge = String(data.badge || "").trim();
+  const badge = data.badgeEnabled === true
+    ? rawBadge
+    : (rawBadge.toUpperCase() === "NEW" ? "" : rawBadge);
   const categories = getCategories(data);
   const sizes = Array.isArray(data.sizes)
     ? data.sizes.map((item) => String(item).trim()).filter(Boolean)
@@ -137,6 +137,7 @@ function normalizeProduct(docSnap) {
     priceCurrent,
     priceOriginal,
     badge,
+    badgeEnabled: Boolean(badge),
     cotton: String(data.cotton || "add details"),
     quality: String(data.quality || "add details"),
     fabric: String(data.fabric || "add details"),
@@ -159,7 +160,7 @@ function getProductsFingerprint(list) {
   return list
     .map(
       (p) =>
-        `${p.id}:${p.name}:${p.priceCurrent}:${p.priceOriginal}:${(p.images || [])[0]}:${p.sizeChartImageUrl}:${p.description}:${(p.sizes || []).join(",")}:${(p.colors || []).join(",")}:${(p.categories || []).join(",")}`,
+        `${p.id}:${p.name}:${p.priceCurrent}:${p.priceOriginal}:${p.badge}:${p.badgeEnabled}:${(p.images || [])[0]}:${p.sizeChartImageUrl}:${p.description}:${(p.sizes || []).join(",")}:${(p.colors || []).join(",")}:${(p.categories || []).join(",")}`,
     )
     .join("|");
 }
@@ -209,26 +210,27 @@ function createProductCard(product, priority = false) {
   card.dataset.price = `USD ${product.priceCurrent}`;
   card.dataset.priceValue = `${product.priceCurrent}`;
   card.dataset.offer = `${product.priceOriginal}`;
-  card.dataset.badge = product.badge;
+  card.dataset.badge = product.badge || "";
   card.dataset.images = product.images.join(",");
 
   const placeholderHtml = isCloudinary
     ? `<img class="placeholder-img" src="${placeholderImage}" alt="" aria-hidden="true" />`
     : "";
   const responsiveAttrs = isCloudinary
-    ? `srcset="${optimizeImageUrl(rawImage, 320)} 320w, ${optimizeImageUrl(rawImage, 480)} 480w, ${optimizeImageUrl(rawImage, 640)} 640w" sizes="(max-width: 640px) calc(50vw - 12px), (max-width: 1100px) 33vw, 25vw"`
+    ? `srcset="${optimizeImageUrl(rawImage, 240)} 240w, ${optimizeImageUrl(rawImage, 400)} 400w, ${optimizeImageUrl(rawImage, 640)} 640w" sizes="(max-width: 640px) calc(50vw - 11px), (max-width: 1100px) 33vw, 25vw"`
     : "";
 
   const originalPriceHtml =
     product.priceOriginal && product.priceOriginal > product.priceCurrent
       ? `<span class="price-original">${product.priceOriginal}</span>`
       : "";
+  const badgeHtml = product.badge ? `<span class="badge">${product.badge}</span>` : "";
 
   card.innerHTML = `
     <div class="product-image">
       ${placeholderHtml}
       <img class="main-img" src="${optimizedImage}" ${responsiveAttrs} alt="${product.name}" loading="${priority ? "eager" : "lazy"}" fetchpriority="${priority ? "high" : "auto"}" decoding="async" onload="this.style.opacity='1'; this.parentElement.classList.add('is-loaded'); this.parentElement.querySelector('.placeholder-img')?.remove();" />
-      <span class="badge">${product.badge}</span>
+      ${badgeHtml}
     </div>
     <div class="mt-4 space-y-2">
       <h3 class="font-bold text-sm uppercase tracking-wider">${product.name}</h3>
@@ -240,14 +242,12 @@ function createProductCard(product, priority = false) {
     </div>
   `;
 
-  // Predictive prefetch on hover/touch
-  const triggerPrefetch = () => prefetchProductAssets(product);
-  card.addEventListener("mouseenter", triggerPrefetch, { passive: true });
-  card.addEventListener("touchstart", triggerPrefetch, { passive: true });
+  // Desktop hover can warm the detail page. On touch, avoid competing image downloads.
+  card.addEventListener("mouseenter", () => prefetchProductAssets(product), { passive: true });
+  card.addEventListener("touchstart", () => cacheProductDetail(product), { passive: true });
 
   const openProductPage = () => {
     cacheProductDetail(product);
-    prefetchProductAssets(product);
     window.location.href = `product.html?id=${encodeURIComponent(product.id)}`;
   };
   card.addEventListener("click", openProductPage);
@@ -314,8 +314,9 @@ function renderProducts(products) {
   if (hotSection) hotSection.hidden = hotProducts.length === 0;
   if (featuredScrollButton) featuredScrollButton.hidden = featuredProducts.length === 0;
 
-  if (featuredProducts.length) renderIntoGrid(featuredGrid, featuredProducts, "", 4);
-  renderIntoGrid(allGrid, products, "No products found.", featuredProducts.length ? 0 : 4);
+  const priorityCount = window.matchMedia("(max-width: 640px)").matches ? 2 : 4;
+  if (featuredProducts.length) renderIntoGrid(featuredGrid, featuredProducts, "", priorityCount);
+  renderIntoGrid(allGrid, products, "No products found.", featuredProducts.length ? 0 : priorityCount);
   if (hotProducts.length) renderIntoGrid(hotGrid, hotProducts, "");
 }
 
@@ -389,9 +390,8 @@ async function loadProducts() {
       cached.forEach((p) => {
         const cards = document.querySelectorAll(`.product-card[data-id="${p.id}"]`);
         cards.forEach((card) => {
-          const triggerPrefetch = () => prefetchProductAssets(p);
-          card.addEventListener("mouseenter", triggerPrefetch, { passive: true });
-          card.addEventListener("touchstart", triggerPrefetch, { passive: true });
+          card.addEventListener("mouseenter", () => prefetchProductAssets(p), { passive: true });
+          card.addEventListener("touchstart", () => cacheProductDetail(p), { passive: true });
         });
       });
     }
@@ -414,6 +414,7 @@ async function loadProducts() {
       payload = { products: snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) };
     }
     const products = payload.products
+      .filter((item) => item.id !== "__checkout_settings__")
       .map((item) => normalizeProduct(item))
       .filter((product) => product.isPublished)
       .sort((left, right) => {
@@ -455,7 +456,6 @@ document.addEventListener("click", (e) => {
       const prod = (cached || []).find((p) => p.id === id);
       if (prod) {
         cacheProductDetail(prod);
-        prefetchProductAssets(prod);
       }
       window.location.href = `product.html?id=${encodeURIComponent(id)}`;
     }

@@ -9,6 +9,10 @@
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="modulepreload" href="shop-products.js" />
+    <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500;600;700;800&family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.cdnfonts.com/css/sansation" rel="stylesheet" />
     <style>html,body{background:#1a1510}</style>
     <script>
       (function () {
@@ -31,11 +35,21 @@
         if (params.get("checkout") === "true") {
           document.documentElement.classList.add("open-checkout");
         }
-        window.__PRODUCTS_REQUEST__ = fetch("/.netlify/functions/products", {
-          headers: { Accept: "application/json" }
-        }).then(function (response) {
-          return response.ok ? response.json() : null;
-        }).catch(function () { return null; });
+        var prefetchedCatalog = null;
+        try {
+          var prefetchedRaw = sessionStorage.getItem("tultulus_catalog_prefetch_v1");
+          var prefetchedEntry = prefetchedRaw ? JSON.parse(prefetchedRaw) : null;
+          if (prefetchedEntry && prefetchedEntry.payload && Date.now() - prefetchedEntry.ts < 300000) {
+            prefetchedCatalog = prefetchedEntry.payload;
+          }
+        } catch (e) {}
+        window.__PRODUCTS_REQUEST__ = prefetchedCatalog
+          ? Promise.resolve(prefetchedCatalog)
+          : fetch("/.netlify/functions/products", {
+              headers: { Accept: "application/json" }
+            }).then(function (response) {
+              return response.ok ? response.json() : null;
+            }).catch(function () { return null; });
       })();
     </script>
     <script src="https://cdn.tailwindcss.com" defer></script>
@@ -45,13 +59,6 @@
     />
 
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap");
-      @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap");
-      @import url("https://fonts.cdnfonts.com/css/sansation");
-      @import url("https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500;600;700;800&display=swap");
-      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700;800&display=swap");
-
-
       /* Base theme colors */
       :root {
         --sand: #f4efe8;
@@ -485,7 +492,7 @@
         padding-bottom: 12px;
       }
       .skeleton-image {
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 4 / 5;
         width: 100%;
         background: linear-gradient(110deg, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.04) 80%);
         background-size: 200% 100%;
@@ -535,7 +542,7 @@
       }
       .product-image {
         width: 100%;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 4 / 5;
         border-radius: 0;
         background: rgba(255, 255, 255, 0.06);
         display: flex;
@@ -587,7 +594,7 @@
         width: 100%;
         height: 100%;
         display: block;
-        object-fit: contain;
+        object-fit: cover;
         object-position: center;
         z-index: 0;
       }
@@ -1405,7 +1412,9 @@
         .hero-arrow {
           display: none;
         }
-        .product-image { aspect-ratio: 1 / 1; }
+        .product-image { aspect-ratio: 5 / 6; }
+        .product-image img { object-fit: cover; }
+        .skeleton-image { aspect-ratio: 5 / 6; }
         .cart-panel {
           padding: 16px;
         }
@@ -1477,6 +1486,10 @@
         .product-card {
           --card-pad: 6px;
           padding: 0;
+          border-radius: 0;
+        }
+        .product-card-skeleton {
+          border: 0;
           border-radius: 0;
         }
         .product-image {
@@ -2678,17 +2691,18 @@
               var isCloudinary = rawImg.indexOf("res.cloudinary.com") !== -1;
               var orig = p.priceOriginal || p.offer;
               var curr = p.priceCurrent || p.price;
-              var disc = (orig && curr && orig > curr) ? Math.round(((orig - curr) / orig) * 100) : null;
-              var badge = disc ? (disc + "% OFF") : (p.badge || "NEW");
+              var rawBadge = String(p.badge || "").trim();
+              var badge = p.badgeEnabled === true ? rawBadge : (rawBadge.toUpperCase() === "NEW" ? "" : rawBadge);
               var origHtml = (orig && orig > curr) ? '<span class="price-original">' + orig + '</span>' : '';
               var phHtml = isCloudinary ? '<img class="placeholder-img" src="' + phImg + '" alt="" aria-hidden="true" />' : '';
-              var responsiveAttrs = isCloudinary ? ' srcset="' + optUrl(rawImg, 320) + ' 320w, ' + optUrl(rawImg, 480) + ' 480w, ' + optUrl(rawImg, 640) + ' 640w" sizes="(max-width:640px) calc(50vw - 12px), (max-width:1100px) 33vw, 25vw"' : '';
+              var responsiveAttrs = isCloudinary ? ' srcset="' + optUrl(rawImg, 240) + ' 240w, ' + optUrl(rawImg, 400) + ' 400w, ' + optUrl(rawImg, 640) + ' 640w" sizes="(max-width:640px) calc(50vw - 11px), (max-width:1100px) 33vw, 25vw"' : '';
+              var badgeHtml = badge ? '<span class="badge">' + badge + '</span>' : '';
 
               return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + (p.name || '') + '" data-id="' + p.id + '">' +
                 '<div class="product-image">' +
                   phHtml +
                   '<img class="main-img" src="' + optImg + '"' + responsiveAttrs + ' alt="' + (p.name || '') + '" loading="' + (priority ? 'eager' : 'lazy') + '" fetchpriority="' + (priority ? 'high' : 'auto') + '" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
-                  '<span class="badge">' + badge + '</span>' +
+                  badgeHtml +
                 '</div>' +
                 '<div class="mt-4 space-y-2">' +
                   '<h3 class="font-bold text-sm uppercase tracking-wider">' + (p.name || '') + '</h3>' +
@@ -2728,9 +2742,10 @@
               var featHtml = '';
               var allHtml = '';
               var hotHtml = '';
+              var priorityLimit = window.matchMedia && window.matchMedia("(max-width: 640px)").matches ? 2 : 4;
               for (var i = 0; i < prods.length; i++) {
                 var prod = prods[i];
-                var cardHtml = buildCard(prod, i < 4);
+                var cardHtml = buildCard(prod, i < priorityLimit);
                 allHtml += cardHtml;
                 var c = Array.isArray(prod.categories) ? prod.categories : [];
                 if (c.indexOf("featured") !== -1) featHtml += cardHtml;
@@ -3019,7 +3034,7 @@
               <span id="modal-offer" class="price-original"></span>
               <span id="modal-price" class="price-current"></span>
               <!-- -------------Product Modal Offer Badge-------------------- -->
-              <span id="modal-badge" class="price-badge">10% OFF</span>
+              <span id="modal-badge" class="price-badge" hidden></span>
             </div>
             <p id="modal-unit" class="modal-unit"></p>
             <div class="modal-quantity">
@@ -4512,7 +4527,8 @@
         modalOffer.textContent = offer;
         modalOffer.style.display = offer ? "inline-flex" : "none";
         if (modalBadge) {
-          modalBadge.textContent = (card.dataset.badge || "10% OFF").toLowerCase();
+          modalBadge.textContent = (card.dataset.badge || "").toLowerCase();
+          modalBadge.hidden = !card.dataset.badge;
         }
         modalCotton.textContent = (card.dataset.cotton || "add details").toLowerCase();
         modalQuality.textContent = (card.dataset.quality || "add details").toLowerCase();
