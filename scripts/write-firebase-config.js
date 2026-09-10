@@ -42,17 +42,32 @@ if (!apiKey) {
 
 const filePath = path.join(__dirname, "..", "firebase-config.js");
 const original = fs.readFileSync(filePath, "utf8");
+const apiKeyProperty = `apiKey: ${JSON.stringify(apiKey)}`;
 // Accept either quote style in the tracked template. JSON.stringify also keeps the
 // generated JavaScript valid if a value ever contains a character that needs escaping.
-const updated = original.replace(
-  /(\bapiKey\s*:\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)/,
-  `$1${JSON.stringify(apiKey)}`,
-);
+const quotedApiKeyPattern = /(\bapiKey\s*:\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)/;
+const anyApiKeyPattern = /(\bapiKey\s*:\s*)[^,\r\n}]+/;
+let updated = original;
+if (quotedApiKeyPattern.test(original)) {
+  updated = original.replace(quotedApiKeyPattern, `$1${JSON.stringify(apiKey)}`);
+}
 
-if (updated === original) {
-  console.error(
-    "Could not find a quoted apiKey property in firebase-config.js. Restore the firebaseConfig apiKey entry and redeploy.",
+// Older or manually-edited templates may use an unquoted expression, or omit apiKey.
+// Replace any property value first; otherwise add the property to firebaseConfig.
+if (!quotedApiKeyPattern.test(original) && anyApiKeyPattern.test(original)) {
+  updated = original.replace(
+    anyApiKeyPattern,
+    `$1${JSON.stringify(apiKey)}`,
   );
+}
+if (!quotedApiKeyPattern.test(original) && !anyApiKeyPattern.test(original)) {
+  updated = original.replace(
+    /(const\s+firebaseConfig\s*=\s*\{)(\r?\n)/,
+    `$1$2  ${apiKeyProperty},$2`,
+  );
+}
+if (!/const\s+firebaseConfig\s*=\s*\{/.test(original)) {
+  console.error("Could not find the firebaseConfig object in firebase-config.js.");
   process.exit(1);
 }
 
