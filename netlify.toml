@@ -17,4 +17,5 @@
 
 [build.environment]
   # Public Firebase web key is injected into JS at build. Omit so secrets scan does not fail.
-  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_WEB_API_KEY"
+  # These values are intentionally public in the storefront: Firebase's web key and support email.
+  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_WEB_API_KEY,SELLER_NOTIFICATION_EMAIL"
