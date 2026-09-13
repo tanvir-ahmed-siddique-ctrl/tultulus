@@ -18,16 +18,29 @@ SQUARE_ENVIRONMENT=sandbox
 SQUARE_APPLICATION_ID=...
 SQUARE_LOCATION_ID=...
 SQUARE_ACCESS_TOKEN=...
-SQUARE_SHIPPING_FEE_CENTS=0
+SQUARE_SHIPPING_FEE_CENTS=700
+SQUARE_FREE_SHIPPING_THRESHOLD_CENTS=15000
 FIREBASE_PROJECT_ID=tultulus
 FIREBASE_WEB_API_KEY=...
 PROMO_CODE=Ethika05
 PROMO_DISCOUNT_PERCENT=5
 ```
 
-`SQUARE_SHIPPING_FEE_CENTS` is the flat US shipping fee in cents. For example, `$8.00` is `800`. Keep it at `0` for free shipping.
+`SQUARE_SHIPPING_FEE_CENTS` is the flat shipping fee in cents. Set it to `700` for a $7.00 fee. Product subtotal of $150.00 or more automatically receives free shipping; the fee is calculated server-side, before any promo discount.
 
 The Application ID and Location ID are safe for the browser. The Access Token is secret and is read only by Netlify Functions.
+
+## 2a. Enable wallet payment methods
+
+Mastercard is already accepted through the existing debit/credit card field. Apple Pay and Google Pay use the same Square application, location, server-side order, and payment endpoint, so they do not need extra Netlify secrets.
+
+Before enabling them for customers:
+
+1. In Square Developer Console **Production**, open **Apple Pay** and register `tultulus.com`. Complete Square's domain-verification flow. Apple Pay only appears on an eligible Apple device/browser over HTTPS.
+2. Complete Google's production enablement for Google Pay using Square as the payment gateway, then test with an eligible wallet/browser over HTTPS.
+3. Deploy, then test Apple Pay on Safari and Google Pay on a device/browser with an eligible wallet. Unsupported devices simply show the normal card form.
+
+Zelle is not a Square Web Payments SDK method. Do not show it as a payment button unless a separate Zelle business payment workflow, confirmation process, and fraud/reconciliation rules are implemented.
 
 ## 3. Configure the payment webhook
 

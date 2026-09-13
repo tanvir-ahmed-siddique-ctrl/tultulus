@@ -2024,6 +2024,50 @@
         display: grid;
         gap: 14px;
       }
+      .checkout-surface {
+        background: #ffffff !important;
+        border: 1px solid rgba(31, 31, 31, 0.12) !important;
+        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+      }
+      .checkout-surface h2, .checkout-surface h3, .checkout-surface span,
+      .checkout-surface label, .checkout-surface p { color: #241f19 !important; }
+      .checkout-surface .price-text, .checkout-surface .price-current,
+      .checkout-surface .price-currency { color: #9c6e20 !important; }
+      .checkout-surface .form-input, .checkout-surface .select-field {
+        background: #fff !important; border-color: rgba(31, 31, 31, 0.2) !important;
+        color: #241f19 !important; box-shadow: none;
+      }
+      .checkout-surface .square-payment-card, .checkout-surface .terms-box {
+        background: #faf9f7; border-color: rgba(31, 31, 31, 0.13);
+      }
+      .checkout-surface .card-brands, .checkout-surface .secure-payment-note,
+      .checkout-surface .terms-copy { color: #61584d !important; }
+      .checkout-legal-link { color: #3d2f16 !important; font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+      .free-shipping-banner {
+        border: 1px solid #d8bd76; background: #fff9e8; border-radius: 12px;
+        color: #5f4714 !important; padding: 11px 13px;
+        font: 700 12px/1.45 "Inter", sans-serif;
+      }
+      .shop-free-shipping-promo {
+        display: flex; align-items: center; justify-content: center; gap: 9px;
+        margin: 0 auto 28px; max-width: 680px; padding: 12px 16px;
+        border: 1px solid rgba(216, 183, 108, 0.62); border-radius: 999px;
+        background: rgba(24, 20, 15, 0.62); color: #f2d88f !important;
+        font: 700 12px/1.4 "Inter", sans-serif; letter-spacing: 0.04em; text-align: center;
+      }
+      .wallet-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .wallet-method { min-height: 48px; }
+      .wallet-method:empty { display: none; }
+      .wallet-divider {
+        display: flex; align-items: center; gap: 10px; color: #85796b !important;
+        font: 700 10px/1 "Inter", sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+      }
+      .wallet-divider::before, .wallet-divider::after { content: ""; height: 1px; flex: 1; background: rgba(31, 31, 31, 0.14); }
+      #apple-pay-button {
+        width: 100%; min-height: 48px; border: 0; border-radius: 8px; background: #000;
+        color: #fff !important; cursor: pointer; font: 600 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      @media (max-width: 540px) { .wallet-methods { grid-template-columns: 1fr; } }
       .square-payment-card .card-brands {
         display: flex;
         align-items: center;
@@ -2559,6 +2603,16 @@
         color: #1f1f1f !important;
       }
     </style>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+      body, body h1, body h2, body h3, body h4, body h5, body h6, body p, body a, body button, body input, body select, body textarea, body label, body span { font-family: "Poppins", sans-serif !important; }
+      body h1, body h2, body h3, body h4, body h5, body h6, .section-title, .page-title { font-weight: 700 !important; }
+      body p, body a, body label, body input, body select, body textarea { font-weight: 400; }
+      .product-card h3, .product-card .price-display, .product-card .price-current, .product-card .price-currency, .product-card .price-original { font-weight: 400 !important; }
+      @media (max-width: 768px) {
+        .section-title { font-size: clamp(1.35rem, 5vw, 1.75rem) !important; line-height: 1.2; }
+      }
+    </style>
   </head>
   <body id="top" class="text-white">
     <!-- Header -->
@@ -2596,7 +2650,7 @@
     <div id="mobile-menu">
       <a href="shop.html">Shop</a>
       <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
+      <a href="contact.html">Terms &amp; Returns</a>
       <a href="#cart" onclick="closeAllSizeMenus(); openCartModal(); return false;">Cart</a>
       <a href="admin.html" class="admin-menu-link">Admin</a>
     </div>
@@ -2784,7 +2838,7 @@
 
           <!-- LEFT: Order summary -->
           <div class="w-full md:w-1/3 order-1 md:order-1">
-            <div class="summary-card p-6 space-y-4 sticky top-28">
+            <div class="summary-card checkout-surface p-6 space-y-4 sticky top-28">
               <h2 class="text-xl font-black uppercase tracking-widest mb-2">Order summary</h2>
               <div id="cart-display" class="space-y-3 text-sm"></div>
               <div class="border-t border-dashed border-white/20 pt-4 space-y-2 text-sm font-semibold">
@@ -2801,13 +2855,14 @@
                   <span id="display-total" class="price-text">0 USD</span>
                 </div>
                 <div class="flex justify-between text-white">
-                  <span>Delivery fee</span>
+                  <span>Shipping fee</span>
                   <span id="display-delivery" class="price-text">0 USD</span>
                 </div>
                 <div class="flex justify-between text-lg font-black pt-2 border-t border-dashed border-white/20 mt-2">
                   <span>Amount payable</span>
                   <span id="display-final-total" class="price-text">0 USD</span>
                 </div>
+                <p id="checkout-free-shipping" class="free-shipping-banner">Free shipping on orders of $150 or more.</p>
               </div>
             </div>
           </div>
@@ -2815,7 +2870,7 @@
           <!-- RIGHT: Steps -->
           <div class="w-full md:w-2/3 order-2 space-y-6">
 
-            <div id="step-shipping" class="panel-card p-6 fade-in">
+            <div id="step-shipping" class="panel-card checkout-surface p-6 fade-in">
               <h2 class="text-xl font-black uppercase mb-5 tracking-widest">Shipping details</h2>
               <div class="grid grid-cols-1 gap-4">
                 <p class="form-label" style="margin:0;">Contact information</p>
@@ -2905,17 +2960,25 @@
               </button>
             </div>
 
-            <div id="step-payment" class="hidden-section panel-card p-8 fade-in">
+            <div id="step-payment" class="hidden-section panel-card checkout-surface p-8 fade-in">
               <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-black uppercase tracking-widest">Payment Method</h2>
                 <button type="button" onclick="backToShipping()" class="text-xs underline opacity-60">Edit shipping</button>
               </div>
 
               <div class="space-y-4">
+                <div class="square-payment-card" id="wallet-payment-card" hidden>
+                  <div class="card-brands"><span><i class="fas fa-wallet"></i>Fast checkout</span><span>Secure digital wallet</span></div>
+                  <div class="wallet-methods">
+                    <button type="button" id="apple-pay-button" class="wallet-method" aria-label="Pay with Apple Pay" hidden> Pay</button>
+                    <div id="google-pay-button" class="wallet-method" aria-label="Pay with Google Pay"></div>
+                  </div>
+                </div>
+                <div class="wallet-divider" id="wallet-divider" hidden>or pay by card</div>
                 <div class="square-payment-card">
                   <div class="card-brands">
-                    <span><i class="fas fa-credit-card"></i>Debit or credit card</span>
-                    <span>Visa · Mastercard · Amex · Discover</span>
+                    <span><i class="fas fa-credit-card"></i>Pay by card</span>
+                    <span>Debit · Credit · Mastercard · Visa · Amex · Discover</span>
                   </div>
                   <div id="square-card-container" aria-label="Secure card details"></div>
                   <p class="secure-payment-note">
@@ -2927,14 +2990,10 @@
                 <div class="terms-box">
                   <h3>Terms and conditions</h3>
                   <div class="terms-copy">
-                    <p>By placing an order on this website, you confirm that the billing and shipping details you provide are accurate. We will use this information to process your order, arrange delivery, and contact you if needed.</p>
-                    <p>Your debit or credit card will be securely processed by Square. An order is confirmed only when Square reports that the payment is completed.</p>
-                    <p>All prices and charges are shown in USD. Once an order is confirmed, changes or cancellations are subject to stock and dispatch status. For questions about an order, product, or our service, contact customer service at support@day-1.com or +1 (640) 696-1661 (Monday–Friday, 10:00–6:00 PM).</p>
-                    <p>Your personal data will be used only to process your order, support your experience on this website, and for other purposes described here. We do not sell your information to third parties.</p>
                   </div>
                   <label class="terms-row">
                     <input type="checkbox" id="inp-terms" name="Terms Accepted" value="Yes" />
-                    <span>I have read and agree to the website terms and conditions *</span>
+                    <span>I agree to Tultulus’ <a class="checkout-legal-link" href="contact.html#terms">Terms &amp; Conditions</a> and <a class="checkout-legal-link" href="contact.html#privacy">Privacy Policy</a>, and confirm that the information provided above is accurate. *</span>
                   </label>
                 </div>
               </div>
@@ -2991,7 +3050,7 @@
             <span id="cart-modal-total" class="price-text">0 USD</span>
           </div>
           <div class="cart-subtotal">
-            <span>Delivery fee</span>
+            <span>Shipping fee</span>
             <span id="cart-modal-delivery" class="price-text">0 USD</span>
           </div>
           <div class="cart-subtotal font-semibold">
@@ -3148,7 +3207,7 @@
         <div class="footer-links">
           <a href="shop.html" class="active">Shop</a>
           <a href="about.html">About</a>
-          <a href="contact.html">Contact</a>
+          <a href="contact.html">Terms &amp; Returns</a>
         </div>
         <p class="footer-copy">&copy; 2026 Tultulus. All rights reserved.</p>
       </div>
@@ -3164,6 +3223,10 @@
       let squareConfigPromise = null;
       let squareCard = null;
       let squareCardPromise = null;
+      let squarePayments = null;
+      let applePay = null;
+      let googlePay = null;
+      let preparedQuote = null;
       let paymentInFlight = false;
       let checkoutAttemptId = null;
       const PENDING_SQUARE_PAYMENT_KEY = "tultulus_pending_square_payment";
@@ -3549,11 +3612,16 @@
         const promoDiscountCents = promoApplied
           ? Math.round(subtotalCents * (discountPercent / 100))
           : 0;
-        const shippingFeeCents = Number(squarePublicConfig?.shippingFeeCents || 0);
+        const standardShippingFeeCents = Number(squarePublicConfig?.shippingFeeCents ?? 700);
+        const freeShippingThresholdCents = Number(squarePublicConfig?.freeShippingThresholdCents ?? 15000);
+        const shippingFeeWaived = subtotalCents >= freeShippingThresholdCents;
+        const shippingFeeCents = shippingFeeWaived ? 0 : standardShippingFeeCents;
         return {
           subtotalCents,
           promoDiscountCents,
           shippingFeeCents,
+          freeShippingThresholdCents,
+          shippingFeeWaived,
           totalAfterDiscountCents: subtotalCents - promoDiscountCents,
           finalTotalCents: subtotalCents - promoDiscountCents + shippingFeeCents,
         };
@@ -3644,7 +3712,14 @@
         }
         const displayDelivery = document.getElementById("display-delivery");
         if (displayDelivery) {
-          displayDelivery.innerText = centsToMoney(totals.shippingFeeCents);
+          displayDelivery.innerText = totals.shippingFeeWaived ? "FREE" : centsToMoney(totals.shippingFeeCents);
+        }
+        const freeShippingMessage = document.getElementById("checkout-free-shipping");
+        if (freeShippingMessage) {
+          const remaining = Math.max(0, totals.freeShippingThresholdCents - totals.subtotalCents);
+          freeShippingMessage.textContent = totals.shippingFeeWaived
+            ? "You unlocked free shipping on this order."
+            : `Spend ${centsToMoney(remaining)} more on products to get free shipping.`;
         }
         const displayTotal = document.getElementById("display-total");
         if (displayTotal) {
@@ -3669,7 +3744,7 @@
           }
         }
         if (cartModalDelivery) {
-          cartModalDelivery.textContent = centsToMoney(totals.shippingFeeCents);
+          cartModalDelivery.textContent = totals.shippingFeeWaived ? "FREE" : centsToMoney(totals.shippingFeeCents);
         }
         if (cartModalTotal) {
           cartModalTotal.textContent = centsToMoney(totals.totalAfterDiscountCents);
@@ -3690,8 +3765,16 @@
         Object.entries(values).forEach(([id, cents]) => {
           const element = document.getElementById(id);
           if (!element) return;
-          element.textContent = id === "display-discount" ? `-${centsToMoney(cents)}` : centsToMoney(cents);
+          element.textContent = id === "display-discount"
+            ? `-${centsToMoney(cents)}`
+            : (id === "display-delivery" && quote.shippingFeeWaived ? "FREE" : centsToMoney(cents));
         });
+        const freeShippingMessage = document.getElementById("checkout-free-shipping");
+        if (freeShippingMessage) {
+          freeShippingMessage.textContent = quote.shippingFeeWaived
+            ? "You unlocked free shipping on this order."
+            : `Spend ${centsToMoney(Math.max(0, quote.freeShippingThresholdCents - quote.subtotalCents))} more on products to get free shipping.`;
+        }
       }
 
       async function applyPromo() {
@@ -3795,14 +3878,20 @@
         });
       }
 
+      async function getSquarePayments() {
+        if (squarePayments) return squarePayments;
+        const config = await loadSquareConfiguration();
+        await loadSquareSdk(config.environment);
+        if (!window.Square) throw new Error("Square payment services are unavailable.");
+        squarePayments = window.Square.payments(config.applicationId, config.locationId);
+        return squarePayments;
+      }
+
       async function initializeSquareCard() {
         if (squareCard) return squareCard;
         if (squareCardPromise) return squareCardPromise;
         squareCardPromise = (async () => {
-          const config = await loadSquareConfiguration();
-          await loadSquareSdk(config.environment);
-          if (!window.Square) throw new Error("Square payment services are unavailable.");
-          const payments = window.Square.payments(config.applicationId, config.locationId);
+          const payments = await getSquarePayments();
           const card = await payments.card();
           await card.attach("#square-card-container");
           squareCard = card;
@@ -3812,6 +3901,133 @@
           throw error;
         });
         return squareCardPromise;
+      }
+
+      function buildWalletPaymentRequest(payments, quote) {
+        return payments.paymentRequest({
+          countryCode: "US",
+          currencyCode: "USD",
+          total: { amount: (quote.totalCents / 100).toFixed(2), label: "Tultulus" },
+        });
+      }
+
+      function buildBuyerVerificationDetails(billing, quote) {
+        return {
+          amount: (quote.totalCents / 100).toFixed(2),
+          billingContact: {
+            givenName: billing.first,
+            familyName: billing.last,
+            email: billing.email,
+            phone: billing.phone,
+            addressLines: [billing.street, billing.address2, billing.careOf ? `C/O ${billing.careOf}` : ""].filter(Boolean),
+            city: billing.city,
+            state: billing.state,
+            postalCode: billing.zip,
+            countryCode: billing.country || "US",
+          },
+          currencyCode: "USD",
+          intent: "CHARGE",
+          customerInitiated: true,
+          sellerKeyedIn: false,
+        };
+      }
+
+      async function payWithWallet(wallet, quote, billing) {
+        const terms = document.getElementById("inp-terms");
+        if (!terms?.checked) {
+          setPaymentStatus("Please agree to the terms and conditions before paying.", "error");
+          return;
+        }
+        if (paymentInFlight) return;
+        paymentInFlight = true;
+        const button = document.getElementById("final-btn");
+        if (button) button.disabled = true;
+        try {
+          setPaymentStatus("Opening your secure wallet…", "info");
+          const tokenResult = await wallet.tokenize();
+          if (tokenResult.status !== "OK" || !tokenResult.token) {
+            const detail = tokenResult.errors?.[0]?.message || "Your wallet payment was not completed.";
+            throw new Error(detail);
+          }
+          const verification = await squarePayments.verifyBuyer(
+            tokenResult.token,
+            buildBuyerVerificationDetails(billing, quote),
+          );
+          setPaymentStatus("Processing your secure payment…", "info");
+          const response = await fetch("/.netlify/functions/create-square-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+              sourceId: tokenResult.token,
+              verificationToken: verification?.token || "",
+              orderId: quote.orderId,
+              checkoutAttemptId,
+              paymentAttemptId: crypto.randomUUID(),
+              expectedAmountCents: quote.totalCents,
+            }),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result.success || result.payment?.status !== "COMPLETED") {
+            throw new Error(result.error || "Square did not complete the payment. No order was confirmed.");
+          }
+          showPaidOrder(result, billing);
+        } catch (error) {
+          setPaymentStatus(error.message || "Wallet payment could not be completed.", "error");
+        } finally {
+          paymentInFlight = false;
+          if (button) button.disabled = !squareCard;
+        }
+      }
+
+      async function initializeWalletPayments(quote, billing) {
+        const walletCard = document.getElementById("wallet-payment-card");
+        const divider = document.getElementById("wallet-divider");
+        const appleButton = document.getElementById("apple-pay-button");
+        const googleTarget = document.getElementById("google-pay-button");
+        if (!walletCard || !divider || !appleButton || !googleTarget) return;
+        walletCard.hidden = true;
+        divider.hidden = true;
+        appleButton.hidden = true;
+        googleTarget.replaceChildren();
+        const payments = await getSquarePayments();
+        const request = buildWalletPaymentRequest(payments, quote);
+        let enabled = false;
+        if (window.ApplePaySession) {
+          try {
+            applePay = await payments.applePay(request);
+            appleButton.hidden = false;
+            appleButton.onclick = () => payWithWallet(applePay, quote, billing);
+            enabled = true;
+          } catch (error) {
+            applePay = null;
+          }
+        }
+        try {
+          googlePay = await payments.googlePay(request);
+          await googlePay.attach("#google-pay-button", {
+            buttonColor: "black",
+            buttonType: "long",
+            buttonSizeMode: "fill",
+            buttonRadius: 8,
+          });
+          googleTarget.onclick = () => payWithWallet(googlePay, quote, billing);
+          enabled = true;
+        } catch (error) {
+          googlePay = null;
+          googleTarget.replaceChildren();
+        }
+        walletCard.hidden = !enabled;
+        divider.hidden = !enabled;
+      }
+
+      async function prepareVerifiedQuote(billing) {
+        if (preparedQuote) return preparedQuote;
+        checkoutAttemptId = checkoutAttemptId || crypto.randomUUID();
+        const quote = await requestVerifiedQuote(billing);
+        preparedQuote = quote;
+        rememberPendingPayment(quote.orderId, checkoutAttemptId, quote.totalCents, billing);
+        displayVerifiedQuote(quote);
+        return quote;
       }
 
       async function requestVerifiedQuote(billing) {
@@ -3878,9 +4094,12 @@
 
         const button = document.getElementById("final-btn");
         if (button) button.disabled = true;
-        setPaymentStatus("Loading secure Square card form…", "info");
+        setPaymentStatus("Verifying your order total…", "info");
         try {
+          const quote = await prepareVerifiedQuote(billing);
+          if (button) button.innerText = `Pay ${centsToMoney(quote.totalCents)}`;
           await initializeSquareCard();
+          await initializeWalletPayments(quote, billing);
           setPaymentStatus("", "info");
         } catch (error) {
           setPaymentStatus(error.message || "Square checkout could not be loaded.", "error");
@@ -3891,6 +4110,7 @@
 
       function backToShipping() {
         checkoutAttemptId = null;
+        preparedQuote = null;
         try { sessionStorage.removeItem(PENDING_SQUARE_PAYMENT_KEY); } catch (error) {}
         document.getElementById("step-payment").classList.add("hidden-section");
         document
@@ -4988,10 +5208,8 @@
           checkoutAttemptId = activeAttemptId;
           try {
             const card = await initializeSquareCard();
-            const quote = await requestVerifiedQuote(billing);
+            const quote = await prepareVerifiedQuote(billing);
             preparedOrderId = quote.orderId;
-            rememberPendingPayment(quote.orderId, activeAttemptId, quote.totalCents, billing);
-            displayVerifiedQuote(quote);
             if (btn) btn.innerText = `Pay ${centsToMoney(quote.totalCents)}`;
             setPaymentStatus("Securely verifying your card with Square…", "info");
 

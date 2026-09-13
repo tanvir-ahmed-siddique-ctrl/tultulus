@@ -50,6 +50,7 @@ exports.handler = async (event) => {
     }
 
     const sourceId = cleanText(body.sourceId, 512);
+    const verificationToken = cleanText(body.verificationToken, 512);
     const orderId = cleanText(body.orderId, 192);
     const checkoutAttemptId = cleanText(body.checkoutAttemptId, 45);
     const paymentAttemptId = cleanText(body.paymentAttemptId, 45);
@@ -91,6 +92,7 @@ exports.handler = async (event) => {
       method: "POST",
       body: {
         source_id: sourceId,
+        ...(verificationToken ? { verification_token: verificationToken } : {}),
         idempotency_key: `pay-${paymentAttemptId}`,
         amount_money: order.total_money,
         autocomplete: true,

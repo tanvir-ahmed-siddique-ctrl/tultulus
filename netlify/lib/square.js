@@ -59,7 +59,8 @@ function getSquareConfig({ requireSecret = false } = {}) {
     locationId: cleanText(process.env.SQUARE_LOCATION_ID, 64),
     accessToken: cleanText(process.env.SQUARE_ACCESS_TOKEN, 512),
     currency: "USD",
-    shippingFeeCents: parsePositiveInteger(process.env.SQUARE_SHIPPING_FEE_CENTS, 0),
+    shippingFeeCents: parsePositiveInteger(process.env.SQUARE_SHIPPING_FEE_CENTS, 700),
+    freeShippingThresholdCents: parsePositiveInteger(process.env.SQUARE_FREE_SHIPPING_THRESHOLD_CENTS, 15_000),
     promoCode: cleanText(process.env.PROMO_CODE || "Ethika05", 64),
     promoDiscountPercent: Math.min(
       100,
@@ -195,28 +196,29 @@ const US_STATE_CODES = new Set([
 function normalizeAddress(raw = {}) {
   const addressLine1 = cleanText(raw.street, 160);
   const locality = cleanText(raw.city, 80);
-  const administrativeDistrictLevel1 = cleanText(raw.state, 2).toUpperCase();
+  const administrativeDistrictLevel1 = cleanText(raw.state, 80);
   const postalCode = cleanText(raw.zip || raw.postcode, 20);
-  const country = cleanText(raw.country, 32);
+  const country = cleanText(raw.country, 2).toUpperCase();
   const addressLine2 = cleanText(raw.address2 || raw.apartment, 100);
   const careOf = cleanText(raw.careOf, 100);
   if (
     !addressLine1
     || !locality
-    || !US_STATE_CODES.has(administrativeDistrictLevel1)
-    || !/^\d{5}(?:-\d{4})?$/.test(postalCode)
-    || !new Set(["US", "United States"]).has(country)
+    || !administrativeDistrictLevel1
+    || !/^[A-Z0-9][A-Z0-9 -]{2,19}$/i.test(postalCode)
+    || !/^[A-Z]{2}$/.test(country)
+    || (country === "US" && !US_STATE_CODES.has(administrativeDistrictLevel1.toUpperCase()))
   ) {
-    throw new CheckoutError(400, "A complete US shipping address is required.", "INVALID_ADDRESS");
+    throw new CheckoutError(400, "A complete shipping address is required.", "INVALID_ADDRESS");
   }
   return {
     address_line_1: addressLine1,
     ...(addressLine2 ? { address_line_2: addressLine2 } : {}),
     ...(careOf ? { address_line_3: `C/O ${careOf}` } : {}),
     locality,
-    administrative_district_level_1: administrativeDistrictLevel1,
+    administrative_district_level_1: country === "US" ? administrativeDistrictLevel1.toUpperCase() : administrativeDistrictLevel1,
     postal_code: postalCode,
-    country: "US",
+    country,
   };
 }
 
@@ -300,11 +302,14 @@ async function buildVerifiedOrder(rawCart, rawBuyer, submittedPromoCode) {
         scope: "ORDER",
       }]
     : undefined;
-  const serviceCharges = config.shippingFeeCents > 0
+  const shippingFeeCents = subtotalCents >= config.freeShippingThresholdCents
+    ? 0
+    : config.shippingFeeCents;
+  const serviceCharges = shippingFeeCents > 0
     ? [{
         uid: "shipping-fee",
-        name: "US shipping",
-        amount_money: { amount: config.shippingFeeCents, currency: "USD" },
+        name: "Shipping fee",
+        amount_money: { amount: shippingFeeCents, currency: "USD" },
         calculation_phase: "SUBTOTAL_PHASE",
       }]
     : undefined;
@@ -317,8 +322,10 @@ async function buildVerifiedOrder(rawCart, rawBuyer, submittedPromoCode) {
     promoApplied,
     subtotalCents,
     discountCents,
-    shippingFeeCents: config.shippingFeeCents,
-    totalCents: subtotalCents - discountCents + config.shippingFeeCents,
+    shippingFeeCents,
+    freeShippingThresholdCents: config.freeShippingThresholdCents,
+    shippingFeeWaived: subtotalCents >= config.freeShippingThresholdCents,
+    totalCents: subtotalCents - discountCents + shippingFeeCents,
   };
 }
 
@@ -380,7 +387,7 @@ function getOrderRecipient(order) {
 function renderOrderEmail({ payment, order, seller = false }) {
   const recipient = getOrderRecipient(order);
   const items = (order?.line_items || [])
-    .map((item) => `<li>${escapeHtml(item.name)}${item.note ? ` (${escapeHtml(item.note)})` : ""} × ${escapeHtml(item.quantity)}</li>`)
+    .map((item) => `<tr><td style="padding:10px 8px;border-bottom:1px solid #eee">${escapeHtml(item.name)}${item.note ? ` <small>(${escapeHtml(item.note)})</small>` : ""}</td><td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:center">${escapeHtml(item.quantity)}</td><td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:right">${formatUsd(item.total_money?.amount || 0)}</td></tr>`)
     .join("");
   const address = recipient.address || payment.shipping_address || {};
   const addressText = [
@@ -403,7 +410,10 @@ function renderOrderEmail({ payment, order, seller = false }) {
       <p>Order ID: <strong>${escapeHtml(order.id)}</strong><br>
       Payment ID: <strong>${escapeHtml(payment.id)}</strong><br>
       Total paid: <strong>${formatUsd(payment.amount_money?.amount)}</strong></p>
-      <h2 style="font-size:18px">Items</h2><ul>${items}</ul>
+      <h2 style="font-size:18px">Order summary</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left;padding:8px">Item</th><th style="padding:8px">Qty</th><th style="text-align:right;padding:8px">Amount</th></tr></thead><tbody>${items}</tbody></table>
+      <p style="text-align:right;font-size:18px"><strong>Total paid: ${formatUsd(payment.amount_money?.amount)}</strong></p>
+      <h2 style="font-size:18px">Shipping details</h2>
       <h2 style="font-size:18px">Ship to</h2>
       <p>${escapeHtml(recipient.display_name || "")}<br>${addressText}<br>
       ${escapeHtml(recipient.phone_number || "")}<br>${escapeHtml(recipient.email_address || payment.buyer_email_address || "")}</p>

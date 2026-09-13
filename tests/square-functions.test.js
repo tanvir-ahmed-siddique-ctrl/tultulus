@@ -152,6 +152,37 @@ test("quote uses Firestore price and creates an idempotent Square order", async 
   }
 });
 
+test("orders at the free-shipping threshold do not add a shipping fee", async () => {
+  const originalFetch = global.fetch;
+  process.env.SQUARE_SHIPPING_FEE_CENTS = "700";
+  process.env.SQUARE_FREE_SHIPPING_THRESHOLD_CENTS = "15000";
+  global.fetch = async (url) => {
+    if (String(url).includes("__checkout_settings__")) return response({ fields: {} });
+    return response({
+      fields: {
+        name: { stringValue: "Threshold item" },
+        priceCurrent: { integerValue: "50" },
+        isPublished: { booleanValue: true },
+      },
+    });
+  };
+  try {
+    const { buildVerifiedOrder } = require("../netlify/lib/square");
+    const verified = await buildVerifiedOrder(
+      [{ productId: "product-1", quantity: 3 }],
+      buyer(),
+      "",
+    );
+    assert.equal(verified.subtotalCents, 15000);
+    assert.equal(verified.shippingFeeCents, 0);
+    assert.equal(verified.shippingFeeWaived, true);
+    assert.equal(verified.totalCents, 15000);
+  } finally {
+    global.fetch = originalFetch;
+    process.env.SQUARE_SHIPPING_FEE_CENTS = "500";
+  }
+});
+
 test("payment charges the prepared order and returns Mastercard receipt data", async () => {
   const originalFetch = global.fetch;
   global.fetch = async (url, options = {}) => {

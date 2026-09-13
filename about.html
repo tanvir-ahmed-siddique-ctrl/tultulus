@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>About Us | Tultulus</title>
+    <title>Our Story | Tultulus</title>
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
@@ -16,6 +16,7 @@
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap");
       @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
       :root {
         --sand-strong: rgba(15, 15, 15, 0.85);
@@ -32,7 +33,7 @@
 
       html, body { background: #1a1510; }
       body {
-        font-family: "Cinzel", "Inter", sans-serif;
+        font-family: "Poppins", sans-serif;
         color: var(--brown);
         padding-top: var(--header-height);
         min-height: 100vh;
@@ -254,7 +255,7 @@
         margin-bottom: 16px;
       }
       .page-title {
-        font-family: "Cinzel", serif;
+        font-family: "Poppins", sans-serif;
         font-size: clamp(2rem, 5vw, 3.6rem);
         font-weight: 600;
         letter-spacing: -0.02em;
@@ -293,6 +294,23 @@
       }
       .glass-card:hover {
         border-color: rgba(255,255,255,0.28);
+      }
+      .our-story-grid { display: block; }
+      .our-story-card { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+      .our-story-card:hover { border-color: transparent; }
+      .our-story-card .card-body { max-width: 78ch; margin: 0 auto; }
+      .our-story-card .card-body p { margin: 0 0 1.25rem; }
+      .our-story-card .card-body p:last-child { margin-bottom: 0; color: #fff; font-weight: 600; }
+      .our-story-card .card-kicker { font-family: "Poppins", sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.18em; opacity: 0.9; }
+      .our-story-card .card-title { font-family: "Poppins", sans-serif; font-size: clamp(1.45rem, 3vw, 2.15rem); font-weight: 700; letter-spacing: -0.02em; text-transform: none; }
+      .our-story-card .card-body { font-family: "Poppins", sans-serif; font-size: clamp(1rem, 1.35vw, 1.12rem); font-weight: 400; line-height: 1.9; }
+      .our-story-card .card-body strong { font-weight: 700; }
+      @media (max-width: 640px) {
+        .page-main { padding: 36px 18px 56px; }
+        .page-hero { margin-bottom: 36px; padding-bottom: 28px; }
+        .page-sub { font-size: 13px; line-height: 1.7; }
+        .our-story-card .card-body { font-size: 0.98rem; line-height: 1.82; }
+        .our-story-card .card-body p { margin-bottom: 1.1rem; }
       }
       .card-kicker {
         font-size: 9px;
@@ -426,6 +444,11 @@
       }
 
     </style>
+    <style>
+      body, body h1, body h2, body h3, body h4, body h5, body h6, body p, body a, body button, body input, body select, body textarea, body label, body span { font-family: "Poppins", sans-serif !important; }
+      body h1, body h2, body h3, body h4, body h5, body h6, .section-title, .page-title { font-weight: 700 !important; }
+      body p, body a, body label, body input, body select, body textarea { font-weight: 400; }
+    </style>
   </head>
   <body>
     <!-- Header -->
@@ -462,7 +485,7 @@
     <div id="mobile-menu">
       <a href="shop.html">Shop</a>
       <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
+      <a href="contact.html">Terms &amp; Returns</a>
       <a href="#cart" onclick="window.openGlobalCart && window.openGlobalCart(); return false;">Cart</a>
       <a href="admin.html" class="admin-menu-link">Admin</a>
     </div>
@@ -470,56 +493,30 @@
     <main class="page-main">
       <!-- Hero -->
       <section class="page-hero">
-        <p class="page-kicker">About Tultulus</p>
-        <h1 class="page-title">Wear Your<br>Tultulus.</h1>
-        <p class="page-sub">Tultulus is a clothing label focused on premium comfort, clean detailing, and limited drops that stay wearable beyond trends.</p>
+        <p class="page-kicker">Our Story</p>
+        <h1 class="page-title">The Story<br>Behind Tultul.</h1>
+        <p class="page-sub">Art that refused to stay on paper, turned into streetwear made to be worn.</p>
       </section>
 
       <!-- Cards -->
-      <div class="cards-grid">
-        <div class="glass-card">
-          <p class="card-kicker">Who we are</p>
-          <h2 class="card-title">Our Direction</h2>
+      <div class="cards-grid our-story-grid">
+        <div class="glass-card our-story-card">
+          <p class="card-kicker">The story behind Tultul</p>
+          <h2 class="card-title">Wear the art.</h2>
           <div class="card-body">
-            <p>We design around fit, fabric feel, and repeat usability. Every release is curated in small runs to keep quality tight and product identity clear. No mass production — each drop is deliberate.</p>
-          </div>
-        </div>
-        <div class="glass-card">
-          <p class="card-kicker">Principles</p>
-          <h2 class="card-title">What We Value</h2>
-          <div class="card-body">
-            <ul>
-              <li>Honest fabric and sizing communication</li>
-              <li>Comfort-first cuts for daily movement</li>
-              <li>Reliable support before and after purchase</li>
-              <li>Limited, considered drops over quantity</li>
-            </ul>
+            <p>Sadia Tuli was studying computer science. Not fashion. Not design. Code, logic, syntax — that was the world she was building for.</p>
+            <p>But there was always another language she was fluent in: art. Long before she knew what a mood board was or how a garment came together, she was drawing sketch after sketch, piece after piece, with nowhere to put it except paper.</p>
+            <p>Somewhere along the way, one question wouldn’t leave her alone: what if this lived on fabric instead?</p>
+            <p>She had never designed a single piece of clothing in her life. No fashion background, no industry connections, no roadmap. Just a stubborn belief that her art deserved to be worn, not filed away.</p>
+            <p>In 2025, that belief became Tultul.</p>
+            <p>Built from scratch by someone who had every reason to stay in her lane and didn’t, Tultul is a streetwear brand rooted in Y2K and retro energy — vintage-washed, hand-printed pieces that carry actual artwork, not just a logo slapped on a blank tee. Every drop is proof that you don’t need permission to start; you just need something worth putting out into the world.</p>
+            <p>The mission was simple from day one: streetwear that hits hard creatively, without hitting your wallet just as hard. Real design, real quality, at a price that doesn’t punish you for having taste.</p>
+            <p>No formal training. No industry playbook. Just art that refused to stay on paper and a brand built to carry it.</p>
+            <p><strong>Tultul. Wear the art.</strong></p>
           </div>
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-strip">
-        <div class="stat-item">
-          <span class="stat-num">460</span>
-          <span class="stat-label">GSM Fleece</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num">100%</span>
-          <span class="stat-label">Quality Cotton</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num">Dhaka</span>
-          <span class="stat-label">Made in Bangladesh</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-num">2024</span>
-          <span class="stat-label">Est.</span>
-        </div>
-      </div>
     </main>
 
     <!-- Footer -->
@@ -527,8 +524,8 @@
       <div class="footer-inner">
         <div class="footer-links">
           <a href="shop.html">Shop</a>
-          <a href="about.html" class="active">About</a>
-          <a href="contact.html">Contact</a>
+          <a href="about.html" class="active">Our Story</a>
+          <a href="contact.html">Terms &amp; Returns</a>
         </div>
         <p class="footer-copy">&copy; 2026 Tultulus. All rights reserved.</p>
       </div>

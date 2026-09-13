@@ -13,6 +13,7 @@ exports.handler = async (event) => {
       environment: config.environment,
       currency: config.currency,
       shippingFeeCents: config.shippingFeeCents,
+      freeShippingThresholdCents: config.freeShippingThresholdCents,
       promoDiscountPercent: config.promoDiscountPercent,
     });
   } catch (error) {

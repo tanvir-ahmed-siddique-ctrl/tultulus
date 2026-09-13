@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact Us | Tultulus</title>
+    <title>Terms &amp; Returns | Tultulus</title>
     <link rel="preload" as="image" href="photos/main_bg.jpeg" />
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
@@ -296,6 +296,13 @@
       .glass-card:hover {
         border-color: rgba(255,255,255,0.28);
       }
+      .legal-grid { display: block; }
+      .legal-grid .glass-card { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 30px 0; border-bottom: 1px solid rgba(255,255,255,0.14); }
+      .legal-grid .glass-card:hover { border-color: rgba(255,255,255,0.14); }
+      .legal-grid .card-body { max-width: 78ch; }
+      .legal-grid .card-body p { margin: 0 0 1rem; }
+      .legal-grid .card-body p:last-child { margin-bottom: 0; }
+      .legal-anchor { display: block; position: relative; top: -80px; }
 
       /* Card icon */
       .card-icon {
@@ -420,6 +427,12 @@
       }
 
     </style>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+      body, body h1, body h2, body h3, body h4, body h5, body h6, body p, body a, body button, body input, body select, body textarea, body label, body span { font-family: "Poppins", sans-serif !important; }
+      body h1, body h2, body h3, body h4, body h5, body h6, .section-title, .page-title { font-weight: 700 !important; }
+      body p, body a, body label, body input, body select, body textarea { font-weight: 400; }
+    </style>
   </head>
   <body>
     <!-- Header -->
@@ -464,9 +477,9 @@
     <main class="page-main">
       <!-- Hero -->
       <section class="page-hero">
-        <p class="page-kicker">Get in touch</p>
-        <h1 class="page-title">Customer<br>Service.</h1>
-        <p class="page-sub">If you have any questions regarding your order, products or our service, please contact our customer service.</p>
+        <p class="page-kicker">Terms &amp; Returns</p>
+        <h1 class="page-title">Care,<br>Clearly.</h1>
+        <p class="page-sub">Questions, returns, and the policies behind every Tultul order.</p>
       </section>
 
       <!-- Contact cards -->
@@ -475,7 +488,7 @@
           <div class="card-icon"><i class="fas fa-envelope"></i></div>
           <p class="card-kicker">Email</p>
           <h2 class="card-title">Send a message</h2>
-          <a class="contact-value" href="mailto:support@day-1.com">support@day-1.com</a>
+          <a class="contact-value" href="mailto:contactultul@gmail.com">contactultul@gmail.com</a>
           <p class="card-note">We typically reply during business hours.</p>
         </div>
 
@@ -488,19 +501,19 @@
         </div>
 
         <div class="glass-card">
-          <div class="card-icon"><i class="fas fa-map-marker-alt"></i></div>
-          <p class="card-kicker">Address</p>
-          <h2 class="card-title">Visit us</h2>
-          <p class="contact-address">231 North Texas Avenue<br>Atlantic City, New Jersey 08401</p>
-        </div>
-
-        <div class="glass-card">
           <div class="card-icon"><i class="fas fa-clock"></i></div>
           <p class="card-kicker">Hours</p>
           <h2 class="card-title">Customer service</h2>
           <p class="contact-address">Monday – Friday<br>10:00–6:00 PM</p>
           <p class="card-note">Closed on weekends and public holidays.</p>
         </div>
+      </div>
+
+      <div class="cards-grid legal-grid" id="terms">
+        <span id="privacy" class="legal-anchor" aria-hidden="true"></span>
+        <div class="glass-card"><p class="card-kicker">Terms &amp; Conditions</p><h2 class="card-title">Simple, fair terms.</h2><div class="card-body"><p>By using this website or placing an order, you agree to these Terms &amp; Conditions. Please provide accurate billing, shipping, and contact information. Orders are confirmed only after successful payment.</p><p>Prices are shown in USD and may change without notice. Payments are securely processed by our payment provider; we do not store your full card information. We may cancel orders for suspected fraud, pricing errors, or product unavailability.</p></div></div>
+        <div class="glass-card"><p class="card-kicker">Return &amp; Refund Policy</p><h2 class="card-title">Need to return something?</h2><div class="card-body"><p>Contact us within <strong>3 working days</strong> of delivery to request a return. Items must be unworn, unwashed, unused, and in their original condition with tags and packaging.</p><p>Items damaged after wear, washed items, missing tags, and final-sale or customized items are not eligible. Approved refunds are issued to the original payment method after inspection. Return shipping may apply unless the item arrived damaged or incorrect.</p></div></div>
+        <div class="glass-card"><p class="card-kicker">Privacy Policy</p><h2 class="card-title">Your information.</h2><div class="card-body"><p>We use your name, email, phone, billing/shipping address, and order details to process orders, arrange delivery, provide support, prevent fraud, and improve our services.</p><p>Trusted payment, shipping, hosting, and email providers may receive information needed to provide these services. We do not sell your personal information. For questions, email <a href="mailto:contactultul@gmail.com">contactultul@gmail.com</a>.</p></div></div>
       </div>
     </main>
 
@@ -509,8 +522,8 @@
       <div class="footer-inner">
         <div class="footer-links">
           <a href="shop.html">Shop</a>
-          <a href="about.html">About</a>
-          <a href="contact.html" class="active">Contact</a>
+          <a href="about.html">Our Story</a>
+          <a href="contact.html" class="active">Terms &amp; Returns</a>
         </div>
         <p class="footer-copy">&copy; 2026 Tultulus. All rights reserved.</p>
       </div>

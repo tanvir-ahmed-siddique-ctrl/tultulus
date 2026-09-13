@@ -373,6 +373,15 @@
         .hero-nav { gap: 24px; padding: 40px 24px; }
       }
     </style>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+      body, body h1, body h2, body h3, body h4, body h5, body h6, body p, body a, body button, body input, body select, body textarea, body label, body span { font-family: "Poppins", sans-serif !important; }
+      body h1, body h2, body h3, body h4, body h5, body h6, .section-title, .page-title { font-weight: 700 !important; }
+      body p, body a, body label, body input, body select, body textarea { font-weight: 400; }
+      @media (max-width: 768px) {
+        .hero-nav-link { font-family: "Cinzel", "Sansation", serif !important; font-weight: 600 !important; }
+      }
+    </style>
   </head>
   <body>
 
@@ -411,7 +420,7 @@
     <div id="mobile-menu">
       <a href="shop.html">Shop</a>
       <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
+      <a href="contact.html">Terms &amp; Returns</a>
       <a href="#cart" onclick="window.openGlobalCart && window.openGlobalCart(); return false;">Cart</a>
       <a href="admin.html" class="admin-menu-link">Admin</a>
     </div>
@@ -421,7 +430,7 @@
       <nav class="hero-nav" aria-label="Main navigation">
         <a id="link-shop"    class="hero-nav-link" href="shop.html">Shop Now</a>
         <a id="link-about"   class="hero-nav-link" href="about.html">About</a>
-        <a id="link-contact" class="hero-nav-link" href="contact.html">Contact</a>
+        <a id="link-contact" class="hero-nav-link" href="contact.html">Terms &amp; Returns</a>
       </nav>
     </main>
 
@@ -431,7 +440,7 @@
         <div class="footer-links">
           <a href="shop.html">Shop</a>
           <a href="about.html">About</a>
-          <a href="contact.html">Contact</a>
+          <a href="contact.html">Terms &amp; Returns</a>
         </div>
         <p class="footer-copy">&copy; 2026 Tultulus. All rights reserved.</p>
       </div>

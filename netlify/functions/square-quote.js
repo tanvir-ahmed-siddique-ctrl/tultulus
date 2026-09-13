@@ -40,6 +40,8 @@ exports.handler = async (event) => {
       subtotalCents: verified.subtotalCents,
       discountCents: verified.discountCents,
       shippingFeeCents: verified.shippingFeeCents,
+      freeShippingThresholdCents: verified.freeShippingThresholdCents,
+      shippingFeeWaived: verified.shippingFeeWaived,
       totalCents: verified.totalCents,
       promoApplied: verified.promoApplied,
     });
