@@ -53,13 +53,11 @@ exports.handler = async (event) => {
     const verificationToken = cleanText(body.verificationToken, 512);
     const orderId = cleanText(body.orderId, 192);
     const checkoutAttemptId = cleanText(body.checkoutAttemptId, 45);
-    const paymentAttemptId = cleanText(body.paymentAttemptId, 45);
     const expectedAmountCents = Number(body.expectedAmountCents);
     if (
       !sourceId
       || !orderId
       || !/^[a-zA-Z0-9_-]{16,45}$/.test(checkoutAttemptId)
-      || !/^[a-zA-Z0-9_-]{16,45}$/.test(paymentAttemptId)
       || !Number.isSafeInteger(expectedAmountCents)
     ) {
       throw new CheckoutError(400, "Invalid payment request.", "INVALID_PAYMENT_REQUEST");
@@ -93,7 +91,9 @@ exports.handler = async (event) => {
       body: {
         source_id: sourceId,
         ...(verificationToken ? { verification_token: verificationToken } : {}),
-        idempotency_key: `pay-${paymentAttemptId}`,
+        // The server owns payment idempotency. Replays or simultaneous requests for
+        // one checkout attempt can therefore create at most one Square payment.
+        idempotency_key: `pay-${checkoutAttemptId}`,
         amount_money: order.total_money,
         autocomplete: true,
         location_id: config.locationId,

@@ -2609,12 +2609,29 @@
       body h1, body h2, body h3, body h4, body h5, body h6, .section-title, .page-title { font-weight: 700 !important; }
       body p, body a, body label, body input, body select, body textarea { font-weight: 400; }
       .product-card h3, .product-card .price-display, .product-card .price-current, .product-card .price-currency, .product-card .price-original { font-weight: 400 !important; }
+      .local-price-reference { display: none; width: 100%; color: rgba(255,255,255,.62); font-size: 10px; margin-top: 3px; }
+      .local-price-active .local-price-reference { display: block; }
+      .country-price-modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(7,6,4,.78); backdrop-filter: blur(7px); }
+      .country-price-modal[hidden] { display: none; }
+      .country-price-dialog { width: min(100%, 440px); padding: 30px; border: 1px solid rgba(255,255,255,.2); border-radius: 18px; background: #201b15; box-shadow: 0 24px 70px rgba(0,0,0,.55); }
+      .country-price-dialog h2 { font-size: 22px; margin: 8px 0; }
+      .country-price-dialog p { color: rgba(255,255,255,.72) !important; font-size: 13px; line-height: 1.65; margin-bottom: 18px; }
       @media (max-width: 768px) {
         .section-title { font-size: clamp(1.35rem, 5vw, 1.75rem) !important; line-height: 1.2; }
       }
     </style>
   </head>
   <body id="top" class="text-white">
+    <div id="country-price-modal" class="country-price-modal" hidden role="dialog" aria-modal="true" aria-labelledby="country-price-title">
+      <div class="country-price-dialog">
+        <p class="form-label">International pricing</p>
+        <h2 id="country-price-title">Where are you shopping from?</h2>
+        <p>Choose your country to view estimated prices in your local currency.</p>
+        <select id="country-price-select" class="select-field" aria-label="Choose your country"></select>
+        <button id="country-price-confirm" type="button" class="btn-primary w-full justify-center mt-5">Continue</button>
+        <button id="country-price-usd" type="button" class="btn-outline w-full justify-center mt-3">Continue in USD</button>
+      </div>
+    </div>
     <!-- Header -->
     <header class="site-header">
       <nav class="nav-inner">
@@ -2752,7 +2769,7 @@
               var responsiveAttrs = isCloudinary ? ' srcset="' + optUrl(rawImg, 240) + ' 240w, ' + optUrl(rawImg, 400) + ' 400w, ' + optUrl(rawImg, 640) + ' 640w" sizes="(max-width:640px) calc(50vw - 11px), (max-width:1100px) 33vw, 25vw"' : '';
               var badgeHtml = badge ? '<span class="badge">' + badge + '</span>' : '';
 
-              return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + (p.name || '') + '" data-id="' + p.id + '">' +
+              return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + (p.name || '') + '" data-id="' + p.id + '" data-usd-current="' + (curr || 0) + '" data-usd-original="' + (orig || 0) + '">' +
                 '<div class="product-image">' +
                   phHtml +
                   '<img class="main-img" src="' + optImg + '"' + responsiveAttrs + ' alt="' + (p.name || '') + '" loading="' + (priority ? 'eager' : 'lazy') + '" fetchpriority="' + (priority ? 'high' : 'auto') + '" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
@@ -2765,6 +2782,7 @@
                     origHtml +
                     '<span class="price-current">' + (curr || 0) + '</span>' +
                   '</div>' +
+                  '<span class="local-price-reference"></span>' +
                 '</div>' +
               '</article>';
             }
@@ -2814,6 +2832,8 @@
               if (featSection) featSection.hidden = !featHtml;
               if (hotSection) hotSection.hidden = !hotHtml;
               if (featScrollButton) featScrollButton.hidden = !featHtml;
+              window.refreshLocalPriceDisplay?.();
+              setTimeout(() => window.refreshLocalPriceDisplay?.(), 0);
               window.__INSTANT_SHOP_PAINTED = true;
             } else {
               if (featGrid) featGrid.innerHTML = buildSkeletons(4);
@@ -2886,6 +2906,15 @@
                 </div>
 
                 <p class="form-label" style="margin:8px 0 0;">Shipping address</p>
+                <div>
+                  <label class="form-label" for="inp-country">Country / Region *</label>
+                  <div class="select-wrap">
+                    <select name="Country" id="inp-country" class="select-field" required autocomplete="country" onchange="syncCountryFields()">
+                      <option value="" selected disabled>Select country / region</option>
+                      <option value="US">United States</option>
+                    </select>
+                  </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="form-label" for="inp-first-name">First name *</label>
@@ -2899,15 +2928,6 @@
                 <div>
                   <label class="form-label" for="inp-care-of">C/O (optional)</label>
                   <input type="text" name="Care Of" id="inp-care-of" class="form-input" maxlength="100" placeholder="Care of name" />
-                </div>
-                <div>
-                  <label class="form-label" for="inp-country">Country / Region *</label>
-                  <div class="select-wrap">
-                    <select name="Country" id="inp-country" class="select-field" required autocomplete="country" onchange="syncCountryFields()">
-                      <option value="" selected disabled>Select country / region</option>
-                      <option value="US">United States</option>
-                    </select>
-                  </div>
                 </div>
                 <div>
                   <label class="form-label" for="inp-street">Address line 1 *</label>
@@ -2981,10 +3001,7 @@
                     <span>Debit · Credit · Mastercard · Visa · Amex · Discover</span>
                   </div>
                   <div id="square-card-container" aria-label="Secure card details"></div>
-                  <p class="secure-payment-note">
-                    Card details are securely collected by Square and never touch our server.
-                    Your order is confirmed only after Square completes the payment.
-                  </p>
+                  <p class="secure-payment-note"><i class="fas fa-lock" aria-hidden="true"></i> Encrypted, secure card payment. Your order is confirmed after authorization.</p>
                   <div id="payment-status" class="payment-status" role="alert" aria-live="polite"></div>
                 </div>
                 <div class="terms-box">
@@ -2999,7 +3016,7 @@
               </div>
 
               <button type="submit" id="final-btn" class="btn-primary w-full justify-center mt-8">
-                Pay securely with Square
+                Confirm Order
               </button>
             </div>
 
@@ -3643,7 +3660,7 @@
         const displayNames = typeof Intl !== "undefined" && Intl.DisplayNames
           ? new Intl.DisplayNames(["en"], { type: "region" })
           : null;
-        const options = SHIPPING_COUNTRY_CODES.map((code) => {
+        const options = ["US", ...SHIPPING_COUNTRY_CODES.filter((code) => code !== "US")].map((code) => {
           let label = code;
           try { label = displayNames?.of(code) || code; } catch (error) {}
           return `<option value="${code}">${label}</option>`;
@@ -3672,6 +3689,79 @@
 
       populateShippingCountries();
       syncCountryFields();
+
+      // Display-only local pricing. Square order creation and payment always remain USD.
+      const LOCAL_PRICE_PREFERENCE_KEY = "tultulus_local_price_v1";
+      const priceModal = document.getElementById("country-price-modal");
+      const priceCountrySelect = document.getElementById("country-price-select");
+      const priceCountryConfirm = document.getElementById("country-price-confirm");
+      const priceUsdButton = document.getElementById("country-price-usd");
+      let localPricePreference = null;
+
+      function countryName(code) {
+        try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; } catch (error) { return code; }
+      }
+      function guessedCountry() {
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+        const timezones = { "Asia/Dhaka": "BD", "Europe/London": "GB", "Asia/Tokyo": "JP", "Asia/Kolkata": "IN", "Australia/Sydney": "AU", "America/Toronto": "CA" };
+        if (timezones[zone]) return timezones[zone];
+        try { return new Intl.Locale(navigator.language).region || "US"; } catch (error) { return "US"; }
+      }
+      function renderLocalPrices() {
+        const pref = localPricePreference;
+        document.querySelectorAll(".product-card[data-usd-current]").forEach((card) => {
+          const price = Number(card.dataset.usdCurrent || 0);
+          const originalPrice = Number(card.dataset.usdOriginal || 0);
+          const current = card.querySelector(".price-current");
+          const original = card.querySelector(".price-original");
+          const currency = card.querySelector(".price-currency");
+          const reference = card.querySelector(".local-price-reference");
+          if (!pref || pref.currency === "USD" || !Number.isFinite(pref.rate)) {
+            card.classList.remove("local-price-active");
+            if (current) current.textContent = String(price);
+            if (original && originalPrice > price) original.textContent = String(originalPrice);
+            if (currency) currency.textContent = "USD";
+            return;
+          }
+          const local = new Intl.NumberFormat(undefined, { style: "currency", currency: pref.currency, maximumFractionDigits: pref.currency === "JPY" || pref.currency === "KRW" ? 0 : 2 }).format(price * pref.rate);
+          if (current) current.textContent = local;
+          if (original && originalPrice > price) original.textContent = new Intl.NumberFormat(undefined, { style: "currency", currency: pref.currency, maximumFractionDigits: pref.currency === "JPY" || pref.currency === "KRW" ? 0 : 2 }).format(originalPrice * pref.rate);
+          if (currency) currency.textContent = "";
+          if (reference) reference.textContent = `Estimated · $${price.toFixed(2)} USD final charge`;
+          card.classList.add("local-price-active");
+        });
+      }
+      async function selectLocalCountry(country) {
+        if (country === "US") { localPricePreference = { country: "US", currency: "USD", rate: 1 }; localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference)); renderLocalPrices(); return; }
+        try {
+          const countryResponse = await fetch(`https://restcountries.com/v3.1/alpha/${encodeURIComponent(country)}?fields=currencies`);
+          const countryData = await countryResponse.json();
+          const record = Array.isArray(countryData) ? countryData[0] : countryData;
+          const currency = Object.keys(record?.currencies || {})[0];
+          if (!/^[A-Z]{3}$/.test(currency || "")) throw new Error("Currency unavailable");
+          const rateResponse = await fetch(`/.netlify/functions/currency-rate?currency=${encodeURIComponent(currency)}`, { headers: { Accept: "application/json" } });
+          const rateData = await rateResponse.json();
+          if (!rateResponse.ok || !Number.isFinite(Number(rateData.rate))) throw new Error("Rate unavailable");
+          localPricePreference = { country, currency, rate: Number(rateData.rate), updatedAt: rateData.updatedAt };
+          localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+        } catch (error) {
+          localPricePreference = { country, currency: "USD", rate: 1 };
+          localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+        }
+        renderLocalPrices();
+      }
+      function openCountryPriceModal() { if (priceModal) priceModal.hidden = false; }
+      function closeCountryPriceModal() { if (priceModal) priceModal.hidden = true; }
+      if (priceCountrySelect) {
+        priceCountrySelect.innerHTML = ["US", ...SHIPPING_COUNTRY_CODES.filter((code) => code !== "US")].map((code) => `<option value="${code}">${countryName(code)}</option>`).join("");
+        priceCountrySelect.value = guessedCountry();
+      }
+      try { localPricePreference = JSON.parse(localStorage.getItem(LOCAL_PRICE_PREFERENCE_KEY) || "null"); } catch (error) {}
+      if (localPricePreference?.currency) renderLocalPrices();
+      else openCountryPriceModal();
+      if (priceCountryConfirm) priceCountryConfirm.addEventListener("click", async () => { priceCountryConfirm.disabled = true; await selectLocalCountry(priceCountrySelect.value); closeCountryPriceModal(); priceCountryConfirm.disabled = false; });
+      if (priceUsdButton) priceUsdButton.addEventListener("click", () => { selectLocalCountry("US"); closeCountryPriceModal(); });
+      window.refreshLocalPriceDisplay = renderLocalPrices;
 
       function collectBilling() {
         const first = document.getElementById("inp-first-name")?.value.trim() || "";
@@ -4094,12 +4184,16 @@
 
         const button = document.getElementById("final-btn");
         if (button) button.disabled = true;
-        setPaymentStatus("Verifying your order total…", "info");
+        setPaymentStatus("Preparing secure checkout…", "info");
         try {
-          const quote = await prepareVerifiedQuote(billing);
+          const [quote] = await Promise.all([
+            prepareVerifiedQuote(billing),
+            initializeSquareCard(),
+          ]);
           if (button) button.innerText = `Pay ${centsToMoney(quote.totalCents)}`;
-          await initializeSquareCard();
-          await initializeWalletPayments(quote, billing);
+          // Wallet availability is device-specific. Load it after card entry is usable,
+          // so an unavailable wallet can never delay standard card checkout.
+          initializeWalletPayments(quote, billing).catch(() => {});
           setPaymentStatus("", "info");
         } catch (error) {
           setPaymentStatus(error.message || "Square checkout could not be loaded.", "error");

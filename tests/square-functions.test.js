@@ -192,7 +192,7 @@ test("payment charges the prepared order and returns Mastercard receipt data", a
       const submitted = JSON.parse(options.body);
       assert.equal(submitted.amount_money.amount, 5250);
       assert.equal(submitted.order_id, "square-order-1");
-      assert.equal(submitted.idempotency_key, `pay-${paymentAttemptId}`);
+      assert.equal(submitted.idempotency_key, `pay-${checkoutAttemptId}`);
       return response({ payment: completedPayment() });
     }
     throw new Error(`Unexpected URL: ${url}`);
