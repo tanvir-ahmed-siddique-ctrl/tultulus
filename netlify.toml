@@ -15,6 +15,13 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
 
+# Apple Pay requires this exact verification file at a public HTTPS URL.
+[[headers]]
+  for = "/.well-known/apple-developer-merchantid-domain-association"
+  [headers.values]
+    Content-Type = "application/octet-stream"
+    Content-Disposition = "attachment; filename=apple-developer-merchantid-domain-association"
+
 [build.environment]
   # Public Firebase web key is injected into JS at build. Omit so secrets scan does not fail.
   # These values are intentionally public in the storefront: Firebase's web key and support email.
