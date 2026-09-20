@@ -24,6 +24,6 @@
     Content-Disposition = "attachment; filename=apple-developer-merchantid-domain-association"
 
 [build.environment]
-  # Public Firebase web key is injected into JS at build. Omit so secrets scan does not fail.
-  # These values are intentionally public in the storefront: Firebase's web key and support email.
-  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_WEB_API_KEY,SELLER_NOTIFICATION_EMAIL"
+  # Public / non-credential env values that also appear in docs and storefront code.
+  # Omit so Netlify secrets scanning does not fail the build on false positives.
+  SECRETS_SCAN_OMIT_KEYS = "FIREBASE_WEB_API_KEY,SELLER_NOTIFICATION_EMAIL,SQUARE_ENVIRONMENT,SQUARE_SHIPPING_FEE_CENTS,SQUARE_FREE_SHIPPING_THRESHOLD_CENTS,PROMO_CODE,PROMO_DISCOUNT_PERCENT,FIREBASE_PROJECT_ID"
