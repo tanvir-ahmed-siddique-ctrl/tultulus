@@ -3270,7 +3270,8 @@
               var curr = Number(p.priceCurrent || p.price) || 0;
               var rawBadge = String(p.badge || "").trim();
               var badge = p.badgeEnabled === true ? rawBadge : (rawBadge.toUpperCase() === "NEW" ? "" : rawBadge);
-              var origHtml = (orig && orig > curr) ? '<span class="price-original">' + esc(orig) + '</span>' : '';
+              var money = function (value) { return Number(value || 0).toFixed(2); };
+              var origHtml = (orig && orig > curr) ? '<span class="price-original">' + esc(money(orig)) + '</span>' : '';
               var phHtml = isCloudinary ? '<img class="placeholder-img" src="' + esc(phImg) + '" alt="" aria-hidden="true" />' : '';
               var responsiveAttrs = isCloudinary ? ' srcset="' + esc(optUrl(rawImg, 240)) + ' 240w, ' + esc(optUrl(rawImg, 400)) + ' 400w, ' + esc(optUrl(rawImg, 640)) + ' 640w" sizes="(max-width:640px) calc(50vw - 11px), (max-width:1100px) 33vw, 25vw"' : '';
               var badgeHtml = badge ? '<span class="badge">' + esc(badge) + '</span>' : '';
@@ -3286,7 +3287,7 @@
                   '<div class="price-display">' +
                     '<span class="price-currency">USD</span>' +
                     origHtml +
-                    '<span class="price-current">' + esc(curr || 0) + '</span>' +
+                    '<span class="price-current">' + esc(money(curr)) + '</span>' +
                   '</div>' +
                   '<span class="local-price-reference"></span>' +
                 '</div>' +

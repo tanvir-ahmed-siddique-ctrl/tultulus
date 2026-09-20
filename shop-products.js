@@ -14,8 +14,13 @@ const prefetchedProducts = new Set();
 const prefetchedImages = new Set();
 
 function toNumber(value, fallback = 0) {
-  const parsed = Number.parseInt(String(value ?? "").replace(/[^\d]/g, ""), 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
+  const parsed = Number(String(value ?? "").replace(/[$,\s]/g, "").trim());
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : fallback;
+}
+
+function formatUsdAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
 }
 
 function getTimestampValue(value) {
@@ -240,7 +245,7 @@ function createProductCard(product, priority = false) {
 
   const originalPriceHtml =
     product.priceOriginal && product.priceOriginal > product.priceCurrent
-      ? `<span class="price-original">${escapeHtml(product.priceOriginal)}</span>`
+      ? `<span class="price-original">${escapeHtml(formatUsdAmount(product.priceOriginal))}</span>`
       : "";
   const badgeHtml = product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : "";
 
@@ -255,7 +260,7 @@ function createProductCard(product, priority = false) {
       <div class="price-display">
         <span class="price-currency">USD</span>
         ${originalPriceHtml}
-        <span class="price-current">${escapeHtml(product.priceCurrent)}</span>
+        <span class="price-current">${escapeHtml(formatUsdAmount(product.priceCurrent))}</span>
       </div>
       <p class="local-price-reference" hidden></p>
     </div>

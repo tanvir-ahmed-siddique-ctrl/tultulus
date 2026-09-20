@@ -75,8 +75,13 @@ function safeImageUrl(value) {
 }
 
 function toNumber(value, fallback = 0) {
-  const parsed = Number.parseInt(String(value ?? "").replace(/[^\d]/g, ""), 10);
-  return Number.isNaN(parsed) ? fallback : parsed;
+  const parsed = Number(String(value ?? "").replace(/[$,\s]/g, "").trim());
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : fallback;
+}
+
+function formatUsdAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
 }
 
 function calculateDiscount(priceCurrent, priceOriginal) {
@@ -302,8 +307,8 @@ function formatLocalFromUsd(usdAmount) {
 
 function updateTotals() {
   const total = unitPrice * quantity;
-  if (els.price) els.price.textContent = String(total);
-  if (els.unit) els.unit.textContent = `Unit: USD ${unitPrice}`;
+  if (els.price) els.price.textContent = formatUsdAmount(total);
+  if (els.unit) els.unit.textContent = `Unit: USD ${formatUsdAmount(unitPrice)}`;
   if (els.qtyValue) els.qtyValue.textContent = String(quantity);
   if (els.localPrice) {
     const localTotal = formatLocalFromUsd(total);
@@ -544,7 +549,7 @@ function renderProduct(data) {
 
   if (els.title) els.title.textContent = data.name;
   if (els.offer) {
-    els.offer.textContent = data.priceOriginal;
+    els.offer.textContent = formatUsdAmount(data.priceOriginal);
     els.offer.style.display =
       data.priceOriginal > data.priceCurrent ? "inline-flex" : "none";
   }

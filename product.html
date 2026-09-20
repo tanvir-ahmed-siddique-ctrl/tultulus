@@ -1240,13 +1240,17 @@
               var thumbsEl = document.getElementById("pd-thumbs");
               
               if (titleEl) titleEl.textContent = item.name || "";
-              if (priceEl) priceEl.textContent = item.priceCurrent || item.price || "";
-              if (unitEl) unitEl.textContent = "Unit: USD " + (item.priceCurrent || item.price || "");
+              var money = function (value) {
+                var amount = Number(value);
+                return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
+              };
+              if (priceEl) priceEl.textContent = money(item.priceCurrent || item.price);
+              if (unitEl) unitEl.textContent = "Unit: USD " + money(item.priceCurrent || item.price);
               if (offerEl) {
-                var orig = item.priceOriginal || item.offer;
-                var curr = item.priceCurrent || item.price;
+                var orig = Number(item.priceOriginal || item.offer) || 0;
+                var curr = Number(item.priceCurrent || item.price) || 0;
                 if (orig && orig > curr) {
-                  offerEl.textContent = orig;
+                  offerEl.textContent = money(orig);
                   offerEl.style.display = "inline-flex";
                 } else {
                   offerEl.style.display = "none";

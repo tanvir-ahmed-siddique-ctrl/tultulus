@@ -274,8 +274,14 @@ function setChartState(nextChart) {
 }
 
 function toNumber(value) {
-  const parsed = Number.parseInt(String(value || "").replace(/[^\d]/g, ""), 10);
-  return Number.isNaN(parsed) ? 0 : parsed;
+  const normalized = String(value ?? "").replace(/[$,\s]/g, "").trim();
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : 0;
+}
+
+function formatUsdAmount(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
 }
 
 function getTimestamp(value) {
@@ -382,9 +388,9 @@ function updatePreview() {
     previewImage.alt = `${preview.name} preview`;
   }
   setText(previewName, preview.name);
-  setText(previewCurrent, preview.priceCurrent || 0);
+  setText(previewCurrent, formatUsdAmount(preview.priceCurrent));
   if (previewOriginal) {
-    previewOriginal.textContent = preview.priceOriginal || 0;
+    previewOriginal.textContent = formatUsdAmount(preview.priceOriginal);
     previewOriginal.style.display = preview.hasDiscount ? "inline" : "none";
   }
   setText(previewBadge, preview.badge);
@@ -658,7 +664,7 @@ function renderProductList() {
           <img src="${escapeHtml(product.images?.[0] || "photos/any.jpeg")}" alt="${escapeHtml(product.name)}" />
           <div class="product-row-info">
             <h3>${escapeHtml(product.name)}</h3>
-            <p class="meta">USD ${escapeHtml(product.priceCurrent)} | ${escapeHtml(categories)} | ${visibility}</p>
+            <p class="meta">USD ${escapeHtml(formatUsdAmount(product.priceCurrent))} | ${escapeHtml(categories)} | ${visibility}</p>
             <div class="product-row-actions">
               <button type="button" data-edit-id="${escapeHtml(product.id)}">Edit</button>
               <button type="button" data-delete-id="${escapeHtml(product.id)}" class="danger">Delete</button>
