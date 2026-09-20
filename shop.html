@@ -2382,6 +2382,37 @@
       .product-card.local-price-active .price-current {
         font-size: 0.95em;
       }
+      .money-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        text-align: right;
+      }
+      .money-stack .money-usd {
+        font: inherit;
+        color: inherit;
+      }
+      .money-stack .money-local {
+        font: 600 10px/1.35 "Inter", sans-serif !important;
+        letter-spacing: 0.02em;
+        color: #7a7166 !important;
+        text-transform: none !important;
+      }
+      .checkout-surface .money-stack .money-local,
+      .summary-card .money-stack .money-local {
+        color: #7a7166 !important;
+      }
+      .cart-item .money-stack {
+        align-items: flex-start;
+      }
+      .local-charge-note {
+        margin: 6px 0 0;
+        font: 500 11px/1.45 "Inter", sans-serif !important;
+        color: #7a7166 !important;
+        letter-spacing: 0.01em;
+      }
+      .local-charge-note[hidden] { display: none !important; }
       /* Custom Apple Pay / Google Pay logo buttons (no text label) */
       #apple-pay-button {
         -webkit-appearance: none;
@@ -3073,7 +3104,7 @@
       body h1, body h2, body h3, body h4, body h5, body h6, .section-title, .page-title { font-weight: 700 !important; }
       body p, body a, body label, body input, body select, body textarea { font-weight: 400; }
       .product-card h3, .product-card .price-display, .product-card .price-current, .product-card .price-currency, .product-card .price-original { font-weight: 400 !important; }
-      .local-price-reference { display: none; width: 100%; color: rgba(255,255,255,.62); font-size: 10px; margin-top: 3px; }
+      .local-price-reference { display: none; width: 100%; color: rgba(255,255,255,.72); font-size: 11px; margin-top: 4px; letter-spacing: 0.02em; }
       .local-price-active .local-price-reference { display: block; }
       .country-price-modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(7,6,4,.78); backdrop-filter: blur(7px); }
       .country-price-modal[hidden] { display: none; }
@@ -3357,6 +3388,7 @@
                   <span>Amount payable</span>
                   <span id="display-final-total" class="price-text">0 USD</span>
                 </div>
+                <p id="local-charge-note" class="local-charge-note" hidden>You’ll be charged in USD. Local amounts are approximate for reference.</p>
                 <p id="checkout-free-shipping" class="free-shipping-banner">Free shipping on orders of $150 or more.</p>
               </div>
             </div>
@@ -3622,6 +3654,7 @@
             <span>Amount payable</span>
             <span id="cart-modal-final-total" class="price-text">0 USD</span>
           </div>
+          <p id="cart-local-charge-note" class="local-charge-note" hidden>You’ll be charged in USD. Local amounts are approximate.</p>
           <button class="btn-primary" type="button" data-cart-close>
             Continue shopping
           </button>
@@ -4020,11 +4053,14 @@
               item.size && item.size !== "SELECT SIZE" ? `Size: ${item.size}` : "",
             ].filter(Boolean).join(" · ");
             const metaLabel = details ? ` · ${details}` : "";
-            return `<div class="flex justify-between border-b border-dashed border-[#d6c8b4] pb-2 text-sm">
-                    <div class="flex flex-wrap items-center gap-2">
+            const usdAmount = Number(item.price || 0);
+            const usdLabel = formatMoney(usdAmount);
+            const localLabel = formatLocalFromUsd(usdAmount);
+            return `<div class="flex justify-between gap-3 border-b border-dashed border-[#d6c8b4] pb-2 text-sm">
+                    <div class="flex flex-wrap items-center gap-2 min-w-0">
                       <span class="capitalize font-medium">${escapeReceiptHtml(item.name)}${escapeReceiptHtml(qtyLabel)}${escapeReceiptHtml(metaLabel)}</span>
                     </div>
-                    <span class="font-semibold price-text">${escapeReceiptHtml(item.price)} USD</span>
+                    <span class="font-semibold price-text">${moneyStackHtml(usdLabel, localLabel)}</span>
                 </div>`;
           })
           .join("");
@@ -4037,9 +4073,7 @@
         if (cart.length === 0) {
           cartModalItems.innerHTML =
             '<p class="cart-empty">Your cart is empty.</p>';
-          if (cartModalSubtotal) {
-            cartModalSubtotal.textContent = "0 USD";
-          }
+          setMoneyElement(cartModalSubtotal, 0);
           return;
         }
         cartModalItems.innerHTML = cart
@@ -4050,18 +4084,19 @@
               item.size && item.size !== "SELECT SIZE" ? item.size : "",
             ].filter(Boolean).join(" / ");
             const metaLabel = details ? ` · ${details}` : "";
+            const usdAmount = Number(item.price || 0);
+            const usdLabel = formatMoney(usdAmount);
+            const localLabel = formatLocalFromUsd(usdAmount);
             return `<div class="cart-item">
                   <div>
                     <div class="cart-item-name capitalize">${escapeReceiptHtml(item.name)}${escapeReceiptHtml(qtyLabel)}${escapeReceiptHtml(metaLabel)}</div>
-                    <div class="cart-item-price price-text">${escapeReceiptHtml(item.price)} USD</div>
+                    <div class="cart-item-price price-text">${moneyStackHtml(usdLabel, localLabel)}</div>
                   </div>
                   <button class="cart-remove" data-index="${index}">Remove</button>
                 </div>`;
           })
           .join("");
-        if (cartModalSubtotal) {
-          cartModalSubtotal.textContent = `${subtotal} USD`;
-        }
+        setMoneyElement(cartModalSubtotal, subtotal);
         cartModalItems.querySelectorAll(".cart-remove").forEach((button) => {
           button.addEventListener("click", (event) => {
             event.stopPropagation();
@@ -4268,6 +4303,44 @@
         if (timezones[zone]) return timezones[zone];
         try { return new Intl.Locale(navigator.language).region || "US"; } catch (error) { return "US"; }
       }
+      function hasLocalCurrencyDisplay() {
+        const pref = localPricePreference;
+        const rate = Number(pref?.rate);
+        return Boolean(pref && pref.currency && pref.currency !== "USD" && Number.isFinite(rate) && rate > 0);
+      }
+      function formatLocalFromUsd(usdAmount) {
+        if (!hasLocalCurrencyDisplay()) return "";
+        const pref = localPricePreference;
+        const rate = Number(pref.rate);
+        const fractionDigits = pref.currency === "JPY" || pref.currency === "KRW" || pref.currency === "IDR" ? 0 : 2;
+        return new Intl.NumberFormat(undefined, {
+          style: "currency",
+          currency: pref.currency,
+          maximumFractionDigits: fractionDigits,
+        }).format(Number(usdAmount || 0) * rate);
+      }
+      function moneyStackHtml(usdLabel, localLabel = "") {
+        if (!localLabel) return escapeReceiptHtml(usdLabel);
+        return `<span class="money-stack"><span class="money-usd">${escapeReceiptHtml(usdLabel)}</span><span class="money-local">≈ ${escapeReceiptHtml(localLabel)}</span></span>`;
+      }
+      function setMoneyElement(element, usdAmount, { free = false, negative = false } = {}) {
+        if (!element) return;
+        if (free) {
+          element.innerHTML = moneyStackHtml("FREE");
+          return;
+        }
+        const usdLabel = `${negative ? "-" : ""}${formatMoney(Number(usdAmount || 0))}`;
+        const localRaw = formatLocalFromUsd(usdAmount);
+        const localLabel = localRaw ? `${negative ? "-" : ""}${localRaw}` : "";
+        element.innerHTML = moneyStackHtml(usdLabel, localLabel);
+      }
+      function refreshLocalChargeNotes() {
+        const show = hasLocalCurrencyDisplay();
+        ["local-charge-note", "cart-local-charge-note"].forEach((id) => {
+          const note = document.getElementById(id);
+          if (note) note.hidden = !show;
+        });
+      }
       function renderLocalPrices() {
         const pref = localPricePreference;
         const rate = Number(pref?.rate);
@@ -4296,29 +4369,35 @@
             }
             return;
           }
-          const fractionDigits = pref.currency === "JPY" || pref.currency === "KRW" || pref.currency === "IDR" ? 0 : 2;
-          const formatLocal = (amount) =>
-            new Intl.NumberFormat(undefined, {
-              style: "currency",
-              currency: pref.currency,
-              maximumFractionDigits: fractionDigits,
-            }).format(amount * rate);
-          if (current) current.textContent = formatLocal(price);
+          // Keep USD as the primary price (what Square charges); show local approx under it.
+          if (current) current.textContent = String(price);
           if (original) {
             if (originalPrice > price) {
-              original.textContent = formatLocal(originalPrice);
+              original.textContent = String(originalPrice);
               original.style.display = "";
             } else {
               original.style.display = "none";
             }
           }
-          if (currency) currency.textContent = "";
+          if (currency) currency.textContent = "USD";
           if (reference) {
             reference.hidden = false;
-            reference.textContent = `≈ $${price.toFixed(2)} USD`;
+            const localNow = formatLocalFromUsd(price);
+            const localWas = originalPrice > price ? formatLocalFromUsd(originalPrice) : "";
+            reference.textContent = localWas
+              ? `≈ ${localNow} · was ${localWas}`
+              : `≈ ${localNow}`;
           }
           card.classList.add("local-price-active");
         });
+        refreshLocalChargeNotes();
+        renderCartSummary();
+        renderCartModal();
+        if (preparedQuote) {
+          displayVerifiedQuote(preparedQuote);
+        } else {
+          updateCalculations();
+        }
       }
       async function fetchLiveRate(currency) {
         // Prefer our Netlify function (works on deploy / netlify dev)
@@ -4396,7 +4475,9 @@
       try { localPricePreference = JSON.parse(localStorage.getItem(LOCAL_PRICE_PREFERENCE_KEY) || "null"); } catch (error) {}
       if (priceCountrySelect) {
         priceCountrySelect.innerHTML = ["US", ...SHIPPING_COUNTRY_CODES.filter((code) => code !== "US")].map((code) => `<option value="${code}">${countryName(code)}</option>`).join("");
-        priceCountrySelect.value = localPricePreference?.country || guessedCountry() || "US";
+        // Keep the first/default choice predictable: customers can manually
+        // select another country, but a fresh visitor starts on USA / USD.
+        priceCountrySelect.value = localPricePreference?.country || "US";
       }
       if (localPricePreference?.currency) {
         if (priceCountrySelect && localPricePreference.country) {
@@ -4443,12 +4524,9 @@
       function updateCalculations() {
         const totals = getClientTotals();
 
-        const displaySubtotal = document.getElementById("display-subtotal");
-        if (displaySubtotal) {
-          displaySubtotal.innerText = centsToMoney(totals.subtotalCents);
-        }
+        setMoneyElement(document.getElementById("display-subtotal"), totals.subtotalCents / 100);
         if (discountValue) {
-          discountValue.innerText = `-${centsToMoney(totals.promoDiscountCents)}`;
+          setMoneyElement(discountValue, totals.promoDiscountCents / 100, { negative: true });
         }
         if (discountRow) {
           if (promoApplied && totals.promoDiscountCents > 0) {
@@ -4457,10 +4535,11 @@
             discountRow.classList.add("hidden-section");
           }
         }
-        const displayDelivery = document.getElementById("display-delivery");
-        if (displayDelivery) {
-          displayDelivery.innerText = totals.shippingFeeWaived ? "FREE" : centsToMoney(totals.shippingFeeCents);
-        }
+        setMoneyElement(
+          document.getElementById("display-delivery"),
+          totals.shippingFeeCents / 100,
+          { free: totals.shippingFeeWaived },
+        );
         const freeShippingMessage = document.getElementById("checkout-free-shipping");
         if (freeShippingMessage) {
           const remaining = Math.max(0, totals.freeShippingThresholdCents - totals.subtotalCents);
@@ -4468,21 +4547,11 @@
             ? "You unlocked free shipping on this order."
             : `Spend ${centsToMoney(remaining)} more on products to get free shipping.`;
         }
-        const displayTotal = document.getElementById("display-total");
-        if (displayTotal) {
-          displayTotal.innerText = centsToMoney(totals.totalAfterDiscountCents);
-        }
-        const finalTotalEl = document.getElementById("display-final-total");
-        if (finalTotalEl) {
-          finalTotalEl.innerText = centsToMoney(totals.finalTotalCents);
-        }
+        setMoneyElement(document.getElementById("display-total"), totals.totalAfterDiscountCents / 100);
+        setMoneyElement(document.getElementById("display-final-total"), totals.finalTotalCents / 100);
 
-        if (cartModalSubtotal) {
-          cartModalSubtotal.textContent = centsToMoney(totals.subtotalCents);
-        }
-        if (cartModalDiscount) {
-          cartModalDiscount.textContent = `-${centsToMoney(totals.promoDiscountCents)}`;
-        }
+        setMoneyElement(cartModalSubtotal, totals.subtotalCents / 100);
+        setMoneyElement(cartModalDiscount, totals.promoDiscountCents / 100, { negative: true });
         if (cartModalDiscountRow) {
           if (promoApplied && totals.promoDiscountCents > 0) {
             cartModalDiscountRow.classList.remove("hidden-section");
@@ -4490,38 +4559,32 @@
             cartModalDiscountRow.classList.add("hidden-section");
           }
         }
-        if (cartModalDelivery) {
-          cartModalDelivery.textContent = totals.shippingFeeWaived ? "FREE" : centsToMoney(totals.shippingFeeCents);
-        }
-        if (cartModalTotal) {
-          cartModalTotal.textContent = centsToMoney(totals.totalAfterDiscountCents);
-        }
-        if (cartModalFinalTotal) {
-          cartModalFinalTotal.textContent = centsToMoney(totals.finalTotalCents);
-        }
+        setMoneyElement(cartModalDelivery, totals.shippingFeeCents / 100, { free: totals.shippingFeeWaived });
+        setMoneyElement(cartModalTotal, totals.totalAfterDiscountCents / 100);
+        setMoneyElement(cartModalFinalTotal, totals.finalTotalCents / 100);
+        refreshLocalChargeNotes();
       }
 
       function displayVerifiedQuote(quote) {
-        const values = {
-          "display-subtotal": quote.subtotalCents,
-          "display-discount": quote.discountCents,
-          "display-delivery": quote.shippingFeeCents,
-          "display-total": quote.subtotalCents - quote.discountCents,
-          "display-final-total": quote.totalCents,
-        };
-        Object.entries(values).forEach(([id, cents]) => {
-          const element = document.getElementById(id);
-          if (!element) return;
-          element.textContent = id === "display-discount"
-            ? `-${centsToMoney(cents)}`
-            : (id === "display-delivery" && quote.shippingFeeWaived ? "FREE" : centsToMoney(cents));
-        });
+        setMoneyElement(document.getElementById("display-subtotal"), quote.subtotalCents / 100);
+        setMoneyElement(document.getElementById("display-discount"), quote.discountCents / 100, { negative: true });
+        setMoneyElement(
+          document.getElementById("display-delivery"),
+          quote.shippingFeeCents / 100,
+          { free: quote.shippingFeeWaived },
+        );
+        setMoneyElement(
+          document.getElementById("display-total"),
+          (quote.subtotalCents - quote.discountCents) / 100,
+        );
+        setMoneyElement(document.getElementById("display-final-total"), quote.totalCents / 100);
         const freeShippingMessage = document.getElementById("checkout-free-shipping");
         if (freeShippingMessage) {
           freeShippingMessage.textContent = quote.shippingFeeWaived
             ? "You unlocked free shipping on this order."
             : `Spend ${centsToMoney(Math.max(0, quote.freeShippingThresholdCents - quote.subtotalCents))} more on products to get free shipping.`;
         }
+        refreshLocalChargeNotes();
       }
 
       async function applyPromo() {

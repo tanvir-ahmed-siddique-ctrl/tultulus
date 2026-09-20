@@ -525,6 +525,16 @@
         color: var(--muted);
         text-transform: uppercase;
       }
+      .pd-local-price {
+        margin: 6px 0 0;
+        font: 600 12px/1.45 "Inter", sans-serif;
+        letter-spacing: 0.02em;
+        color: rgba(255, 255, 255, 0.68);
+        text-transform: none;
+      }
+      .pd-local-price[hidden] {
+        display: none !important;
+      }
 
       .pd-field-label {
         display: block;
@@ -1143,6 +1153,7 @@
             <span id="pd-price" class="price-current"></span>
             <span id="pd-badge" class="price-badge"></span>
           </div>
+          <p id="pd-local-price" class="pd-local-price" hidden></p>
           <p id="pd-unit" class="pd-unit"></p>
 
           <div class="pd-block" id="pd-size-block">

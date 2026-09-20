@@ -20,6 +20,7 @@ const els = {
   offer: document.getElementById("pd-offer"),
   price: document.getElementById("pd-price"),
   badge: document.getElementById("pd-badge"),
+  localPrice: document.getElementById("pd-local-price"),
   unit: document.getElementById("pd-unit"),
   sizeBlock: document.getElementById("pd-size-block"),
   sizeOptions: document.getElementById("pd-size-options"),
@@ -279,11 +280,45 @@ function addToCart(productId, name, price, qty, size, color) {
   showToast("Added successfully");
 }
 
+function getLocalPricePreference() {
+  try {
+    return JSON.parse(localStorage.getItem("tultulus_local_price_v1") || "null");
+  } catch {
+    return null;
+  }
+}
+
+function formatLocalFromUsd(usdAmount) {
+  const pref = getLocalPricePreference();
+  const rate = Number(pref?.rate);
+  if (!pref || pref.currency === "USD" || !Number.isFinite(rate) || rate <= 0) return "";
+  const fractionDigits = pref.currency === "JPY" || pref.currency === "KRW" || pref.currency === "IDR" ? 0 : 2;
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: pref.currency,
+    maximumFractionDigits: fractionDigits,
+  }).format(Number(usdAmount || 0) * rate);
+}
+
 function updateTotals() {
   const total = unitPrice * quantity;
   if (els.price) els.price.textContent = String(total);
   if (els.unit) els.unit.textContent = `Unit: USD ${unitPrice}`;
   if (els.qtyValue) els.qtyValue.textContent = String(quantity);
+  if (els.localPrice) {
+    const localTotal = formatLocalFromUsd(total);
+    const localUnit = formatLocalFromUsd(unitPrice);
+    if (localTotal) {
+      els.localPrice.hidden = false;
+      els.localPrice.textContent =
+        quantity > 1 && localUnit
+          ? `≈ ${localTotal} · ${localUnit} each · charged in USD`
+          : `≈ ${localTotal} · charged in USD`;
+    } else {
+      els.localPrice.hidden = true;
+      els.localPrice.textContent = "";
+    }
+  }
 }
 
 function updateSlider() {
