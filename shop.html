@@ -1807,10 +1807,56 @@
       .promo-message {
         font-size: 12px;
         font-weight: 600;
+        min-height: 1.2em;
       }
       .promo-message.is-success {
         font-size: 13px;
         font-weight: 700;
+        color: #1f7a3f !important;
+      }
+      .promo-message.is-error {
+        color: #b42318 !important;
+      }
+      .promo-box {
+        display: grid;
+        gap: 10px;
+        padding-top: 4px;
+      }
+      .promo-box .form-label {
+        margin: 0;
+      }
+      .promo-row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+      }
+      .promo-row .form-input {
+        flex: 1;
+        min-width: 0;
+      }
+      .promo-apply-btn {
+        flex: 0 0 auto;
+        min-width: 88px;
+        padding: 0 14px;
+        border: 1px solid #241f19;
+        border-radius: 10px;
+        background: #241f19;
+        color: #fff;
+        font: 700 11px/1 "Inter", sans-serif;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .promo-apply-btn:hover:not(:disabled) {
+        background: #9c3b2e;
+        border-color: #9c3b2e;
+      }
+      .promo-apply-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .checkout-surface .promo-apply-btn {
+        color: #fff !important;
       }
 
       /* Footer */
@@ -2028,21 +2074,265 @@
         background: #ffffff !important;
         border: 1px solid rgba(31, 31, 31, 0.12) !important;
         box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+        color: #241f19 !important;
       }
-      .checkout-surface h2, .checkout-surface h3, .checkout-surface span,
-      .checkout-surface label, .checkout-surface p { color: #241f19 !important; }
-      .checkout-surface .price-text, .checkout-surface .price-current,
-      .checkout-surface .price-currency { color: #9c6e20 !important; }
-      .checkout-surface .form-input, .checkout-surface .select-field {
-        background: #fff !important; border-color: rgba(31, 31, 31, 0.2) !important;
-        color: #241f19 !important; box-shadow: none;
+      .checkout-surface h2,
+      .checkout-surface h3,
+      .checkout-surface label,
+      .checkout-surface p,
+      .checkout-surface span,
+      .checkout-surface div,
+      .checkout-surface strong,
+      .checkout-surface .form-label {
+        color: #241f19 !important;
       }
-      .checkout-surface .square-payment-card, .checkout-surface .terms-box {
-        background: #faf9f7; border-color: rgba(31, 31, 31, 0.13);
+      .checkout-surface .price-text,
+      .checkout-surface .price-current,
+      .checkout-surface .price-currency {
+        color: #9c6e20 !important;
       }
-      .checkout-surface .card-brands, .checkout-surface .secure-payment-note,
-      .checkout-surface .terms-copy { color: #61584d !important; }
-      .checkout-legal-link { color: #3d2f16 !important; font-weight: 800; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+      .checkout-surface .form-input,
+      .checkout-surface .select-field {
+        background: #fff !important;
+        border-color: rgba(31, 31, 31, 0.2) !important;
+        color: #241f19 !important;
+        box-shadow: none;
+      }
+      .checkout-surface .square-payment-card,
+      .checkout-surface .terms-box {
+        background: #faf9f7;
+        border-color: rgba(31, 31, 31, 0.13);
+      }
+      .checkout-surface .card-brands,
+      .checkout-surface .secure-payment-note,
+      .checkout-surface .terms-copy,
+      .checkout-surface .ach-payment-note {
+        color: #61584d !important;
+      }
+      .checkout-surface .card-brands > span {
+        color: #241f19 !important;
+      }
+      .checkout-surface .border-white\/20,
+      .checkout-surface .border-dashed {
+        border-color: rgba(36, 31, 25, 0.18) !important;
+      }
+      .checkout-surface .text-white {
+        color: #241f19 !important;
+      }
+      .checkout-legal-link {
+        color: #3d2f16 !important;
+        font-weight: 600;
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+      }
+      /* Keep Google Pay / Apple Pay brand colors intact */
+      #google-pay-button,
+      #google-pay-button *,
+      #apple-pay-button {
+        color: inherit !important;
+      }
+      #google-pay-button .gpay-fallback,
+      #google-pay-button .gpay-fallback span {
+        color: #241f19 !important;
+      }
+      .card-brand-logos,
+      .pay-accordion-logos {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 6px;
+        flex: 0 1 auto;
+        max-width: min(58%, 280px);
+        overflow: visible;
+      }
+      .card-brand-logos .card-logo,
+      .pay-accordion-logos .card-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 34px;
+        min-width: 48px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(31, 31, 31, 0.12);
+        background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        flex: 0 0 auto;
+      }
+      .card-brand-logos .card-logo img,
+      .pay-accordion-logos .card-logo img {
+        display: block;
+        height: 22px;
+        width: auto;
+        max-width: 54px;
+        object-fit: contain;
+      }
+      .pay-accordion-logos .card-logo.wallet-mark {
+        background: #fff;
+        height: 34px;
+        min-width: 56px;
+        padding: 5px 10px;
+      }
+      .pay-accordion-logos .card-logo.wallet-mark img {
+        height: 20px;
+        max-width: 56px;
+      }
+      .pay-accepted-logos {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .pay-accepted-logos .card-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 40px;
+        min-width: 58px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(31, 31, 31, 0.12);
+        background: #fff;
+      }
+      .pay-accepted-logos .card-logo img {
+        display: block;
+        height: 26px;
+        width: auto;
+        max-width: 64px;
+        object-fit: contain;
+      }
+      .card-brands-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .payment-accordion {
+        display: grid;
+        gap: 10px;
+      }
+      .pay-accordion-item {
+        border: 1px solid rgba(31, 31, 31, 0.13);
+        border-radius: 14px;
+        background: #faf9f7;
+        overflow: visible;
+        transition: border-color .2s ease, box-shadow .2s ease;
+      }
+      .pay-accordion-item.is-open {
+        border-color: rgba(36, 31, 25, 0.28);
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+        background: #fff;
+      }
+      .pay-accordion-trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        color: #241f19;
+      }
+      .pay-accordion-trigger:hover {
+        background: rgba(36, 31, 25, 0.03);
+      }
+      .pay-select-box {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        border: 1.5px solid rgba(36, 31, 25, 0.35);
+        border-radius: 4px;
+        background: #fff;
+        position: relative;
+        transition: border-color .15s ease, background .15s ease;
+      }
+      .pay-accordion-item.is-open .pay-select-box {
+        border-color: #241f19;
+        background: #241f19;
+      }
+      .pay-accordion-item.is-open .pay-select-box::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 5px;
+        height: 9px;
+        border: solid #fff;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+      }
+      .pay-accordion-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 1 1 auto;
+        min-width: 0;
+        font: 700 13px/1.3 "Inter", sans-serif;
+        letter-spacing: 0.02em;
+        color: #241f19 !important;
+      }
+      .pay-accordion-chevron {
+        flex: 0 0 auto;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(31, 31, 31, 0.16);
+        position: relative;
+      }
+      .pay-accordion-chevron::before {
+        content: "";
+        position: absolute;
+        inset: 5px 4px 6px;
+        border-right: 1.5px solid #241f19;
+        border-bottom: 1.5px solid #241f19;
+        transform: rotate(45deg);
+        transition: transform .2s ease;
+      }
+      .pay-accordion-item.is-open .pay-accordion-chevron::before {
+        transform: rotate(225deg);
+        inset: 6px 4px 5px;
+      }
+      .pay-accordion-panel {
+        display: none;
+        padding: 0 16px 16px;
+        gap: 12px;
+      }
+      .pay-accordion-item.is-open .pay-accordion-panel {
+        display: grid;
+      }
+      .pay-helper {
+        margin: 0;
+        font: 500 11px/1.45 "Inter", sans-serif !important;
+        color: #7a7166 !important;
+        letter-spacing: 0.01em;
+      }
+      .pay-action-btn {
+        min-height: 50px;
+        width: 100%;
+        border: 0;
+        border-radius: 11px;
+        background: #241f19;
+        color: #fff !important;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font: 700 13px/1.2 "Inter", sans-serif;
+        letter-spacing: 0.03em;
+        transition: transform .15s ease, opacity .15s ease, background .15s ease;
+      }
+      .pay-action-btn:hover:not(:disabled) {
+        background: #3a3229;
+      }
+      .pay-action-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
       .free-shipping-banner {
         border: 1px solid #d8bd76; background: #fff9e8; border-radius: 12px;
         color: #5f4714 !important; padding: 11px 13px;
@@ -2056,18 +2346,154 @@
         font: 700 12px/1.4 "Inter", sans-serif; letter-spacing: 0.04em; text-align: center;
       }
       .wallet-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-      .wallet-method { min-height: 48px; }
-      .wallet-method:empty { display: none; }
-      .wallet-divider {
-        display: flex; align-items: center; gap: 10px; color: #85796b !important;
-        font: 700 10px/1 "Inter", sans-serif; letter-spacing: 0.14em; text-transform: uppercase;
+      .wallet-method { min-height: 48px; width: 100%; }
+      .wallet-method-slot { display: grid; min-width: 0; align-items: stretch; }
+      .wallet-method-slot[hidden] { display: none !important; }
+      .wallet-unavailable {
+        min-height: 48px; display: none; align-items: center; justify-content: center;
+        border: 1px dashed rgba(31,31,31,.22); border-radius: 8px; background: #f7f4ef;
+        color: #61584d !important; text-align: center; padding: 8px 10px;
+        font: 600 11px/1.35 "Inter", sans-serif;
       }
-      .wallet-divider::before, .wallet-divider::after { content: ""; height: 1px; flex: 1; background: rgba(31, 31, 31, 0.14); }
+      .wallet-unavailable.is-visible { display: flex; }
+      .ach-payment-card.is-unavailable { opacity: 0.92; }
+      .ach-payment-button {
+        min-height: 50px; width: 100%; border: 1px solid #241f19; border-radius: 11px;
+        background: #fff; color: #241f19 !important; cursor: pointer;
+        font: 700 13px/1.25 "Inter", sans-serif; letter-spacing: 0.025em;
+        transition: background .2s ease, color .2s ease, opacity .2s ease;
+      }
+      .ach-payment-button:hover:not(:disabled) { background: #241f19; color: #fff !important; }
+      .ach-payment-button:disabled { cursor: not-allowed; opacity: .55; }
+      .ach-payment-note,
+      .checkout-surface .ach-payment-note,
+      .checkout-surface .secure-payment-note {
+        margin: 0;
+        font: 500 11px/1.45 "Inter", sans-serif !important;
+        color: #7a7166 !important;
+      }
+      .local-price-reference {
+        margin: 0;
+        font: 600 10px/1.4 "Inter", sans-serif;
+        letter-spacing: 0.04em;
+        color: rgba(255, 255, 255, 0.55) !important;
+      }
+      .local-price-reference:empty { display: none; }
+      .product-card.local-price-active .price-current {
+        font-size: 0.95em;
+      }
+      /* Custom Apple Pay / Google Pay logo buttons (no text label) */
       #apple-pay-button {
-        width: 100%; min-height: 48px; border: 0; border-radius: 8px; background: #000;
-        color: #fff !important; cursor: pointer; font: 600 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        min-height: 52px;
+        height: 52px;
+        border: 1px solid rgba(31, 31, 31, 0.14);
+        border-radius: 10px;
+        background: #fff;
+        color: transparent !important;
+        font-size: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background-image: url("photos/icons8-apple-pay-96.png");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: auto 28px;
       }
-      @media (max-width: 540px) { .wallet-methods { grid-template-columns: 1fr; } }
+      #apple-pay-button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      #apple-pay-button::before,
+      #apple-pay-button::after {
+        content: none !important;
+        display: none !important;
+      }
+      #google-pay-button {
+        min-height: 52px;
+        height: 52px;
+        width: 100%;
+        display: block;
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        background: #fff;
+        border: 1px solid rgba(31, 31, 31, 0.14);
+      }
+      /* Do not let checkout color overrides bleach Google Pay's branded button */
+      #google-pay-button,
+      #google-pay-button * {
+        color: inherit !important;
+      }
+      #google-pay-button > div,
+      #google-pay-button > button,
+      #google-pay-button iframe {
+        width: 100% !important;
+        min-height: 52px !important;
+        height: 52px !important;
+      }
+      .gpay-fallback {
+        width: 100%;
+        min-height: 52px;
+        height: 52px;
+        border: 0;
+        border-radius: 10px;
+        background: #fff;
+        color: #241f19 !important;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 16px;
+      }
+      .gpay-fallback .gpay-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: auto;
+        padding: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+      .gpay-fallback .gpay-mark img {
+        display: block;
+        height: 28px;
+        width: auto;
+        max-width: 120px;
+        object-fit: contain;
+      }
+      #google-pay-button .gpay-fallback,
+      #google-pay-button .gpay-fallback span {
+        color: #241f19 !important;
+      }
+      #google-pay-sdk-host {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      @media (max-width: 540px) {
+        .wallet-methods { grid-template-columns: 1fr; }
+        .pay-accordion-logos {
+          max-width: 46%;
+          gap: 4px;
+        }
+        .pay-accordion-logos .card-logo {
+          height: 30px;
+          min-width: 40px;
+          padding: 3px 5px;
+        }
+        .pay-accordion-logos .card-logo img {
+          height: 18px;
+          max-width: 44px;
+        }
+      }
       .square-payment-card .card-brands {
         display: flex;
         align-items: center;
@@ -2100,9 +2526,19 @@
         background: rgba(146, 64, 14, 0.2);
         border: 1px solid rgba(251, 191, 36, 0.3);
       }
+      .checkout-surface .payment-status.is-error {
+        color: #991b1b !important;
+        background: #fef2f2;
+        border-color: #fecaca;
+      }
+      .checkout-surface .payment-status.is-info {
+        color: #92400e !important;
+        background: #fffbeb;
+        border-color: #fde68a;
+      }
       .secure-payment-note {
         margin: 0;
-        font: 12px/1.6 "Inter", sans-serif;
+        font: 500 11px/1.45 "Inter", sans-serif;
         color: rgba(255,255,255,0.62);
       }
       .square-receipt-link {
@@ -2114,22 +2550,25 @@
       }
       .terms-box {
         border: 1px solid var(--card-border);
-        border-radius: 16px;
-        padding: 16px 18px;
+        border-radius: 14px;
+        padding: 14px 16px;
         background: rgba(20, 20, 20, 0.45);
         display: grid;
-        gap: 10px;
+        gap: 8px;
+        margin-top: 4px;
       }
       .terms-box h3 {
-        font-size: 12px;
-        letter-spacing: 0.16em;
+        font-size: 11px;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
         margin: 0;
+        font-weight: 700;
+        color: #5c5348 !important;
       }
       .terms-copy {
         font-family: "Inter", sans-serif !important;
-        font-size: 13px !important;
-        line-height: 1.65 !important;
+        font-size: 12px !important;
+        line-height: 1.5 !important;
         color: rgba(255,255,255,0.82) !important;
         text-transform: none !important;
         letter-spacing: 0.01em !important;
@@ -2145,8 +2584,33 @@
       .terms-copy p:last-child {
         margin-bottom: 0;
       }
+      .terms-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 0;
+        cursor: pointer;
+        font: 500 12px/1.45 "Inter", sans-serif !important;
+        color: #5c5348 !important;
+        letter-spacing: 0.01em !important;
+        text-transform: none !important;
+      }
+      .terms-row span {
+        font: 500 12px/1.45 "Inter", sans-serif !important;
+        color: #5c5348 !important;
+        letter-spacing: 0.01em !important;
+        text-transform: none !important;
+      }
+      .checkout-surface .terms-box h3,
+      .checkout-surface .terms-row,
+      .checkout-surface .terms-row span {
+        color: #5c5348 !important;
+      }
       .terms-row input {
-        margin-top: 3px;
+        margin-top: 2px;
+        flex: 0 0 auto;
+        width: 15px;
+        height: 15px;
       }
       .order-complete-page {
         max-width: 720px;
@@ -2624,9 +3088,9 @@
   <body id="top" class="text-white">
     <div id="country-price-modal" class="country-price-modal" hidden role="dialog" aria-modal="true" aria-labelledby="country-price-title">
       <div class="country-price-dialog">
-        <p class="form-label">International pricing</p>
+        <p class="form-label">Your location</p>
         <h2 id="country-price-title">Where are you shopping from?</h2>
-        <p>Choose your country to view estimated prices in your local currency.</p>
+        <p>We’ll show estimated prices in your local currency.</p>
         <select id="country-price-select" class="select-field" aria-label="Choose your country"></select>
         <button id="country-price-confirm" type="button" class="btn-primary w-full justify-center mt-5">Continue</button>
         <button id="country-price-usd" type="button" class="btn-outline w-full justify-center mt-3">Continue in USD</button>
@@ -2739,9 +3203,20 @@
             var featGrid = document.querySelector("#featured-products .product-grid");
             var allGrid = document.querySelector("#all-categories .product-grid");
             var hotGrid = document.querySelector("#top-rated .product-grid");
+
+            function esc(value) {
+              return String(value == null ? "" : value)
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+            function safeImageUrl(value) {
+              var url = String(value || "").trim();
+              if (/^https:\/\//i.test(url) || /^photos\/[a-z0-9._/-]+$/i.test(url)) return url;
+              return "photos/any.jpeg";
+            }
             
             function optUrl(u, w) {
-              if (!u || typeof u !== "string") return "photos/any.jpeg";
+              u = safeImageUrl(u);
               if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
                 if (u.indexOf("/upload/f_auto,q_auto") !== -1) return u;
                 return u.replace("/upload/", "/upload/f_auto,q_auto:eco,w_" + w + ",c_limit/");
@@ -2749,38 +3224,38 @@
               return u;
             }
             function phUrl(u) {
-              if (!u || typeof u !== "string") return "photos/any.jpeg";
+              u = safeImageUrl(u);
               if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
                 return u.replace("/upload/", "/upload/f_auto,q_5,w_48,e_blur:300,c_limit/");
               }
               return u;
             }
             function buildCard(p, priority) {
-              var rawImg = (p.images && p.images[0]) ? p.images[0] : "photos/any.jpeg";
+              var rawImg = safeImageUrl((p.images && p.images[0]) ? p.images[0] : "photos/any.jpeg");
               var optImg = optUrl(rawImg, 480);
               var phImg = phUrl(rawImg);
               var isCloudinary = rawImg.indexOf("res.cloudinary.com") !== -1;
-              var orig = p.priceOriginal || p.offer;
-              var curr = p.priceCurrent || p.price;
+              var orig = Number(p.priceOriginal || p.offer) || 0;
+              var curr = Number(p.priceCurrent || p.price) || 0;
               var rawBadge = String(p.badge || "").trim();
               var badge = p.badgeEnabled === true ? rawBadge : (rawBadge.toUpperCase() === "NEW" ? "" : rawBadge);
-              var origHtml = (orig && orig > curr) ? '<span class="price-original">' + orig + '</span>' : '';
-              var phHtml = isCloudinary ? '<img class="placeholder-img" src="' + phImg + '" alt="" aria-hidden="true" />' : '';
-              var responsiveAttrs = isCloudinary ? ' srcset="' + optUrl(rawImg, 240) + ' 240w, ' + optUrl(rawImg, 400) + ' 400w, ' + optUrl(rawImg, 640) + ' 640w" sizes="(max-width:640px) calc(50vw - 11px), (max-width:1100px) 33vw, 25vw"' : '';
-              var badgeHtml = badge ? '<span class="badge">' + badge + '</span>' : '';
+              var origHtml = (orig && orig > curr) ? '<span class="price-original">' + esc(orig) + '</span>' : '';
+              var phHtml = isCloudinary ? '<img class="placeholder-img" src="' + esc(phImg) + '" alt="" aria-hidden="true" />' : '';
+              var responsiveAttrs = isCloudinary ? ' srcset="' + esc(optUrl(rawImg, 240)) + ' 240w, ' + esc(optUrl(rawImg, 400)) + ' 400w, ' + esc(optUrl(rawImg, 640)) + ' 640w" sizes="(max-width:640px) calc(50vw - 11px), (max-width:1100px) 33vw, 25vw"' : '';
+              var badgeHtml = badge ? '<span class="badge">' + esc(badge) + '</span>' : '';
 
-              return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + (p.name || '') + '" data-id="' + p.id + '" data-usd-current="' + (curr || 0) + '" data-usd-original="' + (orig || 0) + '">' +
+              return '<article class="product-card info-card" tabindex="0" role="button" aria-label="View ' + esc(p.name || '') + '" data-id="' + esc(p.id) + '" data-usd-current="' + esc(curr || 0) + '" data-usd-original="' + esc(orig || 0) + '">' +
                 '<div class="product-image">' +
                   phHtml +
-                  '<img class="main-img" src="' + optImg + '"' + responsiveAttrs + ' alt="' + (p.name || '') + '" loading="' + (priority ? 'eager' : 'lazy') + '" fetchpriority="' + (priority ? 'high' : 'auto') + '" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
+                  '<img class="main-img" src="' + esc(optImg) + '"' + responsiveAttrs + ' alt="' + esc(p.name || '') + '" loading="' + (priority ? 'eager' : 'lazy') + '" fetchpriority="' + (priority ? 'high' : 'auto') + '" decoding="async" onload="this.style.opacity=\'1\'; this.parentElement.classList.add(\'is-loaded\'); this.parentElement.querySelector(\'.placeholder-img\')?.remove();" />' +
                   badgeHtml +
                 '</div>' +
                 '<div class="mt-4 space-y-2">' +
-                  '<h3 class="font-bold text-sm uppercase tracking-wider">' + (p.name || '') + '</h3>' +
+                  '<h3 class="font-bold text-sm uppercase tracking-wider">' + esc(p.name || '') + '</h3>' +
                   '<div class="price-display">' +
                     '<span class="price-currency">USD</span>' +
                     origHtml +
-                    '<span class="price-current">' + (curr || 0) + '</span>' +
+                    '<span class="price-current">' + esc(curr || 0) + '</span>' +
                   '</div>' +
                   '<span class="local-price-reference"></span>' +
                 '</div>' +
@@ -2861,7 +3336,7 @@
             <div class="summary-card checkout-surface p-6 space-y-4 sticky top-28">
               <h2 class="text-xl font-black uppercase tracking-widest mb-2">Order summary</h2>
               <div id="cart-display" class="space-y-3 text-sm"></div>
-              <div class="border-t border-dashed border-white/20 pt-4 space-y-2 text-sm font-semibold">
+              <div class="border-t border-dashed pt-4 space-y-2 text-sm font-semibold summary-totals">
                 <div class="flex justify-between">
                   <span>Subtotal</span>
                   <span id="display-subtotal" class="price-text">0 USD</span>
@@ -2874,11 +3349,11 @@
                   <span>Total (after promo)</span>
                   <span id="display-total" class="price-text">0 USD</span>
                 </div>
-                <div class="flex justify-between text-white">
+                <div class="flex justify-between">
                   <span>Shipping fee</span>
                   <span id="display-delivery" class="price-text">0 USD</span>
                 </div>
-                <div class="flex justify-between text-lg font-black pt-2 border-t border-dashed border-white/20 mt-2">
+                <div class="flex justify-between text-lg font-black pt-2 border-t border-dashed mt-2">
                   <span>Amount payable</span>
                   <span id="display-final-total" class="price-text">0 USD</span>
                 </div>
@@ -2974,6 +3449,23 @@
                   <label class="form-label" for="inp-notes">Order notes (optional)</label>
                   <textarea name="Order Notes" id="inp-notes" rows="3" class="form-input resize-none" placeholder="Notes about your order, e.g. special notes for delivery."></textarea>
                 </div>
+
+                <div id="promo-section" class="promo-box border-t border-dashed border-black/15 pt-4 mt-2">
+                  <label class="form-label" for="promo-code">Promo code</label>
+                  <div class="promo-row">
+                    <input
+                      type="text"
+                      id="promo-code"
+                      class="form-input"
+                      autocomplete="off"
+                      spellcheck="false"
+                      placeholder="Enter code"
+                      aria-describedby="promo-message"
+                    />
+                    <button type="button" id="promo-apply" class="promo-apply-btn">Apply</button>
+                  </div>
+                  <p id="promo-message" class="promo-message" role="status" aria-live="polite"></p>
+                </div>
               </div>
               <button type="button" onclick="goToPayment()" class="btn-primary w-full justify-center mt-8">
                 Proceed to payment <i class="fas fa-arrow-right text-xs"></i>
@@ -2987,23 +3479,83 @@
               </div>
 
               <div class="space-y-4">
-                <div class="square-payment-card" id="wallet-payment-card" hidden>
-                  <div class="card-brands"><span><i class="fas fa-wallet"></i>Fast checkout</span><span>Secure digital wallet</span></div>
-                  <div class="wallet-methods">
-                    <button type="button" id="apple-pay-button" class="wallet-method" aria-label="Pay with Apple Pay" hidden> Pay</button>
-                    <div id="google-pay-button" class="wallet-method" aria-label="Pay with Google Pay"></div>
+                <div class="payment-accordion" id="payment-accordion">
+                  <div class="pay-accordion-item is-open" data-pay-method="card">
+                    <button type="button" class="pay-accordion-trigger" aria-expanded="true" aria-controls="pay-panel-card">
+                      <span class="pay-select-box" aria-hidden="true"></span>
+                      <span class="pay-accordion-title">Pay by card</span>
+                      <span class="pay-accordion-logos" aria-hidden="true">
+                        <span class="card-logo" title="Visa"><img src="photos/visa.png" alt="" width="54" height="22" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo" title="Mastercard"><img src="photos/icons8-mastercard-100.png" alt="" width="36" height="22" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo" title="American Express"><img src="photos/american-express-credit-card-payment-method-19678_64.png" alt="" width="36" height="22" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo" title="Discover"><img src="photos/discover-icon-logo.png" alt="" width="54" height="22" loading="lazy" decoding="async" /></span>
+                      </span>
+                      <span class="pay-accordion-chevron" aria-hidden="true"></span>
+                    </button>
+                    <div class="pay-accordion-panel" id="pay-panel-card">
+                      <p class="pay-helper">Visa, Mastercard, American Express, and Discover accepted.</p>
+                      <div class="pay-accepted-logos" aria-label="Accepted cards">
+                        <span class="card-logo" title="Visa"><img src="photos/visa.png" alt="Visa" width="64" height="26" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo" title="Mastercard"><img src="photos/icons8-mastercard-100.png" alt="Mastercard" width="40" height="26" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo" title="American Express"><img src="photos/american-express-credit-card-payment-method-19678_64.png" alt="American Express" width="40" height="26" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo" title="Discover"><img src="photos/discover-icon-logo.png" alt="Discover" width="64" height="26" loading="lazy" decoding="async" /></span>
+                      </div>
+                      <div id="square-card-container" aria-label="Secure card details"></div>
+                      <p class="secure-payment-note"><i class="fas fa-lock" aria-hidden="true"></i> Encrypted, secure card payment. Your order is confirmed after authorization.</p>
+                      <button type="submit" id="final-btn" class="pay-action-btn">
+                        Confirm &amp; pay by card
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="pay-accordion-item" data-pay-method="wallet" id="wallet-payment-card">
+                    <button type="button" class="pay-accordion-trigger" aria-expanded="false" aria-controls="pay-panel-wallet">
+                      <span class="pay-select-box" aria-hidden="true"></span>
+                      <span class="pay-accordion-title">Apple Pay / Google Pay</span>
+                      <span class="pay-accordion-logos" aria-hidden="true">
+                        <span class="card-logo wallet-mark" title="Apple Pay"><img src="photos/icons8-apple-pay-96.png" alt="" width="56" height="20" loading="lazy" decoding="async" /></span>
+                        <span class="card-logo wallet-mark" title="Google Pay"><img src="photos/icons8-google-pay-24.png" alt="" width="56" height="20" loading="lazy" decoding="async" /></span>
+                      </span>
+                      <span class="pay-accordion-chevron" aria-hidden="true"></span>
+                    </button>
+                    <div class="pay-accordion-panel" id="pay-panel-wallet">
+                      <p class="pay-helper">Express checkout with Apple Pay or Google Pay where supported on your device.</p>
+                      <div class="wallet-methods">
+                        <div class="wallet-method-slot" id="apple-pay-slot">
+                          <button type="button" id="apple-pay-button" class="wallet-method" aria-label="Pay with Apple Pay"></button>
+                        </div>
+                        <div class="wallet-method-slot" id="google-pay-slot">
+                          <div id="google-pay-button" class="wallet-method" role="button" aria-label="Pay with Google Pay">
+                            <button type="button" class="gpay-fallback" aria-label="Google Pay">
+                              <span class="gpay-mark"><img src="photos/icons8-google-pay-24.png" alt="" width="120" height="28" loading="lazy" decoding="async" /></span>
+                            </button>
+                          </div>
+                          <div id="google-pay-sdk-host" aria-hidden="true"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="pay-accordion-item ach-payment-card" data-pay-method="ach" id="ach-payment-card">
+                    <button type="button" class="pay-accordion-trigger" aria-expanded="false" aria-controls="pay-panel-ach">
+                      <span class="pay-select-box" aria-hidden="true"></span>
+                      <span class="pay-accordion-title">US bank transfer</span>
+                      <span class="pay-accordion-logos" aria-hidden="true">
+                        <span class="card-logo" style="font:700 11px/1 Inter,sans-serif;color:#241f19;letter-spacing:.04em;">ACH</span>
+                      </span>
+                      <span class="pay-accordion-chevron" aria-hidden="true"></span>
+                    </button>
+                    <div class="pay-accordion-panel" id="pay-panel-ach">
+                      <p class="pay-helper ach-payment-note" id="ach-payment-note">Pay from a U.S. bank account. Transfers usually complete within 2–3 business days.</p>
+                      <button type="button" id="ach-payment-button" class="ach-payment-button" disabled>
+                        Preparing…
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div class="wallet-divider" id="wallet-divider" hidden>or pay by card</div>
-                <div class="square-payment-card">
-                  <div class="card-brands">
-                    <span><i class="fas fa-credit-card"></i>Pay by card</span>
-                    <span>Debit · Credit · Mastercard · Visa · Amex · Discover</span>
-                  </div>
-                  <div id="square-card-container" aria-label="Secure card details"></div>
-                  <p class="secure-payment-note"><i class="fas fa-lock" aria-hidden="true"></i> Encrypted, secure card payment. Your order is confirmed after authorization.</p>
-                  <div id="payment-status" class="payment-status" role="alert" aria-live="polite"></div>
-                </div>
+
+                <div id="payment-status" class="payment-status" role="alert" aria-live="polite"></div>
+
                 <div class="terms-box">
                   <h3>Terms and conditions</h3>
                   <div class="terms-copy">
@@ -3014,10 +3566,6 @@
                   </label>
                 </div>
               </div>
-
-              <button type="submit" id="final-btn" class="btn-primary w-full justify-center mt-8">
-                Confirm Order
-              </button>
             </div>
 
           </div>
@@ -3028,13 +3576,13 @@
       <div id="step-success" class="hidden-section fade-in order-complete-page">
         <div class="order-complete-card">
           <div class="order-complete-hero">
-            <div class="check-circle"><i class="fas fa-check"></i></div>
-            <h2>Thank you. Your order has been received.</h2>
-            <p>Your Square payment is complete. A confirmation email and official receipt link are provided below.</p>
+            <div class="check-circle" id="order-status-icon"><i class="fas fa-check"></i></div>
+            <h2 id="order-status-title">Thank you. Your order has been received.</h2>
+            <p id="order-status-copy">Your payment is complete. A confirmation email and official receipt link are provided below.</p>
           </div>
           <div id="order-receipt" class="order-receipt"></div>
           <div class="order-complete-actions">
-            <button onclick="location.href='shop.html'" class="btn-primary justify-center">Continue shopping</button>
+            <button type="button" onclick="continueAfterOrder()" class="btn-primary justify-center">Continue shopping</button>
           </div>
         </div>
       </div>
@@ -3241,6 +3789,8 @@
       let squareCard = null;
       let squareCardPromise = null;
       let squarePayments = null;
+      let achPayment = null;
+      let achPaymentContext = null;
       let applePay = null;
       let googlePay = null;
       let preparedQuote = null;
@@ -3472,9 +4022,9 @@
             const metaLabel = details ? ` · ${details}` : "";
             return `<div class="flex justify-between border-b border-dashed border-[#d6c8b4] pb-2 text-sm">
                     <div class="flex flex-wrap items-center gap-2">
-                      <span class="capitalize font-medium">${item.name}${qtyLabel}${metaLabel}</span>
+                      <span class="capitalize font-medium">${escapeReceiptHtml(item.name)}${escapeReceiptHtml(qtyLabel)}${escapeReceiptHtml(metaLabel)}</span>
                     </div>
-                    <span class="font-semibold price-text">${item.price} USD</span>
+                    <span class="font-semibold price-text">${escapeReceiptHtml(item.price)} USD</span>
                 </div>`;
           })
           .join("");
@@ -3502,8 +4052,8 @@
             const metaLabel = details ? ` · ${details}` : "";
             return `<div class="cart-item">
                   <div>
-                    <div class="cart-item-name capitalize">${item.name}${qtyLabel}${metaLabel}</div>
-                    <div class="cart-item-price price-text">${item.price} USD</div>
+                    <div class="cart-item-name capitalize">${escapeReceiptHtml(item.name)}${escapeReceiptHtml(qtyLabel)}${escapeReceiptHtml(metaLabel)}</div>
+                    <div class="cart-item-price price-text">${escapeReceiptHtml(item.price)} USD</div>
                   </div>
                   <button class="cart-remove" data-index="${index}">Remove</button>
                 </div>`;
@@ -3697,6 +4247,17 @@
       const priceCountryConfirm = document.getElementById("country-price-confirm");
       const priceUsdButton = document.getElementById("country-price-usd");
       let localPricePreference = null;
+      // Display fallback only. A live rate is always preferred; this prevents an
+      // unavailable rate service from making the country picker appear broken.
+      const LOCAL_PRICE_FALLBACKS = {
+        BD: ["BDT", 123.45], GB: ["GBP", 0.74], CA: ["CAD", 1.37], AU: ["AUD", 1.52],
+        IN: ["INR", 88], PK: ["PKR", 279], AE: ["AED", 3.67], SA: ["SAR", 3.75],
+        JP: ["JPY", 150], KR: ["KRW", 1390], CN: ["CNY", 7.2], MY: ["MYR", 4.2],
+        SG: ["SGD", 1.28], NZ: ["NZD", 1.66], CH: ["CHF", 0.8], SE: ["SEK", 9.2],
+        NO: ["NOK", 10.1], DK: ["DKK", 6.45], BR: ["BRL", 5.35], MX: ["MXN", 17.1],
+        ZA: ["ZAR", 17.5], TH: ["THB", 32.5], ID: ["IDR", 16400], PH: ["PHP", 58],
+        TR: ["TRY", 36], HK: ["HKD", 7.8], TW: ["TWD", 32.5], NG: ["NGN", 1550],
+      };
 
       function countryName(code) {
         try { return new Intl.DisplayNames(["en"], { type: "region" }).of(code) || code; } catch (error) { return code; }
@@ -3709,6 +4270,7 @@
       }
       function renderLocalPrices() {
         const pref = localPricePreference;
+        const rate = Number(pref?.rate);
         document.querySelectorAll(".product-card[data-usd-current]").forEach((card) => {
           const price = Number(card.dataset.usdCurrent || 0);
           const originalPrice = Number(card.dataset.usdOriginal || 0);
@@ -3716,50 +4278,145 @@
           const original = card.querySelector(".price-original");
           const currency = card.querySelector(".price-currency");
           const reference = card.querySelector(".local-price-reference");
-          if (!pref || pref.currency === "USD" || !Number.isFinite(pref.rate)) {
+          if (!pref || pref.currency === "USD" || !Number.isFinite(rate) || rate <= 0) {
             card.classList.remove("local-price-active");
             if (current) current.textContent = String(price);
-            if (original && originalPrice > price) original.textContent = String(originalPrice);
+            if (original) {
+              if (originalPrice > price) {
+                original.textContent = String(originalPrice);
+                original.style.display = "";
+              } else {
+                original.style.display = "none";
+              }
+            }
             if (currency) currency.textContent = "USD";
+            if (reference) {
+              reference.textContent = "";
+              reference.hidden = true;
+            }
             return;
           }
-          const local = new Intl.NumberFormat(undefined, { style: "currency", currency: pref.currency, maximumFractionDigits: pref.currency === "JPY" || pref.currency === "KRW" ? 0 : 2 }).format(price * pref.rate);
-          if (current) current.textContent = local;
-          if (original && originalPrice > price) original.textContent = new Intl.NumberFormat(undefined, { style: "currency", currency: pref.currency, maximumFractionDigits: pref.currency === "JPY" || pref.currency === "KRW" ? 0 : 2 }).format(originalPrice * pref.rate);
+          const fractionDigits = pref.currency === "JPY" || pref.currency === "KRW" || pref.currency === "IDR" ? 0 : 2;
+          const formatLocal = (amount) =>
+            new Intl.NumberFormat(undefined, {
+              style: "currency",
+              currency: pref.currency,
+              maximumFractionDigits: fractionDigits,
+            }).format(amount * rate);
+          if (current) current.textContent = formatLocal(price);
+          if (original) {
+            if (originalPrice > price) {
+              original.textContent = formatLocal(originalPrice);
+              original.style.display = "";
+            } else {
+              original.style.display = "none";
+            }
+          }
           if (currency) currency.textContent = "";
-          if (reference) reference.textContent = `Estimated · $${price.toFixed(2)} USD final charge`;
+          if (reference) {
+            reference.hidden = false;
+            reference.textContent = `≈ $${price.toFixed(2)} USD`;
+          }
           card.classList.add("local-price-active");
         });
       }
-      async function selectLocalCountry(country) {
-        if (country === "US") { localPricePreference = { country: "US", currency: "USD", rate: 1 }; localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference)); renderLocalPrices(); return; }
+      async function fetchLiveRate(currency) {
+        // Prefer our Netlify function (works on deploy / netlify dev)
         try {
-          const countryResponse = await fetch(`https://restcountries.com/v3.1/alpha/${encodeURIComponent(country)}?fields=currencies`);
+          const rateResponse = await fetch(
+            `/.netlify/functions/currency-rate?currency=${encodeURIComponent(currency)}`,
+            { headers: { Accept: "application/json" } },
+          );
+          const rateData = await rateResponse.json();
+          if (rateResponse.ok && Number.isFinite(Number(rateData.rate)) && Number(rateData.rate) > 0) {
+            return { rate: Number(rateData.rate), updatedAt: rateData.updatedAt };
+          }
+        } catch (error) {}
+        // Direct fallback so local file / plain static servers still convert prices
+        try {
+          const upstream = await fetch(
+            `https://api.frankfurter.dev/v2/rate/usd/${encodeURIComponent(currency.toLowerCase())}`,
+            { headers: { Accept: "application/json" } },
+          );
+          const data = await upstream.json();
+          const rate = Number(data.rate);
+          if (upstream.ok && Number.isFinite(rate) && rate > 0) {
+            return { rate, updatedAt: data.date || new Date().toISOString() };
+          }
+        } catch (error) {}
+        return null;
+      }
+      async function selectLocalCountry(country) {
+        if (country === "US") {
+          localPricePreference = { country: "US", currency: "USD", rate: 1 };
+          localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+          renderLocalPrices();
+          return;
+        }
+        const fallback = LOCAL_PRICE_FALLBACKS[country];
+        if (fallback) {
+          localPricePreference = { country, currency: fallback[0], rate: fallback[1], estimated: true };
+          localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+          renderLocalPrices();
+        }
+        try {
+          const countryResponse = await fetch(
+            `https://restcountries.com/v3.1/alpha/${encodeURIComponent(country)}?fields=currencies`,
+          );
           const countryData = await countryResponse.json();
           const record = Array.isArray(countryData) ? countryData[0] : countryData;
-          const currency = Object.keys(record?.currencies || {})[0];
+          const currency =
+            Object.keys(record?.currencies || {})[0] || (fallback ? fallback[0] : "");
           if (!/^[A-Z]{3}$/.test(currency || "")) throw new Error("Currency unavailable");
-          const rateResponse = await fetch(`/.netlify/functions/currency-rate?currency=${encodeURIComponent(currency)}`, { headers: { Accept: "application/json" } });
-          const rateData = await rateResponse.json();
-          if (!rateResponse.ok || !Number.isFinite(Number(rateData.rate))) throw new Error("Rate unavailable");
-          localPricePreference = { country, currency, rate: Number(rateData.rate), updatedAt: rateData.updatedAt };
-          localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+          const live = await fetchLiveRate(currency);
+          if (live) {
+            localPricePreference = {
+              country,
+              currency,
+              rate: live.rate,
+              updatedAt: live.updatedAt,
+            };
+            localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+          } else if (!fallback) {
+            throw new Error("Rate unavailable");
+          }
         } catch (error) {
-          localPricePreference = { country, currency: "USD", rate: 1 };
-          localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+          if (!fallback) {
+            localPricePreference = { country, currency: "USD", rate: 1 };
+            localStorage.setItem(LOCAL_PRICE_PREFERENCE_KEY, JSON.stringify(localPricePreference));
+          }
         }
         renderLocalPrices();
+        // Products may paint a moment later — re-apply conversion
+        setTimeout(renderLocalPrices, 50);
+        setTimeout(renderLocalPrices, 400);
       }
       function openCountryPriceModal() { if (priceModal) priceModal.hidden = false; }
       function closeCountryPriceModal() { if (priceModal) priceModal.hidden = true; }
+      try { localPricePreference = JSON.parse(localStorage.getItem(LOCAL_PRICE_PREFERENCE_KEY) || "null"); } catch (error) {}
       if (priceCountrySelect) {
         priceCountrySelect.innerHTML = ["US", ...SHIPPING_COUNTRY_CODES.filter((code) => code !== "US")].map((code) => `<option value="${code}">${countryName(code)}</option>`).join("");
-        priceCountrySelect.value = guessedCountry();
+        priceCountrySelect.value = localPricePreference?.country || guessedCountry() || "US";
       }
-      try { localPricePreference = JSON.parse(localStorage.getItem(LOCAL_PRICE_PREFERENCE_KEY) || "null"); } catch (error) {}
-      if (localPricePreference?.currency) renderLocalPrices();
-      else openCountryPriceModal();
-      if (priceCountryConfirm) priceCountryConfirm.addEventListener("click", async () => { priceCountryConfirm.disabled = true; await selectLocalCountry(priceCountrySelect.value); closeCountryPriceModal(); priceCountryConfirm.disabled = false; });
+      if (localPricePreference?.currency) {
+        if (priceCountrySelect && localPricePreference.country) {
+          priceCountrySelect.value = localPricePreference.country;
+        }
+        renderLocalPrices();
+        setTimeout(renderLocalPrices, 50);
+        setTimeout(renderLocalPrices, 400);
+        const shipCountry = document.getElementById("inp-country");
+        if (shipCountry && !shipCountry.value && localPricePreference.country) {
+          const code = localPricePreference.country;
+          if ([...shipCountry.options].some((opt) => opt.value === code)) {
+            shipCountry.value = code;
+            syncCountryFields();
+          }
+        }
+      } else {
+        openCountryPriceModal();
+      }
+      if (priceCountryConfirm) priceCountryConfirm.addEventListener("click", () => { selectLocalCountry(priceCountrySelect.value); closeCountryPriceModal(); });
       if (priceUsdButton) priceUsdButton.addEventListener("click", () => { selectLocalCountry("US"); closeCountryPriceModal(); });
       window.refreshLocalPriceDisplay = renderLocalPrices;
 
@@ -3874,7 +4531,7 @@
         const code = promoInput.value.trim();
         if (!code) {
           promoMessage.textContent = "Enter a promo code";
-          promoMessage.className = "promo-message text-red-600";
+          promoMessage.className = "promo-message is-error";
           return;
         }
         if (promoButton) promoButton.disabled = true;
@@ -3886,30 +4543,28 @@
           });
           const result = await response.json().catch(() => ({}));
           if (response.ok && result.valid) {
-          promoApplied = true;
-          squarePublicConfig = {
-            ...(squarePublicConfig || {}),
-            promoDiscountPercent: Number(result.discountPercent || 0),
-          };
-          promoInput.disabled = true;
-          if (promoMessage) {
-            promoMessage.textContent = `Promo applied: ${result.discountPercent}% off`;
-            promoMessage.classList.remove("text-red-600");
-            promoMessage.classList.add("text-green-600", "is-success");
-          }
-          updateCalculations();
-          return;
+            promoApplied = true;
+            squarePublicConfig = {
+              ...(squarePublicConfig || {}),
+              promoDiscountPercent: Number(result.discountPercent || 0),
+            };
+            promoInput.disabled = true;
+            if (promoMessage) {
+              promoMessage.textContent = `Promo applied: ${result.discountPercent}% off`;
+              promoMessage.className = "promo-message is-success";
+            }
+            if (promoButton) promoButton.textContent = "Applied";
+            updateCalculations();
+            return;
           }
           if (promoMessage) {
             promoMessage.textContent = "Invalid promo code";
-            promoMessage.classList.remove("text-green-600", "is-success");
-            promoMessage.classList.add("text-red-600");
+            promoMessage.className = "promo-message is-error";
           }
         } catch (error) {
           if (promoMessage) {
             promoMessage.textContent = "Could not verify promo code. Try again.";
-            promoMessage.classList.remove("text-green-600", "is-success");
-            promoMessage.classList.add("text-red-600");
+            promoMessage.className = "promo-message is-error";
           }
         } finally {
           if (promoButton && !promoApplied) promoButton.disabled = false;
@@ -4071,44 +4726,240 @@
 
       async function initializeWalletPayments(quote, billing) {
         const walletCard = document.getElementById("wallet-payment-card");
-        const divider = document.getElementById("wallet-divider");
+        const appleSlot = document.getElementById("apple-pay-slot");
+        const googleSlot = document.getElementById("google-pay-slot");
         const appleButton = document.getElementById("apple-pay-button");
         const googleTarget = document.getElementById("google-pay-button");
-        if (!walletCard || !divider || !appleButton || !googleTarget) return;
-        walletCard.hidden = true;
-        divider.hidden = true;
-        appleButton.hidden = true;
-        googleTarget.replaceChildren();
+        if (!walletCard || !appleButton || !googleTarget) return;
+
+        const gpayFallbackHtml =
+          '<button type="button" class="gpay-fallback" aria-label="Google Pay">' +
+          '<span class="gpay-mark"><img src="photos/icons8-google-pay-24.png" alt="" width="120" height="28" decoding="async" /></span>' +
+          "</button>";
+
+        function renderGooglePayButton(onClick) {
+          googleTarget.innerHTML = gpayFallbackHtml;
+          const fallback = googleTarget.querySelector("button");
+          if (fallback) fallback.onclick = onClick;
+        }
+
+        function renderGooglePayFallback(message) {
+          renderGooglePayButton(() =>
+            setPaymentStatus(message || "Google Pay is not available in this browser right now.", "error")
+          );
+        }
+
+        // Always keep express checkout visible with real brand buttons
+        walletCard.hidden = false;
+        if (googleSlot) googleSlot.hidden = false;
+        // Show branded Google Pay immediately so the logo is never blank
+        renderGooglePayFallback("Preparing Google Pay…");
+        applePay = null;
+        googlePay = null;
+
         const payments = await getSquarePayments();
         const request = buildWalletPaymentRequest(payments, quote);
-        let enabled = false;
+
+        // Apple Pay: only enable where Apple allows (Safari / eligible device)
         if (window.ApplePaySession) {
+          if (appleSlot) appleSlot.hidden = false;
           try {
             applePay = await payments.applePay(request);
-            appleButton.hidden = false;
+            appleButton.disabled = false;
             appleButton.onclick = () => payWithWallet(applePay, quote, billing);
-            enabled = true;
           } catch (error) {
             applePay = null;
+            appleButton.disabled = true;
+            appleButton.onclick = () =>
+              setPaymentStatus("Apple Pay is not available on this device.", "error");
           }
+        } else if (appleSlot) {
+          appleSlot.hidden = true;
         }
+
+        // Google Pay: keep custom logo button; attach Square host off-screen for tokenize()
         try {
           googlePay = await payments.googlePay(request);
-          await googlePay.attach("#google-pay-button", {
-            buttonColor: "black",
-            buttonType: "long",
-            buttonSizeMode: "fill",
-            buttonRadius: 8,
-          });
-          googleTarget.onclick = () => payWithWallet(googlePay, quote, billing);
-          enabled = true;
+          const sdkHost = document.getElementById("google-pay-sdk-host");
+          if (sdkHost) {
+            sdkHost.replaceChildren();
+            await googlePay.attach("#google-pay-sdk-host", {
+              buttonColor: "white",
+              buttonType: "short",
+              buttonSizeMode: "fill",
+              buttonRadius: 8,
+            });
+          }
+          renderGooglePayButton(() => payWithWallet(googlePay, quote, billing));
         } catch (error) {
           googlePay = null;
-          googleTarget.replaceChildren();
+          renderGooglePayFallback("Google Pay is not available in this browser right now.");
         }
-        walletCard.hidden = !enabled;
-        divider.hidden = !enabled;
       }
+
+      function initPaymentAccordion() {
+        const root = document.getElementById("payment-accordion");
+        if (!root || root.dataset.bound === "1") return;
+        root.dataset.bound = "1";
+        root.addEventListener("click", (event) => {
+          const trigger = event.target.closest(".pay-accordion-trigger");
+          if (!trigger || !root.contains(trigger)) return;
+          event.preventDefault();
+          const item = trigger.closest(".pay-accordion-item");
+          if (!item || item.classList.contains("is-open")) return;
+          root.querySelectorAll(".pay-accordion-item").forEach((el) => {
+            el.classList.remove("is-open");
+            const btn = el.querySelector(".pay-accordion-trigger");
+            if (btn) btn.setAttribute("aria-expanded", "false");
+          });
+          item.classList.add("is-open");
+          trigger.setAttribute("aria-expanded", "true");
+        });
+      }
+      initPaymentAccordion();
+
+      function setAchButtonBusy(isBusy, quote = achPaymentContext?.quote) {
+        const button = document.getElementById("ach-payment-button");
+        if (!button) return;
+        button.disabled = isBusy || !achPayment;
+        button.textContent = isBusy
+          ? "Connecting to your bank…"
+          : achPayment
+            ? `Pay ${centsToMoney(quote?.totalCents || getClientTotals().finalTotalCents)} with bank transfer`
+            : "Temporarily unavailable";
+      }
+
+      function setAchNote(message) {
+        const note = document.getElementById("ach-payment-note");
+        if (note) note.textContent = message;
+      }
+
+      const ACH_CUSTOMER_NOTE =
+        "Pay from a U.S. bank account. Transfers usually complete within 2–3 business days.";
+
+      async function handleAchTokenization(event) {
+        const context = achPaymentContext;
+        const tokenResult = event?.detail?.tokenResult;
+        const tokenError = event?.detail?.error;
+        if (!context) return;
+        try {
+          if (tokenError || tokenResult?.status !== "OK" || !tokenResult?.token) {
+            const detail = tokenResult?.errors?.[0]?.message || tokenError?.message;
+            throw new Error(detail || "Bank account linking was not completed.");
+          }
+          setPaymentStatus("Starting your bank transfer…", "info");
+          const response = await fetch("/.netlify/functions/create-ach-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({
+              sourceId: tokenResult.token,
+              orderId: context.quote.orderId,
+              checkoutAttemptId: context.attemptId,
+              expectedAmountCents: context.quote.totalCents,
+            }),
+          });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok || !result.success) {
+            throw new Error(result.error || "The bank transfer could not be started.");
+          }
+          if (result.payment?.status === "COMPLETED") {
+            showPaidOrder(result, context.billing);
+            return;
+          }
+          if (result.payment?.status !== "PENDING") {
+            throw new Error("The bank transfer was not accepted. Your order is not confirmed.");
+          }
+          showPendingAchOrder(result, context.billing);
+        } catch (error) {
+          if (error instanceof TypeError) {
+            const recovered = await recoverPaymentStatus(context.quote.orderId, context.attemptId);
+            if (recovered.success && recovered.payment?.status === "COMPLETED") {
+              showPaidOrder(recovered, context.billing);
+              return;
+            }
+            if (recovered.success && recovered.payment?.status === "PENDING") {
+              showPendingAchOrder(recovered, context.billing);
+              return;
+            }
+          }
+          setPaymentStatus(error.message || "Bank transfer could not be started.", "error");
+        } finally {
+          paymentInFlight = false;
+          setAchButtonBusy(false, context.quote);
+          const cardButton = document.getElementById("final-btn");
+          if (cardButton && !document.documentElement.classList.contains("order-complete")) {
+            cardButton.disabled = !squareCard;
+          }
+        }
+      }
+
+      async function initializeAchPayment(quote, billing) {
+        const card = document.getElementById("ach-payment-card");
+        const button = document.getElementById("ach-payment-button");
+        if (!card) return null;
+        card.hidden = false;
+        achPayment = null;
+        achPaymentContext = null;
+        if (button) {
+          button.disabled = true;
+          button.textContent = "Preparing…";
+        }
+        setAchNote(ACH_CUSTOMER_NOTE);
+
+        try {
+          const payments = await getSquarePayments();
+          const redirectURI = `${window.location.origin}${window.location.pathname}`;
+          if (!/^https?:\/\//.test(redirectURI) || window.location.protocol === "file:") {
+            throw new Error("unavailable");
+          }
+          const ach = await payments.ach({ redirectURI, transactionId: checkoutAttemptId });
+          ach.addEventListener("ontokenization", handleAchTokenization);
+          achPayment = ach;
+          achPaymentContext = { quote, billing, attemptId: checkoutAttemptId };
+          setAchButtonBusy(false, quote);
+          setAchNote(ACH_CUSTOMER_NOTE);
+          return ach;
+        } catch (error) {
+          achPayment = null;
+          achPaymentContext = null;
+          if (button) {
+            button.disabled = true;
+            button.textContent = "Temporarily unavailable";
+          }
+          setAchNote(ACH_CUSTOMER_NOTE);
+          throw error;
+        }
+      }
+
+      async function payWithAch() {
+        const terms = document.getElementById("inp-terms");
+        if (!terms?.checked) {
+          setPaymentStatus("Please agree to the terms and conditions before paying.", "error");
+          return;
+        }
+        if (paymentInFlight || !achPayment || !achPaymentContext) return;
+        paymentInFlight = true;
+        setAchButtonBusy(true, achPaymentContext.quote);
+        const cardButton = document.getElementById("final-btn");
+        if (cardButton) cardButton.disabled = true;
+        setPaymentStatus("Opening secure bank connection…", "info");
+        try {
+          await achPayment.tokenize({
+            accountHolderName: `${achPaymentContext.billing.first} ${achPaymentContext.billing.last}`.trim(),
+            intent: "CHARGE",
+            amount: (achPaymentContext.quote.totalCents / 100).toFixed(2),
+            currency: "USD",
+          });
+        } catch (error) {
+          paymentInFlight = false;
+          setAchButtonBusy(false, achPaymentContext.quote);
+          if (cardButton) cardButton.disabled = !squareCard;
+          setPaymentStatus(error.message || "Bank account linking was not completed.", "error");
+        }
+      }
+
+      const achPaymentButton = document.getElementById("ach-payment-button");
+      if (achPaymentButton) achPaymentButton.addEventListener("click", payWithAch);
 
       async function prepareVerifiedQuote(billing) {
         if (preparedQuote) return preparedQuote;
@@ -4175,9 +5026,6 @@
         document
           .getElementById("step-products")
           .classList.add("hidden-section");
-        if (promoSection) {
-          promoSection.classList.add("hidden-section");
-        }
         hideScrollFeaturedButton();
         showPaymentScrollButton();
         window.scrollTo(0, 0);
@@ -4194,6 +5042,13 @@
           // Wallet availability is device-specific. Load it after card entry is usable,
           // so an unavailable wallet can never delay standard card checkout.
           initializeWalletPayments(quote, billing).catch(() => {});
+          const achInitialization = initializeAchPayment(quote, billing);
+          if (new URLSearchParams(window.location.search).has("transactionId")) {
+            await achInitialization;
+          } else {
+            // Keep the ACH panel visible with an explanation if init fails (e.g. local testing)
+            achInitialization.catch(() => {});
+          }
           setPaymentStatus("", "info");
         } catch (error) {
           setPaymentStatus(error.message || "Square checkout could not be loaded.", "error");
@@ -4205,14 +5060,21 @@
       function backToShipping() {
         checkoutAttemptId = null;
         preparedQuote = null;
+        achPayment = null;
+        achPaymentContext = null;
+        const achCard = document.getElementById("ach-payment-card");
+        if (achCard) achCard.hidden = false;
+        const achButton = document.getElementById("ach-payment-button");
+        if (achButton) {
+          achButton.disabled = true;
+          achButton.textContent = "Preparing…";
+        }
+        setAchNote(ACH_CUSTOMER_NOTE);
         try { sessionStorage.removeItem(PENDING_SQUARE_PAYMENT_KEY); } catch (error) {}
         document.getElementById("step-payment").classList.add("hidden-section");
         document
           .getElementById("step-shipping")
           .classList.remove("hidden-section");
-        if (promoSection) {
-          promoSection.classList.remove("hidden-section");
-        }
         hidePaymentScrollButton();
       }
 
@@ -5165,23 +6027,27 @@
         ].filter(Boolean).map(escapeReceiptHtml).join("<br>");
         const payment = result.payment || {};
         const order = result.order || {};
-        const cardLabel = `${payment.cardBrand || "Card"}${payment.last4 ? ` ending in ${payment.last4}` : ""}`;
+        const isPending = payment.status === "PENDING";
+        const cardLabel = payment.sourceType === "BANK_ACCOUNT"
+          ? `${payment.bankName || "U.S. bank"}${payment.last4 ? ` ending in ${payment.last4}` : ""}${payment.accountType ? ` (${payment.accountType})` : ""}`
+          : `${payment.cardBrand || "Card"}${payment.last4 ? ` ending in ${payment.last4}` : ""}`;
+        const totalLabel = isPending ? "Total pending" : "Total paid";
         const receiptLink = payment.receiptUrl
           ? `<a class="square-receipt-link" href="${escapeReceiptHtml(payment.receiptUrl)}" target="_blank" rel="noopener noreferrer">View official Square receipt</a>`
           : "";
         return `
           <div class="order-meta">
             <div><span>Order ID</span><strong>${escapeReceiptHtml(order.id)}</strong></div>
-            <div><span>Square receipt</span><strong>${escapeReceiptHtml(payment.receiptNumber || "Confirmed")}</strong></div>
+            <div><span>Payment status</span><strong>${escapeReceiptHtml(payment.status || "COMPLETED")}</strong></div>
             <div><span>Date</span><strong>${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong></div>
-            <div><span>Total paid</span><strong>${centsToMoney(payment.amountMoney?.amount || order.totalMoney?.amount)}</strong></div>
+            <div><span>${totalLabel}</span><strong>${centsToMoney(payment.amountMoney?.amount || order.totalMoney?.amount)}</strong></div>
             <div><span>Payment method</span><strong>${escapeReceiptHtml(cardLabel)}</strong></div>
           </div>
           <h3>Order details</h3>
           <table>
             <thead><tr><th style="text-align:left;">Product</th><th style="text-align:right;">Total</th></tr></thead>
             <tbody>${itemsHtml}
-              <tr><td><strong>Total paid</strong></td><td style="text-align:right;"><strong>${centsToMoney(payment.amountMoney?.amount || order.totalMoney?.amount)}</strong></td></tr>
+              <tr><td><strong>${totalLabel}</strong></td><td style="text-align:right;"><strong>${centsToMoney(payment.amountMoney?.amount || order.totalMoney?.amount)}</strong></td></tr>
             </tbody>
           </table>
           <h3>Shipping address</h3>
@@ -5193,6 +6059,16 @@
       function showPaidOrder(result, billing) {
         const receiptEl = document.getElementById("order-receipt");
         if (receiptEl) receiptEl.innerHTML = buildPaidOrderReceipt(result, billing);
+        const statusIcon = document.getElementById("order-status-icon");
+        const statusTitle = document.getElementById("order-status-title");
+        const statusCopy = document.getElementById("order-status-copy");
+        if (statusIcon) {
+          statusIcon.innerHTML = '<i class="fas fa-check"></i>';
+          statusIcon.style.background = "";
+          statusIcon.style.color = "";
+        }
+        if (statusTitle) statusTitle.textContent = "Thank you. Your order has been received.";
+        if (statusCopy) statusCopy.textContent = "Your payment is complete. A confirmation email and official receipt link are provided below.";
         cart = [];
         subtotal = 0;
         saveCart();
@@ -5208,6 +6084,41 @@
         checkoutAttemptId = null;
         try { sessionStorage.removeItem(PENDING_SQUARE_PAYMENT_KEY); } catch (error) {}
         window.scrollTo({ top: 0, behavior: "instant" });
+      }
+
+      function showPendingAchOrder(result, billing) {
+        const receiptEl = document.getElementById("order-receipt");
+        if (receiptEl) receiptEl.innerHTML = buildPaidOrderReceipt(result, billing);
+        const statusIcon = document.getElementById("order-status-icon");
+        const statusTitle = document.getElementById("order-status-title");
+        const statusCopy = document.getElementById("order-status-copy");
+        if (statusIcon) {
+          statusIcon.innerHTML = '<i class="fas fa-clock"></i>';
+          statusIcon.style.background = "#fff4d6";
+          statusIcon.style.color = "#9a6700";
+        }
+        if (statusTitle) statusTitle.textContent = "Your bank transfer is pending.";
+        if (statusCopy) statusCopy.textContent = "Your order is not confirmed yet. Bank transfers usually complete within 2–3 business days; we will email you after payment is complete.";
+        cart = [];
+        subtotal = 0;
+        saveCart();
+        updateCartBadges();
+        const masterForm = document.getElementById("master-form");
+        if (masterForm) masterForm.classList.add("hidden-section");
+        const stepSuccess = document.getElementById("step-success");
+        if (stepSuccess) stepSuccess.classList.remove("hidden-section");
+        document.documentElement.classList.remove("open-checkout");
+        document.documentElement.classList.add("order-complete");
+        history.replaceState({}, "", "shop.html");
+        hidePaymentScrollButton();
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+
+      function continueAfterOrder() {
+        // The ACH payment remains safely tracked by Square and the signed webhook.
+        // Removing only this browser recovery pointer lets the buyer start a new cart.
+        try { sessionStorage.removeItem(PENDING_SQUARE_PAYMENT_KEY); } catch (error) {}
+        window.location.href = "shop.html";
       }
 
       function rememberPendingPayment(orderId, attemptId, amountCents, billing) {
@@ -5271,6 +6182,15 @@
         const recovered = await recoverPaymentStatus(pending.orderId, pending.attemptId);
         if (recovered.success && recovered.payment?.status === "COMPLETED") {
           showPaidOrder(recovered, pending.billing || {});
+          return;
+        }
+        if (recovered.success && recovered.payment?.status === "PENDING") {
+          showPendingAchOrder(recovered, pending.billing || {});
+          return;
+        }
+        const redirectAttemptId = new URLSearchParams(window.location.search).get("transactionId");
+        if (redirectAttemptId && redirectAttemptId === pending.attemptId) {
+          await goToPayment();
         }
       }
 

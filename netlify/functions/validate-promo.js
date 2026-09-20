@@ -11,7 +11,7 @@ exports.handler = async (event) => {
     const config = await getCheckoutConfig();
     const valid = Boolean(
       submittedCode
-      && submittedCode === config.promoCode
+      && submittedCode.toLowerCase() === String(config.promoCode || "").toLowerCase()
       && config.promoDiscountPercent > 0,
     );
     return jsonResponse(200, {

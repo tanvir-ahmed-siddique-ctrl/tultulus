@@ -45,9 +45,21 @@ For this brand:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /products/{productId} {
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == "YOUR_ADMIN_UID";
+    }
+
+    // Checkout reads this document server-side; only the admin can change it.
+    match /products/__checkout_settings__ {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == "YOUR_ADMIN_UID";
+      allow write: if isAdmin();
+    }
+
+    match /products/{productId} {
+      // Public visitors can read only published catalog products. The signed-in
+      // admin can also load drafts in the dashboard.
+      allow read: if !("isPublished" in resource.data) || resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
     }
   }
 }
@@ -56,7 +68,7 @@ service cloud.firestore {
 If you have two admins, use:
 
 ```js
-allow write: if request.auth != null && request.auth.uid in ["UID_1", "UID_2"];
+return request.auth != null && request.auth.uid in ["UID_1", "UID_2"];
 ```
 
 Shop loading is also improved in code: the last product list is cached in the browser so the second visit shows products immediately, then refreshes from Firebase.

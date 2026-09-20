@@ -61,6 +61,18 @@ let unitPrice = 0;
 let toastTimer = null;
 let currentProductFingerprint = "";
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function safeImageUrl(value) {
+  const url = String(value || "").trim();
+  if (/^https:\/\//i.test(url) || /^photos\/[a-z0-9._/-]+$/i.test(url)) return url;
+  return "photos/any.jpeg";
+}
+
 function toNumber(value, fallback = 0) {
   const parsed = Number.parseInt(String(value ?? "").replace(/[^\d]/g, ""), 10);
   return Number.isNaN(parsed) ? fallback : parsed;
@@ -300,7 +312,7 @@ function setSlide(index) {
 }
 
 function optimizeImageUrl(url, width = 1000) {
-  if (!url || typeof url !== "string") return "photos/any.jpeg";
+  url = safeImageUrl(url);
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
     if (url.includes("/upload/f_auto,q_auto")) return url;
     return url.replace("/upload/", `/upload/f_auto,q_auto,w_${width},c_limit/`);
@@ -368,13 +380,13 @@ function renderSizeChart(chart) {
   const validChart = (chart && Array.isArray(chart.columns) && chart.columns.length && Array.isArray(chart.rows) && chart.rows.length) ? chart : DEFAULT_SIZE_CHART;
   const columns = validChart.columns || [];
   els.chartHead.innerHTML = `<tr><th scope="col">Size</th>${columns
-    .map((col) => `<th scope="col">${col}</th>`)
+    .map((col) => `<th scope="col">${escapeHtml(col)}</th>`)
     .join("")}</tr>`;
   els.chartBody.innerHTML = (validChart.rows || [])
     .map(
       (row) =>
-        `<tr><th scope="row">${row.label}</th>${columns
-          .map((_, index) => `<td>${row.values[index] || ""}</td>`)
+        `<tr><th scope="row">${escapeHtml(row.label)}</th>${columns
+          .map((_, index) => `<td>${escapeHtml(row.values[index] || "")}</td>`)
           .join("")}</tr>`,
     )
     .join("");
@@ -383,12 +395,13 @@ function renderSizeChart(chart) {
 
 function renderSizeChartImage(url) {
   if (!els.chartImageWrap || !els.chartImage) return;
-  const safeUrl = String(url || "").trim();
-  if (!safeUrl) {
+  const rawUrl = String(url || "").trim();
+  if (!rawUrl) {
     els.chartImageWrap.hidden = true;
     els.chartImage.removeAttribute("src");
     return;
   }
+  const safeUrl = safeImageUrl(rawUrl);
   els.chartImage.src = optimizeImageUrl(safeUrl, 1200);
   els.chartImageWrap.hidden = false;
 }

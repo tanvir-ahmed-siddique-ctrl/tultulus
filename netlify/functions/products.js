@@ -9,9 +9,9 @@ function jsonResponse(statusCode, payload, extraHeaders = {}) {
     statusCode,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
-      "Netlify-CDN-Cache-Control": "public, durable, s-maxage=300, stale-while-revalidate=86400",
-      "CDN-Cache-Control": "public, s-maxage=300, stale-while-revalidate=86400",
+      "Cache-Control": "public, max-age=30, stale-while-revalidate=300",
+      "Netlify-CDN-Cache-Control": "public, durable, s-maxage=30, stale-while-revalidate=300",
+      "CDN-Cache-Control": "public, s-maxage=30, stale-while-revalidate=300",
       "X-Content-Type-Options": "nosniff",
       ...extraHeaders,
     },

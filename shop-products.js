@@ -34,8 +34,23 @@ function slugify(value) {
     .replace(/^-+|-+$/g, "");
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeImageUrl(value) {
+  const url = String(value || "").trim();
+  if (/^https:\/\//i.test(url) || /^photos\/[a-z0-9._/-]+$/i.test(url)) return url;
+  return "photos/any.jpeg";
+}
+
 function optimizeImageUrl(url, width = 600) {
-  if (!url || typeof url !== "string") return "photos/any.jpeg";
+  url = safeImageUrl(url);
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
     if (url.includes("/upload/f_auto,q_auto")) return url;
     return url.replace("/upload/", `/upload/f_auto,q_auto:eco,w_${width},c_limit/`);
@@ -44,7 +59,7 @@ function optimizeImageUrl(url, width = 600) {
 }
 
 function getPlaceholderImageUrl(url) {
-  if (!url || typeof url !== "string") return "photos/any.jpeg";
+  url = safeImageUrl(url);
   if (url.includes("res.cloudinary.com") && url.includes("/upload/")) {
     return url.replace("/upload/", "/upload/f_auto,q_5,w_48,e_blur:300,c_limit/");
   }
@@ -194,7 +209,7 @@ function prefetchProductAssets(product) {
 }
 
 function createProductCard(product, priority = false) {
-  const rawImage = product.images[0] || "photos/any.jpeg";
+  const rawImage = safeImageUrl(product.images[0] || "photos/any.jpeg");
   const optimizedImage = optimizeImageUrl(rawImage, 480);
   const placeholderImage = getPlaceholderImageUrl(rawImage);
   const isCloudinary = rawImage.includes("res.cloudinary.com");
@@ -212,33 +227,37 @@ function createProductCard(product, priority = false) {
   card.dataset.offer = `${product.priceOriginal}`;
   card.dataset.badge = product.badge || "";
   card.dataset.images = product.images.join(",");
+  // USD base amounts for the display-only local currency converter on shop.html
+  card.dataset.usdCurrent = String(product.priceCurrent || 0);
+  card.dataset.usdOriginal = String(product.priceOriginal || 0);
 
   const placeholderHtml = isCloudinary
-    ? `<img class="placeholder-img" src="${placeholderImage}" alt="" aria-hidden="true" />`
+    ? `<img class="placeholder-img" src="${escapeHtml(placeholderImage)}" alt="" aria-hidden="true" />`
     : "";
   const responsiveAttrs = isCloudinary
-    ? `srcset="${optimizeImageUrl(rawImage, 240)} 240w, ${optimizeImageUrl(rawImage, 400)} 400w, ${optimizeImageUrl(rawImage, 640)} 640w" sizes="(max-width: 640px) calc(50vw - 11px), (max-width: 1100px) 33vw, 25vw"`
+    ? `srcset="${escapeHtml(optimizeImageUrl(rawImage, 240))} 240w, ${escapeHtml(optimizeImageUrl(rawImage, 400))} 400w, ${escapeHtml(optimizeImageUrl(rawImage, 640))} 640w" sizes="(max-width: 640px) calc(50vw - 11px), (max-width: 1100px) 33vw, 25vw"`
     : "";
 
   const originalPriceHtml =
     product.priceOriginal && product.priceOriginal > product.priceCurrent
-      ? `<span class="price-original">${product.priceOriginal}</span>`
+      ? `<span class="price-original">${escapeHtml(product.priceOriginal)}</span>`
       : "";
-  const badgeHtml = product.badge ? `<span class="badge">${product.badge}</span>` : "";
+  const badgeHtml = product.badge ? `<span class="badge">${escapeHtml(product.badge)}</span>` : "";
 
   card.innerHTML = `
     <div class="product-image">
       ${placeholderHtml}
-      <img class="main-img" src="${optimizedImage}" ${responsiveAttrs} alt="${product.name}" loading="${priority ? "eager" : "lazy"}" fetchpriority="${priority ? "high" : "auto"}" decoding="async" onload="this.style.opacity='1'; this.parentElement.classList.add('is-loaded'); this.parentElement.querySelector('.placeholder-img')?.remove();" />
+      <img class="main-img" src="${escapeHtml(optimizedImage)}" ${responsiveAttrs} alt="${escapeHtml(product.name)}" loading="${priority ? "eager" : "lazy"}" fetchpriority="${priority ? "high" : "auto"}" decoding="async" onload="this.style.opacity='1'; this.parentElement.classList.add('is-loaded'); this.parentElement.querySelector('.placeholder-img')?.remove();" />
       ${badgeHtml}
     </div>
     <div class="mt-4 space-y-2">
-      <h3 class="font-bold text-sm uppercase tracking-wider">${product.name}</h3>
+      <h3 class="font-bold text-sm uppercase tracking-wider">${escapeHtml(product.name)}</h3>
       <div class="price-display">
         <span class="price-currency">USD</span>
         ${originalPriceHtml}
-        <span class="price-current">${product.priceCurrent}</span>
+        <span class="price-current">${escapeHtml(product.priceCurrent)}</span>
       </div>
+      <p class="local-price-reference" hidden></p>
     </div>
   `;
 
@@ -318,6 +337,11 @@ function renderProducts(products) {
   if (featuredProducts.length) renderIntoGrid(featuredGrid, featuredProducts, "", priorityCount);
   renderIntoGrid(allGrid, products, "No products found.", featuredProducts.length ? 0 : priorityCount);
   if (hotProducts.length) renderIntoGrid(hotGrid, hotProducts, "");
+
+  // Re-apply country → local currency display after any grid rebuild
+  if (typeof window.refreshLocalPriceDisplay === "function") {
+    window.refreshLocalPriceDisplay();
+  }
 }
 
 function readCachedProducts() {

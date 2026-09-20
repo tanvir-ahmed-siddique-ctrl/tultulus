@@ -79,12 +79,36 @@ function completedPayment() {
   return {
     id: "square-payment-1",
     order_id: "square-order-1",
+    location_id: "sandbox-location",
     status: "COMPLETED",
     amount_money: { amount: 5250, currency: "USD" },
     receipt_number: "ABCD",
     receipt_url: "https://squareup.com/receipt/example",
     buyer_email_address: "buyer@example.com",
     card_details: { card: { card_brand: "MASTERCARD", last_4: "4444" } },
+  };
+}
+
+function pendingAchPayment() {
+  return {
+    id: "square-ach-payment-1",
+    order_id: "square-order-1",
+    location_id: "sandbox-location",
+    status: "PENDING",
+    source_type: "BANK_ACCOUNT",
+    amount_money: { amount: 5250, currency: "USD" },
+    buyer_email_address: "buyer@example.com",
+    bank_account_details: {
+      bank_name: "Test Bank",
+      transfer_type: "ACH",
+      country: "US",
+      fingerprint: "must-never-be-public",
+      ach_details: {
+        routing_number: "011111111",
+        account_number_suffix: "6789",
+        account_type: "CHECKING",
+      },
+    },
   };
 }
 
@@ -222,6 +246,127 @@ test("payment charges the prepared order and returns Mastercard receipt data", a
   }
 });
 
+test("ACH starts one full-balance pending transfer and exposes only safe bank details", async () => {
+  const originalFetch = global.fetch;
+  global.fetch = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith("/v2/orders/square-order-1")) return response({ order: preparedOrder() });
+    if (target.endsWith("/v2/payments") && options.method === "POST") {
+      const submitted = JSON.parse(options.body);
+      assert.equal(submitted.source_id, "bauth:sandbox-ach-token");
+      assert.equal(submitted.idempotency_key, `ach-${checkoutAttemptId}`);
+      assert.equal(submitted.amount_money.amount, 5250);
+      assert.equal(submitted.amount_money.currency, "USD");
+      assert.equal(submitted.autocomplete, true);
+      assert.equal(submitted.order_id, "square-order-1");
+      assert.equal(Object.hasOwn(submitted, "verification_token"), false);
+      return response({ payment: pendingAchPayment() });
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  try {
+    const { handler } = require("../netlify/functions/create-ach-payment");
+    const result = await handler({
+      httpMethod: "POST",
+      body: JSON.stringify({
+        sourceId: "bauth:sandbox-ach-token",
+        orderId: "square-order-1",
+        checkoutAttemptId,
+        expectedAmountCents: 5250,
+      }),
+    });
+    assert.equal(result.statusCode, 202);
+    const payload = JSON.parse(result.body);
+    assert.equal(payload.success, true);
+    assert.equal(payload.pending, true);
+    assert.equal(payload.payment.status, "PENDING");
+    assert.equal(payload.payment.sourceType, "BANK_ACCOUNT");
+    assert.equal(payload.payment.bankName, "Test Bank");
+    assert.equal(payload.payment.last4, "6789");
+    assert.equal(JSON.stringify(payload).includes("011111111"), false);
+    assert.equal(JSON.stringify(payload).includes("must-never-be-public"), false);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("ACH retry reuses an existing pending payment instead of creating another debit", async () => {
+  const originalFetch = global.fetch;
+  let createCalls = 0;
+  global.fetch = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith("/v2/orders/square-order-1")) {
+      const order = preparedOrder();
+      order.tenders = [{ payment_id: "square-ach-payment-1" }];
+      return response({ order });
+    }
+    if (target.endsWith("/v2/payments/square-ach-payment-1")) {
+      return response({ payment: pendingAchPayment() });
+    }
+    if (target.endsWith("/v2/payments") && options.method === "POST") {
+      createCalls += 1;
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  try {
+    const { handler } = require("../netlify/functions/create-ach-payment");
+    const result = await handler({
+      httpMethod: "POST",
+      body: JSON.stringify({
+        sourceId: "bauth:sandbox-ach-token",
+        orderId: "square-order-1",
+        checkoutAttemptId,
+        expectedAmountCents: 5250,
+      }),
+    });
+    assert.equal(result.statusCode, 202);
+    assert.equal(createCalls, 0);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test("pending ACH notification goes only to the seller and never reveals routing data", async () => {
+  const originalFetch = global.fetch;
+  const previous = {
+    apiKey: process.env.RESEND_API_KEY,
+    from: process.env.RESEND_FROM_EMAIL,
+    seller: process.env.SELLER_NOTIFICATION_EMAIL,
+  };
+  process.env.RESEND_API_KEY = "re_test";
+  process.env.RESEND_FROM_EMAIL = "Tultulus <orders@example.com>";
+  process.env.SELLER_NOTIFICATION_EMAIL = "seller@example.com";
+  const sends = [];
+  global.fetch = async (url, options = {}) => {
+    sends.push({ url: String(url), options });
+    return response({ id: "email-1" });
+  };
+
+  try {
+    const { sendAchPendingNotification } = require("../netlify/lib/square");
+    await sendAchPendingNotification(pendingAchPayment(), preparedOrder());
+    assert.equal(sends.length, 1);
+    const message = JSON.parse(sends[0].options.body);
+    assert.deepEqual(message.to, ["seller@example.com"]);
+    assert.match(message.subject, /ACH transfer pending/);
+    assert.match(message.html, /Do not confirm or ship/);
+    assert.match(message.html, /Test Buyer/);
+    assert.match(message.html, /ending in 6789/);
+    assert.equal(message.html.includes("011111111"), false);
+    assert.equal(message.html.includes("must-never-be-public"), false);
+  } finally {
+    global.fetch = originalFetch;
+    if (previous.apiKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previous.apiKey;
+    if (previous.from === undefined) delete process.env.RESEND_FROM_EMAIL;
+    else process.env.RESEND_FROM_EMAIL = previous.from;
+    if (previous.seller === undefined) delete process.env.SELLER_NOTIFICATION_EMAIL;
+    else process.env.SELLER_NOTIFICATION_EMAIL = previous.seller;
+  }
+});
+
 test("webhook rejects a forged signature", async () => {
   process.env.SQUARE_WEBHOOK_SIGNATURE_KEY = "test-signature-key";
   process.env.SQUARE_WEBHOOK_NOTIFICATION_URL = "https://example.com/.netlify/functions/square-webhook";
@@ -232,4 +377,57 @@ test("webhook rejects a forged signature", async () => {
     headers: { "x-square-hmacsha256-signature": crypto.randomBytes(32).toString("base64") },
   });
   assert.equal(result.statusCode, 403);
+});
+
+test("signed ACH completion webhook sends final confirmation to buyer and seller", async () => {
+  const originalFetch = global.fetch;
+  const previous = {
+    apiKey: process.env.RESEND_API_KEY,
+    from: process.env.RESEND_FROM_EMAIL,
+    seller: process.env.SELLER_NOTIFICATION_EMAIL,
+  };
+  process.env.RESEND_API_KEY = "re_test";
+  process.env.RESEND_FROM_EMAIL = "Tultulus <orders@example.com>";
+  process.env.SELLER_NOTIFICATION_EMAIL = "seller@example.com";
+  process.env.SQUARE_WEBHOOK_SIGNATURE_KEY = "test-signature-key";
+  process.env.SQUARE_WEBHOOK_NOTIFICATION_URL = "https://example.com/.netlify/functions/square-webhook";
+  const completedAch = { ...pendingAchPayment(), status: "COMPLETED", receipt_url: "https://squareup.com/receipt/ach" };
+  const sentTo = [];
+  global.fetch = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith("/v2/payments/square-ach-payment-1")) return response({ payment: completedAch });
+    if (target.endsWith("/v2/orders/square-order-1")) return response({ order: preparedOrder() });
+    if (target === "https://api.resend.com/emails") {
+      sentTo.push(JSON.parse(options.body).to[0]);
+      return response({ id: `email-${sentTo.length}` });
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+  const rawBody = JSON.stringify({
+    type: "payment.updated",
+    data: { object: { payment: { id: completedAch.id, order_id: completedAch.order_id, status: "COMPLETED" } } },
+  });
+  const signature = crypto
+    .createHmac("sha256", process.env.SQUARE_WEBHOOK_SIGNATURE_KEY)
+    .update(process.env.SQUARE_WEBHOOK_NOTIFICATION_URL + rawBody)
+    .digest("base64");
+
+  try {
+    const { handler } = require("../netlify/functions/square-webhook");
+    const result = await handler({
+      httpMethod: "POST",
+      body: rawBody,
+      headers: { "x-square-hmacsha256-signature": signature },
+    });
+    assert.equal(result.statusCode, 200);
+    assert.deepEqual(sentTo.sort(), ["buyer@example.com", "seller@example.com"]);
+  } finally {
+    global.fetch = originalFetch;
+    if (previous.apiKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previous.apiKey;
+    if (previous.from === undefined) delete process.env.RESEND_FROM_EMAIL;
+    else process.env.RESEND_FROM_EMAIL = previous.from;
+    if (previous.seller === undefined) delete process.env.SELLER_NOTIFICATION_EMAIL;
+    else process.env.SELLER_NOTIFICATION_EMAIL = previous.seller;
+  }
 });

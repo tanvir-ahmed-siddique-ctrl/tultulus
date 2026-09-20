@@ -1,8 +1,11 @@
 const {
   CheckoutError,
   cleanText,
+  getSafeBankDetails,
   getSquareConfig,
   jsonResponse,
+  sendAchFailedNotifications,
+  sendAchPendingNotification,
   sendPaymentNotifications,
   squareRequest,
 } = require("../lib/square");
@@ -29,16 +32,38 @@ exports.handler = async (event) => {
     if (!paymentId) return jsonResponse(200, { success: false, status: "PENDING" });
     const paymentResponse = await squareRequest(`/v2/payments/${encodeURIComponent(paymentId)}`);
     const payment = paymentResponse.payment;
-    if (payment?.status !== "COMPLETED") {
+    if (
+      payment?.order_id !== order.id
+      || payment?.location_id !== config.locationId
+      || payment?.amount_money?.amount !== order.total_money?.amount
+      || payment?.amount_money?.currency !== "USD"
+    ) {
+      throw new CheckoutError(404, "Payment attempt not found.", "PAYMENT_NOT_FOUND");
+    }
+    if (payment?.status === "FAILED" && payment?.source_type === "BANK_ACCOUNT") {
+      try {
+        await sendAchFailedNotifications(payment, order);
+      } catch (notificationError) {
+        console.error("Recovered failed ACH payment but notification failed", notificationError);
+      }
+      return jsonResponse(200, { success: false, status: "FAILED" });
+    }
+    if (!["PENDING", "COMPLETED"].includes(payment?.status)) {
       return jsonResponse(200, { success: false, status: payment?.status || "PENDING" });
     }
     try {
-      await sendPaymentNotifications(payment, order);
+      if (payment.status === "PENDING" && payment.source_type === "BANK_ACCOUNT") {
+        await sendAchPendingNotification(payment, order);
+      } else if (payment.status === "COMPLETED") {
+        await sendPaymentNotifications(payment, order);
+      }
     } catch (notificationError) {
       console.error("Recovered payment but notification failed", notificationError);
     }
+    const bank = payment.source_type === "BANK_ACCOUNT" ? getSafeBankDetails(payment) : null;
     return jsonResponse(200, {
       success: true,
+      pending: payment.status === "PENDING",
       order: {
         id: order.id,
         referenceId: order.reference_id,
@@ -51,8 +76,15 @@ exports.handler = async (event) => {
         receiptNumber: payment.receipt_number,
         receiptUrl: payment.receipt_url,
         amountMoney: payment.amount_money,
-        cardBrand: payment.card_details?.card?.card_brand || "Card",
+        sourceType: payment.source_type,
+        cardBrand: payment.card_details?.card?.card_brand || (bank ? "ACH bank account" : "Card"),
         last4: payment.card_details?.card?.last_4 || "",
+        ...(bank ? {
+          bankName: bank.bankName,
+          accountType: bank.accountType,
+          last4: bank.last4,
+          country: bank.country,
+        } : {}),
       },
     });
   } catch (error) {

@@ -3,6 +3,12 @@
   const LEGACY_KEY = "accolade_cart";
   const SUBTOTAL_KEY = "store_subtotal";
 
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
   function loadCart() {
     try {
       const raw = localStorage.getItem(CART_KEY) || localStorage.getItem(LEGACY_KEY) || "[]";
@@ -138,13 +144,13 @@
     }
     itemsEl.innerHTML = cart
       .map((item, index) => {
-        const qty = item.quantity > 1 ? ` × ${item.quantity}` : "";
-        const details = [item.color, item.size && item.size !== "SELECT SIZE" ? item.size : ""].filter(Boolean).join(" / ");
+        const qty = item.quantity > 1 ? ` × ${escapeHtml(item.quantity)}` : "";
+        const details = [item.color, item.size && item.size !== "SELECT SIZE" ? item.size : ""].filter(Boolean).map(escapeHtml).join(" / ");
         const meta = details ? ` · <span style="color:#dfb76c;">${details}</span>` : "";
         return `<div class="global-cart-item">
           <div>
-            <div style="font-weight:600; text-transform:capitalize;">${item.name}${qty}${meta}</div>
-            <div style="color:#dfb76c; font-size:12px; margin-top:2px;">${item.price} USD</div>
+            <div style="font-weight:600; text-transform:capitalize;">${escapeHtml(item.name)}${qty}${meta}</div>
+            <div style="color:#dfb76c; font-size:12px; margin-top:2px;">${escapeHtml(item.price)} USD</div>
           </div>
           <button type="button" data-remove="${index}">Remove</button>
         </div>`;

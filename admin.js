@@ -6,7 +6,9 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocFromServer,
   getDocs,
+  getDocsFromServer,
   onAuthStateChanged,
   serverTimestamp,
   setDoc,
@@ -751,7 +753,7 @@ function renderProductList() {
 }
 
 async function loadProducts() {
-  const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+  const snapshot = await getDocsFromServer(collection(db, PRODUCTS_COLLECTION));
   state.products = snapshot.docs
     .filter((docSnap) => docSnap.id !== CHECKOUT_SETTINGS_ID)
     .map((docSnap) => {
@@ -784,7 +786,7 @@ async function syncMissingSizeCharts() {
   if (btn) btn.disabled = true;
   setStatus("Syncing missing size charts...");
   try {
-    const snapshot = await getDocs(collection(db, PRODUCTS_COLLECTION));
+    const snapshot = await getDocsFromServer(collection(db, PRODUCTS_COLLECTION));
     let updatedCount = 0;
     for (const docSnap of snapshot.docs) {
       if (docSnap.id === CHECKOUT_SETTINGS_ID) continue;
@@ -819,8 +821,16 @@ if (loginForm) {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Login failed", error);
-      loginError.textContent =
-        "Sign in failed. Check email/password and authorized domain.";
+      const messages = {
+        "auth/invalid-credential": "Email or password is incorrect.",
+        "auth/invalid-login-credentials": "Email or password is incorrect.",
+        "auth/user-not-found": "No admin account exists for this email.",
+        "auth/wrong-password": "Email or password is incorrect.",
+        "auth/too-many-requests": "Too many attempts. Wait a moment and try again.",
+        "auth/unauthorized-domain": "This local domain is not authorized in Firebase Authentication.",
+        "auth/operation-not-allowed": "Email/password sign-in is disabled in Firebase Authentication.",
+      };
+      loginError.textContent = messages[error?.code] || "Sign in failed. Check Firebase Authentication settings.";
     }
   });
 }
@@ -848,7 +858,7 @@ if (uploadSizeChartImageButton) {
 async function loadPromoSettings() {
   if (!promoSettingsForm) return;
   try {
-    const snapshot = await getDoc(doc(db, SETTINGS_COLLECTION, CHECKOUT_SETTINGS_ID));
+    const snapshot = await getDocFromServer(doc(db, SETTINGS_COLLECTION, CHECKOUT_SETTINGS_ID));
     const data = snapshot.exists() ? snapshot.data() : {};
     document.getElementById("promo-settings-code").value = data.promoCode || "Ethika05";
     document.getElementById("promo-settings-percent").value = Number(data.promoDiscountPercent ?? 5);

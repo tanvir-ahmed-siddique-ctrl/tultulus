@@ -322,6 +322,13 @@
         min-height: 320px;
       }
 
+      @media (max-width: 899px) {
+        .pd-track {
+          aspect-ratio: 4 / 5;
+          min-height: 0;
+        }
+      }
+
       @media (min-width: 900px) {
         .pd-track {
           aspect-ratio: 1 / 1;
@@ -530,8 +537,9 @@
         text-shadow: 0 1px 8px rgba(0, 0, 0, 0.8);
       }
       .pd-block {
-        background: rgba(6, 6, 6, 0.88);
+        background: rgba(6, 6, 6, 0.44);
         border: 1px solid rgba(255, 255, 255, 0.42);
+        border-top: none;
         border-radius: 16px;
         padding: 16px 16px 18px;
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
@@ -688,7 +696,7 @@
       .size-chart-box {
         border: 1px solid rgba(255, 255, 255, 0.42);
         border-radius: 16px;
-        background: rgba(6, 6, 6, 0.9);
+        background: rgba(6, 6, 6, 0.44);
         overflow: hidden;
         padding: 0;
       }
@@ -1239,9 +1247,20 @@
                 badgeEl.textContent = displayBadge;
                 badgeEl.hidden = !displayBadge;
               }
+
+              function esc(value) {
+                return String(value == null ? "" : value)
+                  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+              }
+              function safeImageUrl(value) {
+                var url = String(value || "").trim();
+                if (/^https:\/\//i.test(url) || /^photos\/[a-z0-9._/-]+$/i.test(url)) return url;
+                return "photos/any.jpeg";
+              }
               
               function optUrl(u, w) {
-                if (!u || typeof u !== "string") return "photos/any.jpeg";
+                u = safeImageUrl(u);
                 if (u.indexOf("res.cloudinary.com") !== -1 && u.indexOf("/upload/") !== -1) {
                   if (u.indexOf("/upload/f_auto,q_auto") !== -1) return u;
                   return u.replace("/upload/", "/upload/f_auto,q_auto,w_" + w + ",c_limit/");
@@ -1255,9 +1274,9 @@
                 for (var j = 0; j < imgs.length; j++) {
                   var mainSrc = optUrl(imgs[j], 1000);
                   var thumbSrc = optUrl(imgs[j], 200);
-                  html += '<div class="pd-slide' + (j === 0 ? ' is-active' : '') + '"><img src="' + mainSrc + '" alt="Product" loading="' + (j === 0 ? 'eager' : 'lazy') + '" decoding="async" /></div>';
+                  html += '<div class="pd-slide' + (j === 0 ? ' is-active' : '') + '"><img src="' + esc(mainSrc) + '" alt="Product" loading="' + (j === 0 ? 'eager' : 'lazy') + '" decoding="async" /></div>';
                   if (imgs.length > 1) {
-                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '" data-slide-index="' + j + '" aria-label="View image ' + (j + 1) + '"><img src="' + thumbSrc + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
+                    thumbsHtml += '<button type="button" class="pd-thumb' + (j === 0 ? ' is-active' : '') + '" data-slide-index="' + j + '" aria-label="View image ' + (j + 1) + '"><img src="' + esc(thumbSrc) + '" alt="Thumb" loading="lazy" decoding="async" /></button>';
                   }
                 }
                 trackEl.innerHTML = html;
@@ -1294,7 +1313,7 @@
                 var cols = chart.columns || [];
                 var headHtml = '<tr><th scope="col">Size</th>';
                 for (var c = 0; c < cols.length; c++) {
-                  headHtml += '<th scope="col">' + cols[c] + '</th>';
+                  headHtml += '<th scope="col">' + esc(cols[c]) + '</th>';
                 }
                 headHtml += '</tr>';
                 chartHead.innerHTML = headHtml;
@@ -1302,10 +1321,10 @@
                 var bodyHtml = '';
                 var rows = chart.rows || [];
                 for (var r = 0; r < rows.length; r++) {
-                  bodyHtml += '<tr><th scope="row">' + (rows[r].label || rows[r].size || '') + '</th>';
+                  bodyHtml += '<tr><th scope="row">' + esc(rows[r].label || rows[r].size || '') + '</th>';
                   var vals = rows[r].values || [];
                   for (var c = 0; c < cols.length; c++) {
-                    bodyHtml += '<td>' + (vals[c] || '') + '</td>';
+                    bodyHtml += '<td>' + esc(vals[c] || '') + '</td>';
                   }
                   bodyHtml += '</tr>';
                 }

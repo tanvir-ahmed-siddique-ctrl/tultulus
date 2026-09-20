@@ -1,6 +1,6 @@
 # Square payment setup
 
-The checkout is implemented for a US Square seller charging US buyers in USD. It accepts debit and credit cards supported by the seller's Square account, including Mastercard.
+The checkout is implemented for a US Square seller charging in USD. It accepts supported debit/credit cards (including Mastercard), eligible digital wallets, and ACH transfers from eligible US bank accounts.
 
 ## 1. Create the Square application
 
@@ -42,6 +42,18 @@ Before enabling them for customers:
 
 Zelle is not a Square Web Payments SDK method. Do not show it as a payment button unless a separate Zelle business payment workflow, confirmation process, and fraud/reconciliation rules are implemented.
 
+## 2b. ACH bank transfers
+
+ACH uses the same Square Application ID, Location ID, Access Token, and `payment.updated` webhook. No Plaid account or additional Netlify secret is needed; Square's Web Payments SDK opens and manages the Plaid verification flow.
+
+- ACH is available only for eligible US bank accounts and the payment currency remains USD.
+- A new ACH payment normally starts as `PENDING` and can take 2–3 business days to become `COMPLETED` or `FAILED`.
+- A pending transfer sends a seller-only email and must not be fulfilled or shipped.
+- The signed `payment.updated` webhook sends the buyer and seller final paid-order emails only after Square reports `COMPLETED`.
+- If Square reports `FAILED`, the buyer and seller receive a failure notice and the order remains unconfirmed.
+- The server accepts the full verified order balance only. One checkout attempt has one server-owned idempotency key, so retries cannot create a second debit.
+- Full account and routing numbers are never returned to the browser or included in email. Only safe bank metadata such as bank name, account type, and account-number suffix can be displayed.
+
 ## 3. Configure the payment webhook
 
 In the Square Developer Console, open the application's **Webhooks** section and add:
@@ -76,9 +88,10 @@ After a verified completed payment, the buyer and seller receive order details a
 1. Deploy with Sandbox credentials.
 2. Add a current product to the cart again so the cart contains its Firestore product ID.
 3. Test successful, declined, invalid ZIP/CVV, repeated-click, and interrupted-network cases with [Square Sandbox test cards](https://developer.squareup.com/docs/devtools/sandbox/payments).
-4. Confirm the paid shipment order appears in the Sandbox Square Dashboard and both emails arrive.
-5. Replace the Application ID, Location ID, and Access Token together with their Production values.
-6. Set `SQUARE_ENVIRONMENT=production`, configure a Production webhook subscription/signature key, and redeploy.
-7. Make one small real-card purchase and refund it from Square Dashboard before opening checkout to customers.
+4. Test ACH in Sandbox using Square's Plaid test flow. Confirm the seller receives the pending notice, the order remains unconfirmed, and the final buyer/seller emails arrive after the Sandbox transfer becomes `COMPLETED`.
+5. Confirm the paid shipment order appears in the Sandbox Square Dashboard and both final emails arrive.
+6. Replace the Application ID, Location ID, and Access Token together with their Production values.
+7. Set `SQUARE_ENVIRONMENT=production`, configure a Production webhook subscription/signature key, and redeploy.
+8. Make one small real-card purchase and one small real ACH purchase before opening checkout to customers. Do not fulfill the ACH order until it is `COMPLETED`.
 
 Never mix Sandbox and Production credentials, and never expose `SQUARE_ACCESS_TOKEN`, `SQUARE_WEBHOOK_SIGNATURE_KEY`, or `RESEND_API_KEY` in HTML or client-side JavaScript.

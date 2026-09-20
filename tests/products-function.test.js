@@ -40,8 +40,8 @@ test("catalog endpoint returns only published products with CDN cache headers", 
     assert.equal(payload.products.length, 1);
     assert.equal(payload.products[0].id, "live-1");
     assert.equal(payload.products[0].name, "Fast Tee");
-    assert.match(result.headers["Cache-Control"], /max-age=300/);
-    assert.match(result.headers["Netlify-CDN-Cache-Control"], /s-maxage=300/);
+  assert.match(result.headers["Cache-Control"], /max-age=30/);
+  assert.match(result.headers["Netlify-CDN-Cache-Control"], /s-maxage=30/);
     assert.ok(result.headers.ETag);
   } finally {
     global.fetch = originalFetch;

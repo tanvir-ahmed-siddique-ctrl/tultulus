@@ -286,7 +286,10 @@ async function buildVerifiedOrder(rawCart, rawBuyer, submittedPromoCode) {
   });
 
   const config = await getCheckoutConfig({ requireSecret: true });
-  const promoApplied = submittedPromoCode === config.promoCode && config.promoDiscountPercent > 0;
+  const promoApplied =
+    submittedPromoCode
+    && String(submittedPromoCode).toLowerCase() === String(config.promoCode || "").toLowerCase()
+    && config.promoDiscountPercent > 0;
   const subtotalCents = lineItems.reduce(
     (sum, item) => sum + item.base_price_money.amount * Number(item.quantity),
     0,
@@ -384,11 +387,25 @@ function getOrderRecipient(order) {
   return order?.fulfillments?.[0]?.shipment_details?.recipient || {};
 }
 
-function renderOrderEmail({ payment, order, seller = false }) {
-  const recipient = getOrderRecipient(order);
-  const items = (order?.line_items || [])
+function getSafeBankDetails(payment) {
+  const details = payment?.bank_account_details || {};
+  const ach = details.ach_details || {};
+  return {
+    bankName: cleanText(details.bank_name || "U.S. bank", 120),
+    accountType: cleanText(ach.account_type || "Bank account", 40),
+    last4: cleanText(ach.account_number_suffix, 4),
+    country: cleanText(details.country || "US", 2).toUpperCase(),
+  };
+}
+
+function renderOrderItems(order) {
+  return (order?.line_items || [])
     .map((item) => `<tr><td style="padding:10px 8px;border-bottom:1px solid #eee">${escapeHtml(item.name)}${item.note ? ` <small>(${escapeHtml(item.note)})</small>` : ""}</td><td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:center">${escapeHtml(item.quantity)}</td><td style="padding:10px 8px;border-bottom:1px solid #eee;text-align:right">${formatUsd(item.total_money?.amount || 0)}</td></tr>`)
     .join("");
+}
+
+function renderShippingDetails(payment, order) {
+  const recipient = getOrderRecipient(order);
   const address = recipient.address || payment.shipping_address || {};
   const addressText = [
     address.address_line_1,
@@ -397,7 +414,19 @@ function renderOrderEmail({ payment, order, seller = false }) {
     address.locality,
     address.administrative_district_level_1,
     address.postal_code,
+    address.country,
   ].filter(Boolean).map(escapeHtml).join(", ");
+  return `${escapeHtml(recipient.display_name || "")}<br>${addressText}<br>
+    ${escapeHtml(recipient.phone_number || "")}<br>${escapeHtml(recipient.email_address || payment.buyer_email_address || "")}`;
+}
+
+function renderOrderEmail({ payment, order, seller = false }) {
+  const recipient = getOrderRecipient(order);
+  const items = renderOrderItems(order);
+  const bank = payment.source_type === "BANK_ACCOUNT" ? getSafeBankDetails(payment) : null;
+  const paymentMethod = bank
+    ? `${bank.bankName}${bank.last4 ? ` ending in ${bank.last4}` : ""} (${bank.accountType})`
+    : `${cleanText(payment.card_details?.card?.card_brand || "Card", 40)}${payment.card_details?.card?.last_4 ? ` ending in ${cleanText(payment.card_details.card.last_4, 4)}` : ""}`;
   const receiptLink = payment.receipt_url
     ? `<p><a href="${escapeHtml(payment.receipt_url)}">View official Square receipt</a></p>`
     : "";
@@ -409,17 +438,56 @@ function renderOrderEmail({ payment, order, seller = false }) {
       <p>Payment status: <strong>${escapeHtml(payment.status)}</strong></p>
       <p>Order ID: <strong>${escapeHtml(order.id)}</strong><br>
       Payment ID: <strong>${escapeHtml(payment.id)}</strong><br>
+      Payment method: <strong>${escapeHtml(paymentMethod)}</strong><br>
       Total paid: <strong>${formatUsd(payment.amount_money?.amount)}</strong></p>
       <h2 style="font-size:18px">Order summary</h2>
       <table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left;padding:8px">Item</th><th style="padding:8px">Qty</th><th style="text-align:right;padding:8px">Amount</th></tr></thead><tbody>${items}</tbody></table>
       <p style="text-align:right;font-size:18px"><strong>Total paid: ${formatUsd(payment.amount_money?.amount)}</strong></p>
       <h2 style="font-size:18px">Shipping details</h2>
-      <h2 style="font-size:18px">Ship to</h2>
-      <p>${escapeHtml(recipient.display_name || "")}<br>${addressText}<br>
-      ${escapeHtml(recipient.phone_number || "")}<br>${escapeHtml(recipient.email_address || payment.buyer_email_address || "")}</p>
+      <p>${renderShippingDetails(payment, order)}</p>
       ${orderNote ? `<h2 style="font-size:18px">Order note</h2><p>${escapeHtml(orderNote)}</p>` : ""}
       ${receiptLink}
       <p style="color:#666;font-size:12px">This message was generated from a verified Square payment.</p>
+    </div>`;
+}
+
+function renderAchPendingEmail(payment, order) {
+  const bank = getSafeBankDetails(payment);
+  const orderNote = order?.fulfillments?.[0]?.shipment_details?.shipping_note;
+  return `
+    <div style="font-family:Arial,sans-serif;color:#1f1f1f;line-height:1.6;max-width:640px;margin:auto">
+      <h1 style="font-size:24px">ACH bank transfer initiated</h1>
+      <p style="padding:12px 14px;background:#fff4d6;border-left:4px solid #b7791f"><strong>Payment is pending. Do not confirm or ship this order until Square marks it COMPLETED.</strong></p>
+      <p>Payment status: <strong>PENDING</strong><br>
+      Order ID: <strong>${escapeHtml(order.id)}</strong><br>
+      Payment ID: <strong>${escapeHtml(payment.id)}</strong><br>
+      Amount pending: <strong>${formatUsd(payment.amount_money?.amount)}</strong></p>
+      <h2 style="font-size:18px">Bank transfer details</h2>
+      <p>Bank: <strong>${escapeHtml(bank.bankName)}</strong><br>
+      Account: <strong>${escapeHtml(bank.accountType)}${bank.last4 ? ` ending in ${escapeHtml(bank.last4)}` : ""}</strong><br>
+      Country: <strong>${escapeHtml(bank.country)}</strong></p>
+      <h2 style="font-size:18px">Order summary</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:14px"><thead><tr><th style="text-align:left;padding:8px">Item</th><th style="padding:8px">Qty</th><th style="text-align:right;padding:8px">Amount</th></tr></thead><tbody>${renderOrderItems(order)}</tbody></table>
+      <p style="text-align:right;font-size:18px"><strong>Total pending: ${formatUsd(payment.amount_money?.amount)}</strong></p>
+      <h2 style="font-size:18px">Shipping details</h2>
+      <p>${renderShippingDetails(payment, order)}</p>
+      ${orderNote ? `<h2 style="font-size:18px">Order note</h2><p>${escapeHtml(orderNote)}</p>` : ""}
+      <p style="color:#666;font-size:12px">For privacy and security, only the bank name, account type, and account-number suffix are shown.</p>
+    </div>`;
+}
+
+function renderAchFailedEmail(payment, order, seller = false) {
+  const bank = getSafeBankDetails(payment);
+  return `
+    <div style="font-family:Arial,sans-serif;color:#1f1f1f;line-height:1.6;max-width:640px;margin:auto">
+      <h1 style="font-size:24px">ACH bank transfer failed</h1>
+      <p>${seller ? "The pending bank transfer did not complete. Do not ship this order." : "Your bank transfer did not complete, so your order was not confirmed and must be placed again."}</p>
+      <p>Payment status: <strong>FAILED</strong><br>
+      Order ID: <strong>${escapeHtml(order.id)}</strong><br>
+      Payment ID: <strong>${escapeHtml(payment.id)}</strong><br>
+      Amount: <strong>${formatUsd(payment.amount_money?.amount)}</strong><br>
+      Bank: <strong>${escapeHtml(bank.bankName)}${bank.last4 ? ` ending in ${escapeHtml(bank.last4)}` : ""}</strong></p>
+      <p>Questions? Contact contactultul@gmail.com.</p>
     </div>`;
 }
 
@@ -481,6 +549,61 @@ async function sendPaymentNotifications(payment, order) {
   return summary;
 }
 
+async function sendAchPendingNotification(payment, order) {
+  if (
+    payment?.status !== "PENDING"
+    || payment?.source_type !== "BANK_ACCOUNT"
+    || !payment?.id
+    || !order?.id
+  ) {
+    return { skipped: true };
+  }
+  const sellerEmail = cleanText(process.env.SELLER_NOTIFICATION_EMAIL, 255).toLowerCase();
+  if (!sellerEmail) return { skipped: true };
+  return sendResendEmail({
+    to: sellerEmail,
+    subject: `ACH transfer pending — ${formatUsd(payment.amount_money?.amount)}`,
+    html: renderAchPendingEmail(payment, order),
+    idempotencyKey: `seller-ach-pending/${payment.id}`,
+  });
+}
+
+async function sendAchFailedNotifications(payment, order) {
+  if (
+    payment?.status !== "FAILED"
+    || payment?.source_type !== "BANK_ACCOUNT"
+    || !payment?.id
+    || !order?.id
+  ) {
+    return { skipped: true };
+  }
+  const recipient = getOrderRecipient(order);
+  const buyerEmail = cleanText(payment.buyer_email_address || recipient.email_address, 255).toLowerCase();
+  const sellerEmail = cleanText(process.env.SELLER_NOTIFICATION_EMAIL, 255).toLowerCase();
+  const jobs = [];
+  if (buyerEmail) {
+    jobs.push(sendResendEmail({
+      to: buyerEmail,
+      subject: "Tultulus bank transfer failed — order not confirmed",
+      html: renderAchFailedEmail(payment, order),
+      idempotencyKey: `buyer-ach-failed/${payment.id}`,
+    }));
+  }
+  if (sellerEmail) {
+    jobs.push(sendResendEmail({
+      to: sellerEmail,
+      subject: `ACH transfer failed — ${formatUsd(payment.amount_money?.amount)}`,
+      html: renderAchFailedEmail(payment, order, true),
+      idempotencyKey: `seller-ach-failed/${payment.id}`,
+    }));
+  }
+  const results = await Promise.allSettled(jobs);
+  if (results.some((result) => result.status === "rejected")) {
+    throw new Error("One or more ACH failure notifications could not be delivered.");
+  }
+  return { attempted: jobs.length, failed: 0 };
+}
+
 function verifySquareWebhookSignature(rawBody, signature) {
   const signatureKey = cleanText(process.env.SQUARE_WEBHOOK_SIGNATURE_KEY, 512);
   const notificationUrl = cleanText(process.env.SQUARE_WEBHOOK_NOTIFICATION_URL, 500);
@@ -501,7 +624,10 @@ module.exports = {
   createVerifiedSquareOrder,
   getSquareConfig,
   getCheckoutConfig,
+  getSafeBankDetails,
   jsonResponse,
+  sendAchFailedNotifications,
+  sendAchPendingNotification,
   sendPaymentNotifications,
   squareRequest,
   verifySquareWebhookSignature,
