@@ -493,13 +493,17 @@
         display: flex;
         flex-wrap: wrap;
         align-items: baseline;
-        gap: 8px 10px;
+        gap: 6px;
       }
       .price-currency,
       .price-current,
       .price-original {
         color: var(--price);
         font-weight: 700;
+      }
+      .price-currency {
+        margin-right: -4px;
+        letter-spacing: 0;
       }
       .price-current {
         font-size: 1.35rem;
@@ -1148,7 +1152,7 @@
           <h1 id="pd-title" class="pd-title"></h1>
 
           <div class="price-display">
-            <span class="price-currency">USD</span>
+            <span class="price-currency">$</span>
             <span id="pd-offer" class="price-original"></span>
             <span id="pd-price" class="price-current"></span>
             <span id="pd-badge" class="price-badge"></span>
@@ -1245,7 +1249,7 @@
                 return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
               };
               if (priceEl) priceEl.textContent = money(item.priceCurrent || item.price);
-              if (unitEl) unitEl.textContent = "Unit: USD " + money(item.priceCurrent || item.price);
+              if (unitEl) unitEl.textContent = "Unit: $" + money(item.priceCurrent || item.price);
               if (offerEl) {
                 var orig = Number(item.priceOriginal || item.offer) || 0;
                 var curr = Number(item.priceCurrent || item.price) || 0;

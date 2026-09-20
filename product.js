@@ -308,7 +308,7 @@ function formatLocalFromUsd(usdAmount) {
 function updateTotals() {
   const total = unitPrice * quantity;
   if (els.price) els.price.textContent = formatUsdAmount(total);
-  if (els.unit) els.unit.textContent = `Unit: USD ${formatUsdAmount(unitPrice)}`;
+  if (els.unit) els.unit.textContent = `Unit: $${formatUsdAmount(unitPrice)}`;
   if (els.qtyValue) els.qtyValue.textContent = String(quantity);
   if (els.localPrice) {
     const localTotal = formatLocalFromUsd(total);
@@ -317,8 +317,8 @@ function updateTotals() {
       els.localPrice.hidden = false;
       els.localPrice.textContent =
         quantity > 1 && localUnit
-          ? `≈ ${localTotal} · ${localUnit} each · charged in USD`
-          : `≈ ${localTotal} · charged in USD`;
+          ? `≈ ${localTotal} · ${localUnit} each · charged in $`
+          : `≈ ${localTotal} · charged in $`;
     } else {
       els.localPrice.hidden = true;
       els.localPrice.textContent = "";

@@ -227,7 +227,7 @@ function createProductCard(product, priority = false) {
 
   card.dataset.id = product.id;
   card.dataset.name = product.name;
-  card.dataset.price = `USD ${product.priceCurrent}`;
+  card.dataset.price = `$${product.priceCurrent}`;
   card.dataset.priceValue = `${product.priceCurrent}`;
   card.dataset.offer = `${product.priceOriginal}`;
   card.dataset.badge = product.badge || "";
@@ -258,7 +258,7 @@ function createProductCard(product, priority = false) {
     <div class="mt-4 space-y-2">
       <h3 class="font-bold text-sm uppercase tracking-wider">${escapeHtml(product.name)}</h3>
       <div class="price-display">
-        <span class="price-currency">USD</span>
+        <span class="price-currency">$</span>
         ${originalPriceHtml}
         <span class="price-current">${escapeHtml(formatUsdAmount(product.priceCurrent))}</span>
       </div>
