@@ -4572,14 +4572,7 @@
         renderLocalPrices();
         setTimeout(renderLocalPrices, 50);
         setTimeout(renderLocalPrices, 400);
-        const shipCountry = document.getElementById("inp-country");
-        if (shipCountry && !shipCountry.value && localPricePreference.country) {
-          const code = localPricePreference.country;
-          if ([...shipCountry.options].some((opt) => opt.value === code)) {
-            shipCountry.value = code;
-            syncCountryFields();
-          }
-        }
+        // Do not auto-fill shipping country from price preference — user must select it.
       } else {
         openCountryPriceModal();
       }
@@ -4898,10 +4891,12 @@
           );
         }
 
-        // Always keep express checkout visible with real brand buttons
+        // Always show Apple Pay + Google Pay on every browser. Device/wallet
+        // eligibility is handled by Square/Apple/Google when the user taps.
         walletCard.hidden = false;
+        if (appleSlot) appleSlot.hidden = false;
         if (googleSlot) googleSlot.hidden = false;
-        // Show branded Google Pay immediately so the logo is never blank
+        appleButton.disabled = false;
         renderGooglePayFallback("Preparing Google Pay…");
         applePay = null;
         googlePay = null;
@@ -4909,24 +4904,21 @@
         const payments = await getSquarePayments();
         const request = buildWalletPaymentRequest(payments, quote);
 
-        // Apple Pay: only enable where Apple allows (Safari / eligible device)
-        if (window.ApplePaySession) {
-          if (appleSlot) appleSlot.hidden = false;
-          try {
+        try {
+          if (window.ApplePaySession) {
             applePay = await payments.applePay(request);
-            appleButton.disabled = false;
             appleButton.onclick = () => payWithWallet(applePay, quote, billing);
-          } catch (error) {
+          } else {
             applePay = null;
-            appleButton.disabled = true;
             appleButton.onclick = () =>
               setPaymentStatus("Apple Pay is not available on this device.", "error");
           }
-        } else if (appleSlot) {
-          appleSlot.hidden = true;
+        } catch (error) {
+          applePay = null;
+          appleButton.onclick = () =>
+            setPaymentStatus("Apple Pay is not available on this device.", "error");
         }
 
-        // Google Pay: keep custom logo button; attach Square host off-screen for tokenize()
         try {
           googlePay = await payments.googlePay(request);
           const sdkHost = document.getElementById("google-pay-sdk-host");
